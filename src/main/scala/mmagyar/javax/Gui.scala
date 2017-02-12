@@ -3,7 +3,7 @@ package mmagyar.javax
 import java.awt.{Dimension, Graphics, Color => AwtColor}
 import javax.swing.{BorderFactory, JFrame, JPanel}
 
-import mmagyar.layout.{Align, Fill, Organize, Positionable}
+import mmagyar.layout._
 import mmagyar.ui._
 import mmagyar.util.{Color, Point, PointSwapper, Transform}
 
@@ -18,15 +18,15 @@ object Gui {
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
 //    frame.setSize(new Dimension(620, 240))
 
-    val el1    = Rect(Point(20, 20), Point(60, 60)).fill(Color.red)
-    val el2    = Rect(Point(10, 10), Point(80, 50)).fill(Color.green)
-    val el3    = Rect2(Point(45, 45), Point(80, 50)).fill(Color.blue)
+    val el1    = Rect(Point(20, 20), Sizing(Point(60, 60),grow= Grow.Affinity)).fill(Color.red)
+    val el2    = Rect(Point(10, 10), Sizing(Point(80, 50),grow= Grow.No)).fill(Color.green)
+    val el3    = Rect(Point(45, 45), Sizing(Point(80, 50))).fill(Color.blue)
     val elements = List(el1, el2, el3)
 
 
 //    println(elements.collect { case a: Puttable => a})
-   val res =  Organize.fitElementsOnLine[Dastra with Puttable](
-      elements.collect { case a: Puttable => a},
+   val res =  Organize.fitElementsOnLine[Shapey with PositionableShapey](
+      elements.collect { case a: PositionableShapey => a},
       Point(320, 60),
       Point.zero,
       Align.Right,

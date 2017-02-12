@@ -3,12 +3,12 @@ package mmagyar.ui
 import mmagyar.util.{Color, Degree}
 
 /** Created by Magyar Máté on 2017-02-01, All rights reserved. */
-trait hasFill[A <: hasFill[A]] { this: A =>
+trait Fillable[A <: Fillable[A]] { this: A =>
   def fill: Color
   def fill(color: Color): A
 }
 
-trait hasStroke[A <: hasFill[A]] { this: A =>
+trait Strokable[A <: Fillable[A]] { this: A =>
 
   def lineWidth: Double
   def lineWidth(lineWidth: Double): A
@@ -20,7 +20,7 @@ case class Looks(fill: Color = Color.transparent,
                  stroke: Color = Color.transparent,
                  strokeLineWidth: Double = 0)
 
-trait hasLooks[A <: hasLooks[A]] extends hasFill[A] with hasStroke[A] { this: A =>
+trait Lookable[A <: Lookable[A]] extends Fillable[A] with Strokable[A] { this: A =>
   def looks: Looks
   def looks(looks: Looks): A
 
@@ -33,9 +33,7 @@ trait hasLooks[A <: hasLooks[A]] extends hasFill[A] with hasStroke[A] { this: A 
   def fill(color: Color): A = looks(looks.copy(fill = color))
 }
 
-trait hasRotation[A <: hasFill[A]] { this: A =>
+trait Rotatable[A <: Rotatable[A]] { this: A =>
   def rotation: Degree
   def rotation(degree: Degree): A
 }
-
-

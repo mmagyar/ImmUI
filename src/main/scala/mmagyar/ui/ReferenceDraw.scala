@@ -10,11 +10,11 @@ class ReferenceDraw {
     val root = document.root
 
 
-    def draw(elements: List[Dastra], offset: Point): List[Color] = {
+    def draw(elements: List[Shapey], offset: Point): List[Color] = {
       elements.flatMap({
         case a: Groupable[_] =>
           draw(a.elements, offset)
-        case a: hasFill[_] if a.inside(point + offset, document.transform) =>
+        case a: Fillable[_] if a.inside(point + offset, document.transform) =>
           List(a.fill)
         case _ => List()
       })
