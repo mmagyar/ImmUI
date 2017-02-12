@@ -7,6 +7,6 @@ case class Sizing(
     size: Point,
     minSize: Point = Point.zero,
     maxSize: Point = Point.large,
-    grow: Grow = Grow.No(),
-    shrink: Shrink = Shrink.No()
+    grow: Grow = Grow.No,
+    shrink: Shrink = Shrink.No
 )

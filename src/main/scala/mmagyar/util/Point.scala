@@ -265,7 +265,7 @@ case class Transform(offset: Point = Point.zero, scale: Point = Point.one) {
 
   def withOffset(offset: Point): Transform = Transform(offset, this.scale)
 
-  def transform(point:Point):Point = {
+  def transform(point: Point): Point = {
     (point + offset).scale(scale)
   }
 }
@@ -316,29 +316,29 @@ case class Box(horizontal: Point = Point.zero, vertical: Point = Point.zero) {
 object PointSwapper {
   val x: PointSwapper = {
     PointSwapper(
-      primary = _.x,
-      primarySet = (p, v) => Point(v, p.y),
-      secondary = _.y,
-      secondarySet = (p, v) => Point(p.x, v)
+      _1 = _.x,
+      _1Set = (p, v) => Point(v, p.y),
+      _2 = _.y,
+      _2Set = (p, v) => Point(p.x, v)
     )
   }
 
   val y: PointSwapper = {
     PointSwapper(
-      primary = _.y,
-      primarySet = (p, v) => Point(p.x, v),
-      secondary = _.x,
-      secondarySet = (p, v) => Point(v, p.y)
+      _1 = _.y,
+      _1Set = (p, v) => Point(p.x, v),
+      _2 = _.x,
+      _2Set = (p, v) => Point(v, p.y)
     )
   }
 
 }
 
-case class PointSwapper private (primary: (Point) => Double,
-                                 primarySet: (Point, Double) => Point,
-                                 secondary: (Point) => Double,
-                                 secondarySet: (Point, Double) => Point) {
+case class PointSwapper private (_1: (Point) => Double,
+                                 _1Set: (Point, Double) => Point,
+                                 _2: (Point) => Double,
+                                 _2Set: (Point, Double) => Point) {
   def addSecondary(point: Point, value: Double): Point =
-    secondarySet(point, value + secondary(point))
-  def addPrimary(point: Point, value: Double): Point = primarySet(point, value + primary(point))
+    _2Set(point, value + _2(point))
+  def addPrimary(point: Point, value: Double): Point = _1Set(point, value + _1(point))
 }

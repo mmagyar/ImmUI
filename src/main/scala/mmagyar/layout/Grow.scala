@@ -4,7 +4,7 @@ package mmagyar.layout
 sealed trait Grow
 
 object Grow {
-  case class No()       extends Grow
-  case class Affinity() extends Grow
-  def apply(): Grow = Affinity()
+  final case object No       extends Grow
+  final case object Affinity extends Grow
+  def apply(): Grow = Affinity
 }

@@ -20,21 +20,25 @@ object Gui {
 
     val el1    = Rect(Point(20, 20), Point(60, 60)).fill(Color.red)
     val el2    = Rect(Point(10, 10), Point(80, 50)).fill(Color.green)
-    val el3    = Rect2(Point(45, 45), Point(80, 50)).fill(Color.green)
-    val group2 = Group(List(el1, el2, el3))
-    val group  = Group(List(group2))
+    val el3    = Rect2(Point(45, 45), Point(80, 50)).fill(Color.blue)
+    val elements = List(el1, el2, el3)
 
-   val res =  Organize.fitElementsOnLine(
-      group2.elements.collect{ case a: Puttable => a},
-      Point(20, 20),
+
+//    println(elements.collect { case a: Puttable => a})
+   val res =  Organize.fitElementsOnLine[Dastra with Puttable](
+      elements.collect { case a: Puttable => a},
+      Point(320, 60),
       Point.zero,
-      Align.Center,
-      Align.Center,
+      Align.Right,
+      Align.Right,
       Fill.Equal,
       PointSwapper.x)
+
+    val group2 = Group(res)
+    val group  = Group(List(group2))
     println(res)
     val label = new MyPanel(
-      Document(root = group, transform = Transform(Point(20, 20), Point(1, 1))))
+      Document(root = group, transform = Transform(Point(0, 0), Point(1, 1))))
     frame.getContentPane.add(label)
 
     //Display the window.

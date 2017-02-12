@@ -9,7 +9,7 @@ trait Sizable extends Material {
 
   def minSize: Point = Point.zero
   def maxSize: Point = Point.large
-  def grow: Grow     = Grow.No()
-  def shrink: Shrink = Shrink.No()
+  def grow: Grow     = Grow.No
+  def shrink: Shrink = Shrink.No
 
 }

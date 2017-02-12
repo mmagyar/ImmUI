@@ -27,7 +27,7 @@ object OrganizeMutable {
       ps: PointSwapper
   ): List[T] = {
 
-    val sizeSummer = (p: Double, c: Positionable) => p + ps.primary(c.size)
+    val sizeSummer = (p: Double, c: Positionable) => p + ps._1(c.size)
 
     //is this going to be shrunk or grown?
     val currentWidth = elements.foldLeft(0.0)(sizeSummer)
@@ -37,17 +37,17 @@ object OrganizeMutable {
       .foldLeft(0.0)(sizeSummer)
     val sizables = elements collect { case a: Sizable => a }
 
-    val remainingWidth: Double = ps.primary(lineSize) - nonSizableSize
+    val remainingWidth: Double = ps._1(lineSize) - nonSizableSize
 
     val recurse: Boolean =
-      if (currentWidth > ps.primary(lineSize)) {
+      if (currentWidth > ps._1(lineSize)) {
         fill match {
           case No => false
           case Equal =>
             val (nonShrinkable, shrinkable) = sizables.partition(el =>
-              el.grow match {
-                case _: Shrink.No => true
-                case _            => ps.primary(el.minSize) >= ps.primary(el.size)
+              el.shrink match {
+                case a if a== Shrink.No => true
+                case _            => ps._1(el.minSize) >= ps._1(el.size)
             })
 
             val shrinkableSpace = remainingWidth - nonShrinkable.foldLeft(0.0)(sizeSummer)
@@ -57,10 +57,10 @@ object OrganizeMutable {
             if (shrinkableSpace - currentSpace < 0) {
               val multiplier = if (currentSpace == 0) 1 else shrinkableSpace / currentSpace
               shrinkable.foldLeft(false)((_, x) => {
-                val size    = ps.primary(x.size)
-                val minSize = ps.primary(x.minSize)
+                val size    = ps._1(x.size)
+                val minSize = ps._1(x.minSize)
                 val ns      = if (currentSpace == 0) minSize else size * multiplier
-                x.size = ps.primarySet(x.size, if (ns <= minSize) minSize else ns)
+                x.size = ps._1Set(x.size, if (ns <= minSize) minSize else ns)
                 ns <= minSize //If there are elements that reaching maximum size, run layout again
               })
             } else false
@@ -78,8 +78,8 @@ object OrganizeMutable {
           case Equal =>
             val (nonGrowable, growable) = sizables.partition(el =>
               el.grow match {
-                case _: Grow.No => true
-                case _          => ps.primary(el.maxSize) <= ps.primary(el.size)
+                case a if a ==  Grow.No => true
+                case _          => ps._1(el.maxSize) <= ps._1(el.size)
             })
             val growableSpace = remainingWidth - nonGrowable.foldLeft(0.0)(sizeSummer)
             val currentSpace  = growable.foldLeft(0.0)(sizeSummer)
@@ -88,10 +88,10 @@ object OrganizeMutable {
             if (growableSpace - currentSpace > 0) {
               val multiplier = growableSpace / currentSpace
               growable.foldLeft(false)((_, x) => {
-                val size    = ps.primary(x.size)
-                val maxSize = ps.primary(x.maxSize)
+                val size    = ps._1(x.size)
+                val maxSize = ps._1(x.maxSize)
                 val ns      = size * multiplier
-                x.size = ps.primarySet(x.size, if (ns >= maxSize) maxSize else ns)
+                x.size = ps._1Set(x.size, if (ns >= maxSize) maxSize else ns)
                 ns >= maxSize //If there are elements that reaching maximum size, run layout again
               })
             } else false
@@ -109,25 +109,25 @@ object OrganizeMutable {
       //order and alignContent elements
       val finalWidth = elements.foldLeft(0.0)(sizeSummer)
 
-      val primaryOffset = alignItem.align(ps.primary(lineSize), finalWidth).offset
-      elements.foldLeft(ps.primary(startPosition) + primaryOffset)((p, c) => {
-        c.position = ps.primarySet(startPosition, p)
+      val primaryOffset = alignItem.align(ps._1(lineSize), finalWidth).offset
+      elements.foldLeft(ps._1(startPosition) + primaryOffset)((p, c) => {
+        c.position = ps._1Set(startPosition, p)
 
-        val sizeSec = ps.secondary(c.size)
+        val sizeSec = ps._2(c.size)
         val elementSize = c match {
           case a: Sizable =>
-            val maxSize = ps.secondary(lineSize).min(ps.secondary(a.maxSize))
+            val maxSize = ps._2(lineSize).min(ps._2(a.maxSize))
             val result =
               alignContent.align(maxSize, sizeSec, sizeChangeable = true)
             if (sizeSec != result.size)
-              a.size = ps.secondarySet(a.size, result.size)
+              a.size = ps._2Set(a.size, result.size)
             result.size
           case _ => sizeSec
         }
         val alignResult =
-          alignContent.align(ps.secondary(lineSize), elementSize)
-        c.position = ps.secondarySet(c.position, alignResult.offset + ps.secondary(startPosition))
-        p + ps.primary(c.size)
+          alignContent.align(ps._2(lineSize), elementSize)
+        c.position = ps._2Set(c.position, alignResult.offset + ps._2(startPosition))
+        p + ps._1(c.size)
       })
       elements
     }
@@ -145,18 +145,18 @@ object OrganizeMutable {
       val topOffset = current match {
         case a: Sizable =>
           val result =
-            align.align(ps.secondary(maxSize), ps.secondary(size), sizeChangeable = true)
-          ps.secondarySet(a.size, result.size) match {
+            align.align(ps._2(maxSize), ps._2(size), sizeChangeable = true)
+          ps._2Set(a.size, result.size) match {
             case b if b != a.size => a.size = b; case _ => ()
           }
           result.offset
-        case _ => align.align(ps.secondary(maxSize), ps.secondary(size)).offset
+        case _ => align.align(ps._2(maxSize), ps._2(size)).offset
       }
 
-      ps.secondarySet(prev, ps.secondary(prev) + topOffset) match {
+      ps._2Set(prev, ps._2(prev) + topOffset) match {
         case b if b != current.position => current.position = b; case _ => ()
       }
-      ps.primarySet(prev, ps.primary(prev) + ps.primary(size))
+      ps._1Set(prev, ps._1(prev) + ps._1(size))
     })
     elements
   }
@@ -175,31 +175,31 @@ object OrganizeMutable {
       (p: List[(Point, List[T], Double)], c) => {
         val last: (Point, List[T], Double) =
           if (p.nonEmpty) p.last else (Point.zero, List[T](), 0.0)
-        val lineSize = ps.primary(last._1) + ps.primary(c.size)
-        if ((lineSize > ps.primary(size) && ps
-              .primary(last._1) != 0) || p.isEmpty)
+        val lineSize = ps._1(last._1) + ps._1(c.size)
+        if ((lineSize > ps._1(size) && ps
+              ._1(last._1) != 0) || p.isEmpty)
           p ++ List(
             (
 //            (ps.addSecondary(c.size, ps.secondary(last._1)),
              c.size,
              List(c),
-             last._3 + ps.secondary(last._1)))
+             last._3 + ps._2(last._1)))
         else
           p.updated(
             p.size - 1,
-            (ps.primarySet(
-               ps.secondarySet(c.size, ps.secondary(c.size).max(ps.secondary(last._1))),
+            (ps._1Set(
+               ps._2Set(c.size, ps._2(c.size).max(ps._2(last._1))),
                lineSize),
              last._2 ++ List[T](c),
              last._3))
       })
 
     val lines = if (layout.wrap.uniformLineSize) {
-      val tallestLine = linesRaw.foldLeft(0.0)((p, c) => ps.secondary(c._1).max(p))
+      val tallestLine = linesRaw.foldLeft(0.0)((p, c) => ps._2(c._1).max(p))
       linesRaw.foldLeft(List[(Point, List[T], Double)]())(
         (p: List[(Point, List[T], Double)], c: (Point, List[T], Double)) =>
           p ++ List(
-            (ps.secondarySet(c._1, tallestLine),
+            (ps._2Set(c._1, tallestLine),
              c._2,
              p.lastOption.map(_._3 + tallestLine).getOrElse(0.0)))
       )
@@ -217,8 +217,8 @@ object OrganizeMutable {
             ps)
       case Simple(_) =>
         val additional = if (layout.stretchToSize) {
-          val totalSize = lines.foldLeft(0.0)((p, c) => p + ps.secondary(c._1))
-          val remaining = ps.secondary(size) - totalSize
+          val totalSize = lines.foldLeft(0.0)((p, c) => p + ps._2(c._1))
+          val remaining = ps._2(size) - totalSize
           remaining / lines.size
         } else 0
 
@@ -226,7 +226,7 @@ object OrganizeMutable {
           p ++ OrganizeMutable
             .fitElementsOnLine[T](
               ln._2,
-              ps.addSecondary(ps.primarySet(ln._1, ps.primary(size)), additional),
+              ps.addSecondary(ps._1Set(ln._1, ps._1(size)), additional),
               ps.addSecondary(basePoint, ln._3),
               layout.alignContent,
               layout.alignItems,

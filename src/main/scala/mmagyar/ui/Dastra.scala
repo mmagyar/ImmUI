@@ -70,7 +70,6 @@ sealed trait Groupable[+A <: Groupable[A]] extends Dastra { this: A =>
   def add[K <: Dastra](element: K): A
 }
 
-
 final case class Group(elements: List[Dastra], hidden: Boolean = false) extends Groupable[Group] {
 
   override val boundingBox: BoundingBox =
@@ -107,19 +106,17 @@ final case class Group(elements: List[Dastra], hidden: Boolean = false) extends 
     })
 }
 
-trait Puttable extends  Dastra with Positionable[Puttable]{
-
-}
+trait Puttable extends Dastra with Positionable[Puttable] {}
 final case class Rect(
-  position: Point,
-  size: Point,
-  looks: Looks = Looks(),
-  rotation: Degree = Degree(0),
-  hidden: Boolean = false
+    position: Point,
+    size: Point,
+    looks: Looks = Looks(),
+    rotation: Degree = Degree(0),
+    hidden: Boolean = false
 ) extends Drawable
-  with hasLooks[Rect]
-  with hasRotation[Rect]
-  with Puttable {
+    with hasLooks[Rect]
+    with hasRotation[Rect]
+    with Puttable {
 
   //TODO relative group, this might need to be a recursive method
   //  override def inside(point: Point): Boolean = boundingBox.inside(point)
@@ -133,17 +130,16 @@ final case class Rect(
     if (position != point) copy(position = point) else this
 }
 
-
 final case class Rect2(
-  position: Point,
-  size: Point,
-  looks: Looks = Looks(),
-  rotation: Degree = Degree(0),
-  hidden: Boolean = false
+    position: Point,
+    size: Point,
+    looks: Looks = Looks(),
+    rotation: Degree = Degree(0),
+    hidden: Boolean = false
 ) extends Drawable
-  with hasLooks[Rect2]
-  with hasRotation[Rect2]
-  with Puttable{
+    with hasLooks[Rect2]
+    with hasRotation[Rect2]
+    with Puttable {
 
   //TODO relative group, this might need to be a recursive method
   //  override def inside(point: Point): Boolean = boundingBox.inside(point)
