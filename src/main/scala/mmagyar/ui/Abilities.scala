@@ -16,7 +16,9 @@ trait Strokable[A <: Fillable[A]] { this: A =>
   def stroke(color: Color): A
 }
 
-case class Looks(fill: Color = Color.transparent,
+object Looks {
+  def apply(): Looks = new Looks(Color.transparent,Color.transparent)}
+case class Looks(fill: Color ,
                  stroke: Color = Color.transparent,
                  strokeLineWidth: Double = 0)
 
@@ -36,4 +38,10 @@ trait Lookable[A <: Lookable[A]] extends Fillable[A] with Strokable[A] { this: A
 trait Rotatable[A <: Rotatable[A]] { this: A =>
   def rotation: Degree
   def rotation(degree: Degree): A
+}
+
+
+trait Labelable[A <: Labelable[A]] { this: A =>
+  def label: String
+  def label(string: String): A
 }

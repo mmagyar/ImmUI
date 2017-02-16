@@ -8,8 +8,8 @@ import mmagyar.util.{BoundingBox, Degree, Point, Transform}
 sealed trait Shapey extends Material {
   def hidden: Boolean
 //  def inside(point: Point): Boolean
-  def inside(point: Point, transform: Transform = Transform()): Boolean =
-    BoundingBox(position.transform(transform), size.scale(transform.scale)).inside(point)
+  def inside(point: Point, transform: Transform = Transform(), pixelSizeCompensation :Double = 0): Boolean =
+    BoundingBox(position.transform(transform), size.scale(transform.scale)).inside(point,pixelSizeCompensation)
 //    boundingBox.inside(point)
 }
 
@@ -70,19 +70,22 @@ sealed trait Groupable[+A <: Groupable[A]] extends Shapey { this: A =>
   def add[K <: Shapey](element: K): A
 }
 
-
 trait PositionableShapey extends Shapey with Positionable[PositionableShapey]
 trait SizableShapey      extends Shapey with Sizable[SizableShapey]
 trait LookableShapey     extends Shapey with Lookable[LookableShapey]
 trait RotatableShapey    extends Shapey with Rotatable[RotatableShapey]
+trait LabelableShapey    extends Shapey with Labelable[LabelableShapey]
 
-final case class Group(elements: List[Shapey], position:Point = Point.zero, hidden: Boolean = false) extends Groupable[Group]  with PositionableShapey{
+final case class Group(elements: List[Shapey],
+                       position: Point = Point.zero,
+                       hidden: Boolean = false)
+    extends Groupable[Group]
+    with PositionableShapey {
 
   override val boundingBox: BoundingBox =
     this.elements.map(x => x.boundingBox).reduce((p, c) => c.add(p))
 
   override val size: Point = boundingBox.size
-
 
   override def replace[K <: Shapey, L <: Shapey](oldElement: K, newElement: L): Group =
     this.copy(elements = elements.map {
@@ -102,8 +105,8 @@ final case class Group(elements: List[Shapey], position:Point = Point.zero, hidd
     this.copy(elements = elements ++ List(element))
 
   override def change[K <: Shapey](where: (Shapey) => Boolean,
-    change: (Shapey) => K,
-    recursive: Boolean = true): Group =
+                                   change: (Shapey) => K,
+                                   recursive: Boolean = true): Group =
     copy(elements = elements.map {
       case a if where(a)                => change(a)
       case a: Groupable[_] if recursive => a.change(where, change, recursive)
@@ -139,25 +142,29 @@ final case class Rect(
   override def sizing(sizing: Sizing): SizableShapey = copy(sizing = sizing)
 }
 
-final case class Rect2(
+final case class Text(
     position: Point,
-    size: Point,
+    label: String,
+    sizing: Sizing,
     looks: Looks = Looks(),
     rotation: Degree = Degree(0),
     hidden: Boolean = false
 ) extends Drawable
-    with Lookable[Rect2]
-    with Rotatable[Rect2]
+    with LookableShapey
+    with RotatableShapey
+    with LabelableShapey
+    with SizableShapey
     with PositionableShapey {
 
-  //TODO relative group, this might need to be a recursive method
-  //  override def inside(point: Point): Boolean = boundingBox.inside(point)
-
-  override def rotation(degree: Degree): Rect2 =
+  override def rotation(degree: Degree): Text =
     if (rotation != degree) copy(rotation = degree) else this
 
-  override def looks(looks: Looks): Rect2 = if (looks != this.looks) copy(looks = looks) else this
+  override def looks(looks: Looks): Text = if (looks != this.looks) copy(looks = looks) else this
 
-  override def position(point: Point): Rect2 =
+  override def position(point: Point): Text =
     if (position != point) copy(position = point) else this
+
+  override def label(string: String): Text = copy(label = string)
+
+  override def sizing(sizing: Sizing): SizableShapey = copy(sizing = sizing)
 }

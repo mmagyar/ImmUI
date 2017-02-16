@@ -216,8 +216,8 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
     BoundingBox(this.position, this.size.sub(point))
   }
 
-  def inside(point: Point): Boolean =
-    point.x >= this.x && point.x <= this.bottomRight.x && point.y >= this.y && point.y <= this.bottomRight.y
+  def inside(point: Point, pixelSizeCompensation: Double = 0): Boolean =
+    point.x >= this.x && point.x <= this.bottomRight.x - pixelSizeCompensation && point.y >= this.y && point.y <= this.bottomRight.y - pixelSizeCompensation
 
   def intersect(box: BoundingBox): Boolean =
     !(this.position.x > box.position.x + box.size.x || this.position.x + this.size.x < box.position.x ||
@@ -254,6 +254,20 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
 
   val bottomLeft: Point = this.position.add(Point(0, this.size.y))
 
+  def onEdge(point: Point, edgeSize: Point = Point.zero, pixelSizeCompensation: Double = 0): Boolean = {
+    val es = edgeSize / 2
+    val (xMin, xMax, yMax, yMin) = (topLeft.x,
+                                    bottomRight.x - pixelSizeCompensation,
+                                    topLeft.y,
+                                    bottomRight.y - pixelSizeCompensation)
+
+    inside(point, pixelSizeCompensation) && ((point.x <= xMin + es.x && point.x >= xMin - es.x ||
+    point.x <= xMax + es.x && point.x >= xMax - es.x) ||
+    (point.y <= yMin + es.y && point.y >= yMin - es.y ||
+    point.y <= yMax + es.y && point.y >= yMax - es.y))
+
+  }
+
 }
 
 object Transform {
@@ -268,6 +282,9 @@ case class Transform(offset: Point = Point.zero, scale: Point = Point.one) {
   def transform(point: Point): Point = {
     (point + offset).scale(scale)
   }
+
+  def transform(boundingBox: BoundingBox): BoundingBox =
+    BoundingBox(boundingBox.position.transform(this), boundingBox.size.scale(scale))
 }
 
 object Box {
