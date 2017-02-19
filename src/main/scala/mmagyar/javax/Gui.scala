@@ -40,9 +40,9 @@ object Gui {
 
     val group2 = Group(res)
     val group  = Group(List(group2))
-    println(res)
+//    println(res)
     val label = new MyPanel(
-      Document(root = group, transform = Transform(Point(1, 1), Point(1, 1))))
+      Document(root = group, transform = Transform(Point(1, 1), Point(4, 4))))
     frame.getContentPane.add(label)
 
     //Display the window.

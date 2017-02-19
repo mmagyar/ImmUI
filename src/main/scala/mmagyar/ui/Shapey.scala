@@ -8,8 +8,11 @@ import mmagyar.util.{BoundingBox, Degree, Point, Transform}
 sealed trait Shapey extends Material {
   def hidden: Boolean
 //  def inside(point: Point): Boolean
-  def inside(point: Point, transform: Transform = Transform(), pixelSizeCompensation :Double = 0): Boolean =
-    BoundingBox(position.transform(transform), size.scale(transform.scale)).inside(point,pixelSizeCompensation)
+  def inside(point: Point,
+             transform: Transform = Transform(),
+             pixelSizeCompensation: Double = 0): Boolean =
+    BoundingBox(position.transform(transform), size.scale(transform.scale))
+      .inside(point, pixelSizeCompensation)
 //    boundingBox.inside(point)
 }
 
