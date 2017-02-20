@@ -8,13 +8,14 @@ object Test {
   def main(args: Array[String]): Unit = {
 
     val ldr  = new FontLoadBDFStd()
-    val read = ldr.readBDF("fonts/ter-u18n.bdf")
+//    val read = ldr.readBDF("fonts/ter-u32b.bdf")
+    val read = ldr.readBDF("fonts/radon.bdf")
 //    val read = ldr.readBDF("test.bdf")
 
-    val mgr = FontManager.readFileBDF(read, new Bitmap)
-//    "szia".map(x=> mgr.types(x).toString + "\n").foreach(println)
+    val mgr = FontManager.parseBdf(read)
+    "Szia".map(x=> mgr(x).toString + "\n").foreach(println)
 
-    val arg = mgr('A')
+    val arg = mgr('C')
     println("")
 
 
@@ -22,9 +23,9 @@ object Test {
 //      (0 to 32).map(x => x < 32 && ((input & 1 << x) != 0)).foreach(x=> if(x) print('X') else print('.'))
 //println("")
 //    })
-    arg.lines.foreach(input=> {
-      println(input.toHexString)
-    })
-    println(mgr('A'))
+//    arg.lines.foreach(input=> {
+//      println(input.toHexString)
+//    })
+//    println(mgr('C'))
   }
 }
