@@ -31,7 +31,7 @@ object Gui {
       .fill(Color.blue)
       .stroke(Color.white)
       .lineWidth(0.5)
-    val text     = Text(Point(10, 0), "Hello Bubi :)", Sizing(Point(160, 12)))
+    val text     = Text(Point(10, 0), "AAIAA Bubi - áéűúőóü :)")
     val elements = List(el1, el2, el3, text)
 
 //    println(elements.collect { case a: Puttable => a})
@@ -44,9 +44,8 @@ object Gui {
     val group  = Group(List(group2))
 //    println(res)
     val label = new MyPanel(
-      Document(root = group, transform = Transform(Point(1, 1), Point(2, 2.5))))
+      Document(root = group, transform = Transform(Point(1, 1), Point(4, 4))))
     frame.getContentPane.add(label)
-    println("WHAA")
     //Display the window.
     frame.pack()
     frame.setVisible(true)

@@ -15,6 +15,8 @@ object Point {
     */
   def interpolate(v1: Double, v2: Double, value: Double): Double = v1 + (v2 - v1) * value
 
+  def apply(coordinates: (Int, Int)): Point       = Point(coordinates._1, coordinates._2)
+//  def apply(coordinates: (Double, Double)): Point = Point(coordinates._1, coordinates._2)
 }
 
 case class Point(x: Double, y: Double) {
@@ -160,10 +162,12 @@ case class Point(x: Double, y: Double) {
   def isZero: Boolean = this.x == 0 && this.y == 0
 
   def comma(): String = s"${this.x},${this.y} "
+
+  def toInt:(Int,Int) = (x.toInt,y.toInt)
 }
 
 object BoundingBox {
-  def zero() = BoundingBox()
+  def zero = BoundingBox()
 
   def getBBox(pointList: List[Point]): BoundingBox = {
     //what to do when point list is empty?
@@ -254,7 +258,9 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
 
   val bottomLeft: Point = this.position.add(Point(0, this.size.y))
 
-  def onEdge(point: Point, edgeSize: Point = Point.zero, pixelSizeCompensation: Double = 0): Boolean = {
+  def onEdge(point: Point,
+             edgeSize: Point = Point.zero,
+             pixelSizeCompensation: Double = 0): Boolean = {
     val es = edgeSize / 2
     val (xMin, xMax, yMax, yMin) = (topLeft.x,
                                     bottomRight.x - pixelSizeCompensation,

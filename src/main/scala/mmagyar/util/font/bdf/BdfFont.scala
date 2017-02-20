@@ -1,5 +1,7 @@
 package mmagyar.util.font.bdf
 
+import mmagyar.ui.{BitmapChar, FontBitmap}
+import mmagyar.util.{BoundingBox, Point}
 import mmagyar.util.font.bdf.Font.IntPoint
 
 import scala.collection.immutable.{Map, Queue}
@@ -12,14 +14,14 @@ object CharPixel {
   def byteToBooleanArray(input: Short): Vector[Boolean] =
     7.to(0).by(-1).map(x => (input & 1 << x) != 0).toVector
 
-
 }
 
 case class CharPixel(size: IntPoint,
                      offset: IntPoint,
                      device: IntPoint,
                      character: Char,
-                     pixels: Vector[Vector[Boolean]]) {
+                     pixels: Vector[Vector[Boolean]])
+    extends BitmapChar {
 
   override def toString: String = {
     pixels.foldLeft("")((e, m) => e + m.foldLeft("")((p, c) => p + (if (c) "X" else ".")) + "\n") +
@@ -35,7 +37,8 @@ case class Font(characters: Map[Char, CharPixel],
                 defaultChar: CharPixel,
                 family: String = "UNKNOWN",
                 name: String = "UNKNOWN",
-                comment: String = "") {
+                comment: String = "")
+    extends FontBitmap {
   def apply(char: Char): CharPixel = characters.getOrElse(char, defaultChar)
 
   def organize(text: String): Vector[(IntPoint, CharPixel)] =
@@ -45,6 +48,12 @@ case class Font(characters: Map[Char, CharPixel],
         (Font.add(currentFont.device, p._1), p._2 :+ (p._1, currentFont))
       })
       ._2
+
+  override def getPixels(char: Char): Vector[Vector[Boolean]] =
+    characters.getOrElse(char, defaultChar).pixels
+
+  override def getSizeForString(string: String): (Int, Int) =
+    organize(string).foldLeft(Point.zero)((p, c) => p.max(Point(c._1) + Point(c._2.size))).toInt
 }
 
 trait FontLoaderBDF {

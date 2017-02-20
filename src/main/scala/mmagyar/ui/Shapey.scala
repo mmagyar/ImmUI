@@ -3,6 +3,7 @@ package mmagyar.ui
 import mmagyar.layout.{Material, Positionable, Sizable, Sizing}
 import mmagyar.layout.mutable.{FreeForm, OrganizeMutable}
 import mmagyar.util._
+import mmagyar.util.font.bdf.FontManager
 
 /** Created by Magyar Máté on 2017-01-31, All rights reserved. */
 sealed trait Shapey extends Material {
@@ -146,13 +147,33 @@ final case class Rect(
 }
 
 //todo text sizing, size automatically
+object Text {
+  val defaultFont: Font = FontManager.loadBdfFont("fonts/u_vga16.bdf")
+  def apply(position: Point,
+    label: String,
+    looks: Looks = Looks(Color.transparent, Color.grey),
+    rotation: Degree = Degree(0),
+    hidden: Boolean = false,
+    font: Font = Text.defaultFont): Text = {
+    val stringSize = Point(font.getSizeForString(label))
+    Text(
+      position,
+      label,
+      Sizing(stringSize, stringSize, stringSize),
+      looks,
+      rotation,
+      hidden,
+      font)
+  }
+}
 final case class Text(
     position: Point,
     label: String,
-    sizing: Sizing = Sizing(Point(300,50)),
-    looks: Looks = Looks(Color.transparent, Color.grey),
-    rotation: Degree = Degree(0),
-    hidden: Boolean = false
+    sizing: Sizing,
+    looks: Looks ,
+    rotation: Degree ,
+    hidden: Boolean ,
+    font: Font
 ) extends Drawable
     with LookableShapey
     with RotatableShapey
