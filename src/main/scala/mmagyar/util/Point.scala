@@ -51,7 +51,7 @@ case class Point(x: Double, y: Double) {
 
   def div(divider: Point): Point = Point(this.x / divider.x, this.y / divider.y)
 
-  def round(): Point = Point(Math.round(this.x), Math.round(this.y))
+  def round: Point = Point(Math.round(this.x), Math.round(this.y))
 
   def aspectMatchWidth(newWidth: Double): Point = Point(newWidth, this.y * (newWidth / this.x))
 

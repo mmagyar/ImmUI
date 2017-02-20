@@ -2,7 +2,7 @@ package mmagyar.ui
 
 import mmagyar.layout.{Material, Positionable, Sizable, Sizing}
 import mmagyar.layout.mutable.{FreeForm, OrganizeMutable}
-import mmagyar.util.{BoundingBox, Degree, Point, Transform}
+import mmagyar.util._
 
 /** Created by Magyar Máté on 2017-01-31, All rights reserved. */
 sealed trait Shapey extends Material {
@@ -145,11 +145,12 @@ final case class Rect(
   override def sizing(sizing: Sizing): SizableShapey = copy(sizing = sizing)
 }
 
+//todo text sizing, size automatically
 final case class Text(
     position: Point,
     label: String,
-    sizing: Sizing,
-    looks: Looks = Looks(),
+    sizing: Sizing = Sizing(Point(300,50)),
+    looks: Looks = Looks(Color.transparent, Color.grey),
     rotation: Degree = Degree(0),
     hidden: Boolean = false
 ) extends Drawable
@@ -169,5 +170,5 @@ final case class Text(
 
   override def label(string: String): Text = copy(label = string)
 
-  override def sizing(sizing: Sizing): SizableShapey = copy(sizing = sizing)
+  override def sizing(sizing: Sizing): Text = copy(sizing = sizing)
 }

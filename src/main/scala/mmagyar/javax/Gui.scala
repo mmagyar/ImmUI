@@ -19,32 +19,34 @@ object Gui {
 //    frame.setSize(new Dimension(620, 240))
 
     val el1 =
-      Rect(Point(20, 20), Sizing(Point(60, 60), grow = Grow.Affinity, shrink = Shrink.Affinity))
+      Rect(Point(20, 30), Sizing(Point(60, 60), grow = Grow.Affinity, shrink = Shrink.Affinity))
         .fill(Color.blue)
         .stroke(Color.white)
         .lineWidth(1)
-    val el2 = Rect(Point(10, 10), Sizing(Point(80, 50), grow = Grow.No))
+    val el2 = Rect(Point(10, 20), Sizing(Point(80, 50), grow = Grow.No))
       .fill(Color.green)
       .stroke(Color.red)
       .lineWidth(3)
-    val el3 = Rect(Point(45, 45), Sizing(Point(80, 50)))
+    val el3 = Rect(Point(45, 55), Sizing(Point(80, 50)))
       .fill(Color.blue)
       .stroke(Color.white)
       .lineWidth(0.5)
-    val elements = List(el1, el2, el3)
+    val text     = Text(Point(10, 0), "Hello Bubi :)", Sizing(Point(160, 12)))
+    val elements = List(el1, el2, el3, text)
 
 //    println(elements.collect { case a: Puttable => a})
-    val res = Organize.fitElementsOnLine[Shapey with PositionableShapey](elements.collect {
-      case a: PositionableShapey => a
-    }, Point(200, 60), Point.zero, Align.Right, Align.Right, Fill.Equal, PointSwapper.x)
+//    val res = Organize.fitElementsOnLine[Shapey with PositionableShapey](elements.collect {
+//      case a: PositionableShapey => a
+//    }, Point(200, 60), Point.zero, Align.Right, Align.Right, Fill.Equal, PointSwapper.x)
 
+    val res    = elements
     val group2 = Group(res)
     val group  = Group(List(group2))
 //    println(res)
     val label = new MyPanel(
-      Document(root = group, transform = Transform(Point(1, 1), Point(4, 4))))
+      Document(root = group, transform = Transform(Point(1, 1), Point(2, 2.5))))
     frame.getContentPane.add(label)
-
+    println("WHAA")
     //Display the window.
     frame.pack()
     frame.setVisible(true)

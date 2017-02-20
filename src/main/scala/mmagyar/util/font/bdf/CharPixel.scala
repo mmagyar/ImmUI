@@ -12,13 +12,7 @@ object CharPixel {
   def byteToBooleanArray(input: Short): Vector[Boolean] =
     7.to(0).by(-1).map(x => (input & 1 << x) != 0).toVector
 
-  def organize(text: String, font: Font): Vector[(IntPoint, CharPixel)] =
-    text
-      .foldLeft(((0, 0), Vector[(IntPoint, CharPixel)]()))((p, c) => {
-        val currentFont = font(c)
-        (Font.add(currentFont.device, p._1), p._2 :+ (p._1, currentFont))
-      })
-      ._2
+
 }
 
 case class CharPixel(size: IntPoint,
@@ -43,6 +37,14 @@ case class Font(characters: Map[Char, CharPixel],
                 name: String = "UNKNOWN",
                 comment: String = "") {
   def apply(char: Char): CharPixel = characters.getOrElse(char, defaultChar)
+
+  def organize(text: String): Vector[(IntPoint, CharPixel)] =
+    text
+      .foldLeft(((0, 0), Vector[(IntPoint, CharPixel)]()))((p, c) => {
+        val currentFont = this(c)
+        (Font.add(currentFont.device, p._1), p._2 :+ (p._1, currentFont))
+      })
+      ._2
 }
 
 trait FontLoaderBDF {
@@ -81,7 +83,7 @@ object FontManager {
     var comment: String        = ""
     for (line <- fontFileLines) {
       val lineSplit = line.split(" ", 2)
-      val lineEnd   = lineSplit(1)
+      val lineEnd   = lineSplit.tail.headOption.getOrElse("")
 
       lineSplit(0) match {
         case "FONTBOUNDINGBOX" =>
