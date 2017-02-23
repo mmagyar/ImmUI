@@ -1,9 +1,10 @@
 package mmagyar.ui
 
-import mmagyar.layout.{Material, Positionable, Sizable, Sizing}
-import mmagyar.layout.mutable.{FreeForm, OrganizeMutable}
+import mmagyar.layout._
 import mmagyar.util._
 import mmagyar.util.font.bdf.FontManager
+
+import scala.language.implicitConversions
 
 /** Created by Magyar Máté on 2017-01-31, All rights reserved. */
 sealed trait Shapey extends Material {
@@ -14,17 +15,17 @@ sealed trait Shapey extends Material {
              pixelSizeCompensation: Double = 0): Boolean =
     BoundingBox(position.transform(transform), size.scale(transform.scale))
       .inside(point, pixelSizeCompensation)
+  def zOrder: Double
 //    boundingBox.inside(point)
 }
 
 case class Document(transform: Transform = Transform(), root: Group)
 sealed trait Drawable extends Shapey
 
-sealed trait Groupable[+A <: Groupable[A]] extends Shapey { this: A =>
-  type T = Shapey
-  val elements: List[T]
+trait Groupable[A <: Groupable[A]] extends Shapey { this: A =>
 
-  val organize: OrganizeMutable = FreeForm()
+  val elementList: ElementList
+  lazy val elements: Vector[Shapey] = elementList.elements
 
   /**
     * Returns all the elements that has the 'element' as direct ascendants
@@ -32,8 +33,8 @@ sealed trait Groupable[+A <: Groupable[A]] extends Shapey { this: A =>
     * @tparam K the type of the element
     * @return all the direct ascendants
     */
-  def getParents[K <: Shapey](element: K): List[Groupable[_]] = {
-    if (has(element, recursive = false)) List(this)
+  def getParents[K <: Shapey](element: K): Vector[Groupable[_]] = {
+    if (has(element, recursive = false)) Vector(this)
     else
       elements.flatMap {
         case a: Groupable[_] => a.getParents(a)
@@ -47,8 +48,8 @@ sealed trait Groupable[+A <: Groupable[A]] extends Shapey { this: A =>
     * @tparam K the type of the element
     * @return all the available paths, empty if not available
     */
-  def getPath[K <: Shapey](element: K): List[Groupable[_]] = {
-    if (has(element)) List(this)
+  def getPath[K <: Shapey](element: K): Vector[Groupable[_]] = {
+    if (has(element)) Vector(this)
     else
       elements
         .collect { case a: Groupable[_] => a.getParents(element) }
@@ -80,52 +81,13 @@ trait LookableShapey     extends Shapey with Lookable[LookableShapey]
 trait RotatableShapey    extends Shapey with Rotatable[RotatableShapey]
 trait LabelableShapey    extends Shapey with Labelable[LabelableShapey]
 
-final case class Group(elements: List[Shapey],
-                       position: Point = Point.zero,
-                       hidden: Boolean = false)
-    extends Groupable[Group]
-    with PositionableShapey {
-
-  override val boundingBox: BoundingBox =
-    this.elements.map(x => x.boundingBox).reduce((p, c) => c.add(p))
-
-  override val size: Point = boundingBox.size
-
-  override def replace[K <: Shapey, L <: Shapey](oldElement: K, newElement: L): Group =
-    this.copy(elements = elements.map {
-      case a if a == oldElement => newElement
-      case a: Groupable[_]      => a.replace(oldElement, newElement)
-      case a                    => a
-    })
-
-  override def remove[K <: Shapey](element: K, recursive: Boolean = true): Group =
-    if (recursive) this.copy(elements = elements.collect {
-      case a if element != a => a
-      case a: Groupable[_]   => a.remove(element, recursive)
-    })
-    else this.copy(elements = elements.collect { case a if element != a => a })
-
-  override def add[K <: Shapey](element: K): Group =
-    this.copy(elements = elements ++ List(element))
-
-  override def change[K <: Shapey](where: (Shapey) => Boolean,
-                                   change: (Shapey) => K,
-                                   recursive: Boolean = true): Group =
-    copy(elements = elements.map {
-      case a if where(a)                => change(a)
-      case a: Groupable[_] if recursive => a.change(where, change, recursive)
-      case a                            => a
-    })
-
-  override def position(point: Point): PositionableShapey = copy(position = point)
-}
-
 final case class Rect(
     position: Point,
     sizing: Sizing,
     looks: Looks = Looks(),
     rotation: Degree = Degree(0),
-    hidden: Boolean = false
+    hidden: Boolean = false,
+    zOrder: Double = 1
 ) extends Drawable
     with LookableShapey
     with RotatableShapey
@@ -146,33 +108,28 @@ final case class Rect(
   override def sizing(sizing: Sizing): SizableShapey = copy(sizing = sizing)
 }
 
-//todo text sizing, size automatically
 object Text {
   val defaultFont: Font = FontManager.loadBdfFont("fonts/u_vga16.bdf")
   def apply(position: Point,
-    label: String,
-    looks: Looks = Looks(Color.transparent, Color.grey),
-    rotation: Degree = Degree(0),
-    hidden: Boolean = false,
-    font: Font = Text.defaultFont): Text = {
+            label: String,
+            looks: Looks = Looks(Color.transparent, Color.grey),
+            rotation: Degree = Degree(0),
+            hidden: Boolean = false,
+            zOrder: Double = 1,
+            font: Font = Text.defaultFont): Text = {
     val stringSize = Point(font.getSizeForString(label))
-    Text(
-      position,
-      label,
-      Sizing(stringSize, stringSize, stringSize),
-      looks,
-      rotation,
-      hidden,
-      font)
+    val sizing     = Sizing(stringSize, stringSize, stringSize)
+    Text(position, label, sizing, looks, rotation, hidden, zOrder, font)
   }
 }
 final case class Text(
     position: Point,
     label: String,
     sizing: Sizing,
-    looks: Looks ,
-    rotation: Degree ,
-    hidden: Boolean ,
+    looks: Looks,
+    rotation: Degree,
+    hidden: Boolean,
+    zOrder: Double,
     font: Font
 ) extends Drawable
     with LookableShapey

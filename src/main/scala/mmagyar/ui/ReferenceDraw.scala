@@ -16,7 +16,7 @@ class ReferenceDraw(val scale: Double = 1) {
     val root = document.root
 
     //TODO instead of returning a list of colors, the `Color` class should to the blending
-    def draw(elements: List[Shapey], offset: Point): List[Color] = {
+    def draw(elements: Vector[Shapey], offset: Point): Vector[Color] = {
       elements.flatMap({
         case a: Groupable[_] =>
           draw(a.elements, offset)
@@ -26,7 +26,7 @@ class ReferenceDraw(val scale: Double = 1) {
               val chars = b.organize(a.label)
               val pxPoint = (a.position.transform(document.transform).round - (point + offset))
                 .abs() * (Point.one / document.transform.scale)
-              List(
+              Vector(
                 chars
                   .find(x => x._1._1 + x._2.size._1 > pxPoint.x)
                   .map(x => {
@@ -47,10 +47,10 @@ class ReferenceDraw(val scale: Double = 1) {
             if document.transform
               .transform(a.boundingBox)
               .onEdge(point + offset, document.transform.scale * a.lineWidth, scale) =>
-          List(a.stroke)
+          Vector(a.stroke)
         case a: Fillable[_] if a.inside(point + offset, document.transform, scale) =>
-          List(a.fill)
-        case _ => List()
+          Vector(a.fill)
+        case _ => Vector()
       })
     }
 

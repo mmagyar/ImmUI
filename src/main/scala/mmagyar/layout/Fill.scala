@@ -30,4 +30,5 @@ object Fill {
   /** Fill the remaining space with the last element / shrink the fist*/
   case object Last extends Fill
 
+  //TODO we might want to have options such as, Fill, GrowOnly , ShrinkOnly
 }
