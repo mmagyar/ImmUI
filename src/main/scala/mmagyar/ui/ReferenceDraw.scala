@@ -52,16 +52,15 @@ class ReferenceDraw(val scale: Double = 1) {
                   .getOrElse(a.fill))
             case _ => throw new Error("Only bitmap fonts are supported by the reference drawer")
           }
-        case a: Strokable[_] with RotatableShapey
+        case a: Strokable[_]
             if document.transform
               .transform(
                 BoundingBox(a.position + offset + ((a.boundingBox.size - a.size) / 2), a.size))
-              .onEdgeRotated(point, a.rotation, document.transform.scale * a.lineWidth, scale) =>
+              .onEdge(point, document.transform.scale * a.lineWidth, scale) =>
           Vector(a.stroke)
-        case a: Fillable[_] with RotatableShapey
-            if a.insideRotated(
+        case a: Fillable[_]
+            if a.inside(
               point,
-              a.rotation,
               document.transform.copy(document.transform.offset + offset),
               scale) =>
           Vector(a.fill)

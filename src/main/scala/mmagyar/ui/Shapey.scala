@@ -87,40 +87,26 @@ trait Groupable[A <: Groupable[A]] extends Shapey with PositionableShapey { this
 trait PositionableShapey extends Shapey with Positionable[PositionableShapey]
 trait SizableShapey      extends Shapey with Sizable[SizableShapey]
 trait LookableShapey     extends Shapey with Lookable[LookableShapey]
-trait RotatableShapey    extends Shapey with Rotatable[RotatableShapey]
-trait LabelableShapey    extends Shapey with Labelable[LabelableShapey]
+//trait RotatableShapey    extends Shapey with Rotatable[RotatableShapey]
+trait LabelableShapey extends Shapey with Labelable[LabelableShapey]
 
 final case class Rect(
     position: Point,
     sizing: Sizing,
     looks: Looks = Looks(),
-    rotation: Degree = Degree(0),
+//    rotation: Degree = Degree(0),
     hidden: Boolean = false,
     zOrder: Double = 1
 ) extends Drawable
     with LookableShapey
-    with RotatableShapey
+//    with RotatableShapey
     with PositionableShapey
     with SizableShapey {
 
-  //TODO relative group, this might need to be a recursive method
-  //  override def inside(point: Point): Boolean = boundingBox.inside(point)
-
-  override val boundingBox: BoundingBox =
-    BoundingBox(position, size).rotatedBBox(rotation).position(position)
-
-
-  override def insideRotated(point: Point,
-    rotate: Degree,
-    transform: Transform = Transform(),
-    pixelSizeCompensation: Double = 0): Boolean = {
-    val sizeDiff = ((boundingBox.size - size) /2 ).scale(transform.scale)
-    BoundingBox(position.transform(transform) + sizeDiff, size.scale(transform.scale))
-      .insideRotated(point, rotate, pixelSizeCompensation)
-  }
-
-  override def rotation(degree: Degree): Rect =
-    if (rotation != degree) copy(rotation = degree) else this
+//    val sizeDiff = ((boundingBox.size - size) /2 ).scale(transform.scale)
+//
+//    BoundingBox(position.transform(transform) + sizeDiff, size.scale(transform.scale))
+//      .insideRotated(point, rotate, pixelSizeCompensation)
 
   override def looks(looks: Looks): Rect = if (looks != this.looks) copy(looks = looks) else this
 
@@ -135,13 +121,12 @@ object Text {
   def apply(position: Point,
             label: String,
             looks: Looks = Looks(Color.transparent, Color.grey),
-            rotation: Degree = Degree(0),
             hidden: Boolean = false,
             zOrder: Double = 1,
             font: Font = Text.defaultFont): Text = {
     val stringSize = Point(font.getSizeForString(label))
     val sizing     = Sizing(stringSize, stringSize, stringSize)
-    Text(position, label, sizing, looks, rotation, hidden, zOrder, font)
+    Text(position, label, sizing, looks, hidden, zOrder, font)
   }
 }
 final case class Text(
@@ -149,19 +134,14 @@ final case class Text(
     label: String,
     sizing: Sizing,
     looks: Looks,
-    rotation: Degree,
     hidden: Boolean,
     zOrder: Double,
     font: Font
 ) extends Drawable
     with LookableShapey
-    with RotatableShapey
     with LabelableShapey
     with SizableShapey
     with PositionableShapey {
-
-  override def rotation(degree: Degree): Text =
-    if (rotation != degree) copy(rotation = degree) else this
 
   override def looks(looks: Looks): Text = if (looks != this.looks) copy(looks = looks) else this
 
@@ -187,11 +167,9 @@ final case class BitmapShapey(
     bitmap: Bitmap,
     bitmapFill: BitmapFill = Clip,
     align: Align2d = Align2d(),
-    rotation: Degree = Degree(0),
     hidden: Boolean = false,
     zOrder: Double = 1
 ) extends Drawable
-    with RotatableShapey
     with SizableShapey
     with PositionableShapey {
 
@@ -199,8 +177,6 @@ final case class BitmapShapey(
     if (position != point) copy(position = point) else this
 
   override def sizing(sizing: Sizing): BitmapShapey = copy(sizing = sizing)
-
-  override def rotation(degree: Degree): BitmapShapey = copy(rotation = degree)
 
   def alignedPosition(point: Point, transform: Transform): Point = {
     val pxPointRaw = (this.position.transform(transform).round - point)

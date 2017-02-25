@@ -28,6 +28,7 @@ object Group {
 /** Magyar Máté 2017, all rights reserved */
 final case class Group(elementList: ElementList, hidden: Boolean = false, zOrder: Double = 1)
     extends Groupable[Group] {
+  //TODO add rotation to group, remove from individual elements
 
   override val boundingBox: BoundingBox =
     this.elements.foldLeft(BoundingBox.zero)((p, c) =>

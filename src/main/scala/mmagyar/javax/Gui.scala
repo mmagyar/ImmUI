@@ -54,13 +54,12 @@ object Gui {
 
 
     val el2: Shapey =
-//      Group(
-//        Union(),
-        Rect(Point(10, 20), Sizing(Point(80, 50), grow = Grow.No), rotation = Degree(0))
+      Group(Union(),
+        Rect(Point(10, 20), Sizing(Point(80, 50),Point(80, 50),Point(80, 50)))
           .fill(Color.green)
           .stroke(Color.red)
           .lineWidth(3)
-//      )
+      )
     //)
     val el3 = Rect(
       Point(45, 55),
@@ -164,10 +163,11 @@ got.foreach(x=> println(x.size,x.position, x.boundingBox))
     document = document.copy(
       root = document.root.change(
         x => {
-          x.size == Point(80, 50) && x.isInstanceOf[Rect] && x.asInstanceOf[Rect].fill == Color.green
+     x.isInstanceOf[Rect] && x.asInstanceOf[Rect].fill == Color.green
         }, {
           case a: Rect =>
-            a.copy(rotation = Degree(a.rotation.value + 10))
+//            a.copy(rotation = Degree(a.rotation.value + 10))
+            a
           case a => println("SHAPEEET"); a
         }
       ))
