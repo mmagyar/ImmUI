@@ -6,6 +6,15 @@ import mmagyar.util.Point
 object Sizing {
   def apply(x: Double, y: Double): Sizing = Sizing(Point(x, y), Point(x, y))
 
+  /**
+    *
+    * @param baseSize The default size of the element,
+    *                 this size will be restored at the beginning every layout session
+    * @param minSize  The minimum size this element may be shrunk
+    * @param maxSize  The maximum size this element will be expanded to
+    * @param grow     Should this element grow if there are space available in the layout
+    * @param shrink   Should this element shrink if there are not enough space in the layout
+    */
   def apply(baseSize: Point,
             minSize: Point = Point.zero,
             maxSize: Point = Point.large,
@@ -13,6 +22,18 @@ object Sizing {
             shrink: Shrink = Shrink.No): Sizing =
     new Sizing(baseSize, baseSize, minSize, maxSize, grow, shrink)
 }
+
+/**
+  *
+  * @param baseSize The default size of the element,
+  *                 this size will be restored at the beginning every layout session
+  * @param size     The actual, current size of the element,
+  *                 that may be set by the layout algorithms
+  * @param minSize  The minimum size this element may be shrunk
+  * @param maxSize  The maximum size this element will be expanded to
+  * @param grow     Should this element grow if there are space available in the layout
+  * @param shrink   Should this element shrink if there are not enough space in the layout
+  */
 final case class Sizing(
     baseSize: Point,
     size: Point,

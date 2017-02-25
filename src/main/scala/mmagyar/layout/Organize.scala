@@ -203,9 +203,10 @@ object Organize {
       (p: Vector[(Point, Vector[T], Double)], cr) => {
         val last: (Point, Vector[T], Double) =
           if (p.nonEmpty) p.last else (Point.zero, Vector[T](), 0.0)
+        //Resize elements to their original size,
+        //this helps keeping the ui elements more consitent on multiple layout runs.
         val c = cr match {
           case a: Sizable[T @unchecked] =>
-            println("RESIZE", a.size, a.baseSize)
             a.size(a.baseSize)
           case a => a
         }

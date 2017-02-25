@@ -54,12 +54,13 @@ object Gui {
 
 
     val el2: Shapey =
-      Group(
-        Union(),
+//      Group(
+//        Union(),
         Rect(Point(10, 20), Sizing(Point(80, 50), grow = Grow.No), rotation = Degree(0))
           .fill(Color.green)
           .stroke(Color.red)
-          .lineWidth(3))
+          .lineWidth(3)
+//      )
     //)
     val el3 = Rect(
       Point(45, 55),

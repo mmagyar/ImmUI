@@ -12,8 +12,9 @@ trait Sizable[A <: Sizable[A]] extends hasSize { this: A =>
   final def size: Point           = sizing.size
   final def size(point: Point): A = sizing(sizing.copy(size = point))
 
+  final def baseSize: Point           = sizing.baseSize
+  final def baseSize(point: Point): A = sizing(sizing.copy(baseSize = point))
 
-  override final def baseSize: Point           = sizing.baseSize
 }
 
 object LayoutSizeConstraint {
