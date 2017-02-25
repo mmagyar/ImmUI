@@ -54,6 +54,8 @@ case class Font(characters: Map[Char, CharPixel],
 
   override def getSizeForString(string: String): (Int, Int) =
     organize(string).foldLeft(Point.zero)((p, c) => p.max(Point(c._1) + Point(c._2.size))).toInt
+
+  override def toString: String = s"font: $family $name"
 }
 
 trait FontLoaderBDF {

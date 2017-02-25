@@ -9,13 +9,43 @@ object Color {
   val blue        = Color(0, 0, 255)
   val grey        = Color(127, 127, 127)
   val transparent = Color(0, 0, 0, 0)
+  val silver      = Color(192, 192, 192)
+}
+
+object ColorByte {
+  def apply(color: Color): ColorByte = ColorByte(color.red, color.green, color.blue, color.opacity)
+  def apply(red: Int, green: Int, blue: Int, opacity: Int): ColorByte =
+    new ColorByte(
+      ((red & 0xFF) << 24) | ((green & 0xFF) << 16) | ((blue & 0xFF) << 8) | (opacity & 0xFF))
+
+  def apply(red: Int, green: Int, blue: Int, opacity: Double): ColorByte =
+    new ColorByte(
+      ((red & 0xFF) << 24) | ((green & 0xFF) << 16) | ((blue & 0xFF) << 8) |
+        ((opacity * 255).min(255).max(0).toInt & 0xFF))
+
+  val empty: ColorByte = new ColorByte(0)
+}
+class ColorByte(val c: Int) extends AnyVal {
+  def red: Int   = c >>> 24 & 0xFF
+  def green: Int = c >>> 16 & 0xFF
+  def blue: Int  = c >>> 8 & 0xFF
+  def alpha: Int = c & 0xFF
+
+  def toColor: Color = Color(red, green, blue, alpha.toDouble / 0xFF.toDouble)
+
 }
 
 case class Color(red: Int, green: Int, blue: Int, opacity: Double = 1) {
 
-  val toRgba: String = s"rgba(${this.red}, ${this.green}, ${this.blue}, ${this.opacity})"
-  val toRgb: String  = s"rgba(${this.red}, ${this.green}, ${this.blue})"
-  override val toString:String = toRgba
+  val toRgba: String            = s"rgba(${this.red}, ${this.green}, ${this.blue}, ${this.opacity})"
+  val toRgb: String             = s"rgba(${this.red}, ${this.green}, ${this.blue})"
+  override val toString: String = toRgba
+
+  def lighten(amount: Int): Color =
+    Color((red + amount).min(255), (green + amount).min(255), (blue + amount).min(255), opacity)
+
+  def darken(amount: Int): Color =
+    Color((red - amount).max(0), (green - amount).max(0), (blue - amount).max(0), opacity)
 
 }
 

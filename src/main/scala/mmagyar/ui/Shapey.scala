@@ -1,5 +1,6 @@
 package mmagyar.ui
 
+import mmagyar.layout.Align.{Center, Left, Right, Stretch}
 import mmagyar.layout._
 import mmagyar.util._
 import mmagyar.util.font.bdf.FontManager
@@ -15,6 +16,13 @@ sealed trait Shapey extends Material {
              pixelSizeCompensation: Double = 0): Boolean =
     BoundingBox(position.transform(transform), size.scale(transform.scale))
       .inside(point, pixelSizeCompensation)
+
+  def insideRotated(point: Point,
+                    rotate: Degree,
+                    transform: Transform = Transform(),
+                    pixelSizeCompensation: Double = 0): Boolean =
+    BoundingBox(position.transform(transform), size.scale(transform.scale))
+      .insideRotated(point, rotate, pixelSizeCompensation)
   def zOrder: Double
 //    boundingBox.inside(point)
 }
@@ -22,7 +30,7 @@ sealed trait Shapey extends Material {
 case class Document(transform: Transform = Transform(), root: Group)
 sealed trait Drawable extends Shapey
 
-trait Groupable[A <: Groupable[A]] extends Shapey { this: A =>
+trait Groupable[A <: Groupable[A]] extends Shapey with PositionableShapey { this: A =>
 
   val elementList: ElementList
   lazy val elements: Vector[Shapey] = elementList.elements
@@ -73,6 +81,7 @@ trait Groupable[A <: Groupable[A]] extends Shapey { this: A =>
                           recursive: Boolean = true): A
   def remove[K <: Shapey](element: K, recursive: Boolean = true): A
   def add[K <: Shapey](element: K): A
+  def get(where: (Shapey) => Boolean, recursive: Boolean = true): Vector[Shapey]
 }
 
 trait PositionableShapey extends Shapey with Positionable[PositionableShapey]
@@ -97,6 +106,19 @@ final case class Rect(
   //TODO relative group, this might need to be a recursive method
   //  override def inside(point: Point): Boolean = boundingBox.inside(point)
 
+  override val boundingBox: BoundingBox =
+    BoundingBox(position, size).rotatedBBox(rotation).position(position)
+
+
+  override def insideRotated(point: Point,
+    rotate: Degree,
+    transform: Transform = Transform(),
+    pixelSizeCompensation: Double = 0): Boolean = {
+    val sizeDiff = ((boundingBox.size - size) /2 ).scale(transform.scale)
+    BoundingBox(position.transform(transform) + sizeDiff, size.scale(transform.scale))
+      .insideRotated(point, rotate, pixelSizeCompensation)
+  }
+
   override def rotation(degree: Degree): Rect =
     if (rotation != degree) copy(rotation = degree) else this
 
@@ -109,7 +131,7 @@ final case class Rect(
 }
 
 object Text {
-  val defaultFont: Font = FontManager.loadBdfFont("fonts/u_vga16.bdf")
+  lazy val defaultFont: Font = FontManager.loadBdfFont("fonts/u_vga16.bdf")
   def apply(position: Point,
             label: String,
             looks: Looks = Looks(Color.transparent, Color.grey),
@@ -149,4 +171,83 @@ final case class Text(
   override def label(string: String): Text = copy(label = string)
 
   override def sizing(sizing: Sizing): Text = copy(sizing = sizing)
+}
+
+sealed trait BitmapFill
+case object StretchToFillHorizontal extends BitmapFill
+case object StretchToFillVertical   extends BitmapFill
+case object StretchCover            extends BitmapFill
+case object StretchContain          extends BitmapFill
+case object StretchBoth             extends BitmapFill
+case object Clip                    extends BitmapFill
+//TODO alternative constructor that sets the element to the bitmap size / aspect ratio
+final case class BitmapShapey(
+    position: Point,
+    sizing: Sizing,
+    bitmap: Bitmap,
+    bitmapFill: BitmapFill = Clip,
+    align: Align2d = Align2d(),
+    rotation: Degree = Degree(0),
+    hidden: Boolean = false,
+    zOrder: Double = 1
+) extends Drawable
+    with RotatableShapey
+    with SizableShapey
+    with PositionableShapey {
+
+  override def position(point: Point): BitmapShapey =
+    if (position != point) copy(position = point) else this
+
+  override def sizing(sizing: Sizing): BitmapShapey = copy(sizing = sizing)
+
+  override def rotation(degree: Degree): BitmapShapey = copy(rotation = degree)
+
+  def alignedPosition(point: Point, transform: Transform): Point = {
+    val pxPointRaw = (this.position.transform(transform).round - point)
+        .abs() * (Point.one / transform.scale)
+
+    def horizontal(mod: Double = 1): Double = align.horizontal match {
+      case Right  => (size.x - (bitmap.size._1 / mod)) * mod
+      case Center => ((size.x - (bitmap.size._1 / mod)) / 2.0) * mod
+      case _      => 0
+    }
+
+    def vertical(mod: Double = 1): Double = align.vertical match {
+      case Right  => (size.y - (bitmap.size._2 / mod)) * mod
+      case Center => ((size.y - (bitmap.size._2 / mod)) / 2.0) * mod
+      case _      => 0
+    }
+
+    bitmapFill match {
+      case StretchToFillHorizontal =>
+        val mod = bitmap.size._1 / size.x
+        (pxPointRaw * mod).subY(vertical(mod))
+      case StretchToFillVertical =>
+        val mod = bitmap.size._2 / size.y
+        (pxPointRaw * mod).subX(horizontal(mod))
+      case StretchCover =>
+        val mod = Point(bitmap.size) / size
+        if (mod.x < mod.y) (pxPointRaw * mod.x).subY(vertical(mod.x))
+        else (pxPointRaw * mod.y).subX(horizontal(mod.y))
+      case StretchContain =>
+        val mod = Point(bitmap.size) / size
+        if (mod.x > mod.y) (pxPointRaw * mod.x).subY(vertical(mod.x))
+        else (pxPointRaw * mod.y).subX(horizontal(mod.y))
+      case StretchBoth => pxPointRaw * (Point(bitmap.size) / size)
+      case Clip =>
+        pxPointRaw.sub(
+          align.vertical match {
+            case Right  => size.y - bitmap.size._2
+            case Center => (size.y - bitmap.size._2) / 2.0
+            case _      => 0
+          },
+          align.horizontal match {
+            case Right  => size.x - bitmap.size._1;
+            case Center => (size.x - bitmap.size._1) / 2.0
+            case _      => 0
+          }
+        )
+
+    }
+  }
 }

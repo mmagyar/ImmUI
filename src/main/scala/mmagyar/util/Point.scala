@@ -15,27 +15,28 @@ object Point {
     */
   def interpolate(v1: Double, v2: Double, value: Double): Double = v1 + (v2 - v1) * value
 
-  def apply(coordinates: (Int, Int)): Point       = Point(coordinates._1, coordinates._2)
+  def apply(coordinates: (Int, Int)): Point = Point(coordinates._1, coordinates._2)
 //  def apply(coordinates: (Double, Double)): Point = Point(coordinates._1, coordinates._2)
 }
 
 case class Point(x: Double, y: Double) {
 
-  def add(point: Point): Point = {
-    Point(this.x + point.x, this.y + point.y)
-  }
+  def subX(amount: Double): Point = this.copy(x = this.x - amount)
+  def subY(amount: Double): Point = this.copy(y = this.y - amount)
 
-  def addX(value: Double): Point = {
-    this.copy(x = this.x + value)
-  }
+  def add(point: Point): Point = Point(this.x + point.x, this.y + point.y)
 
-  def addY(value: Double): Point = {
-    this.copy(y = this.y + value)
-  }
+  def add(point: (Int, Int)): Point = Point(this.x + point._1, this.y + point._2)
 
-  def sub(point: Point): Point = {
-    Point(this.x - point.x, this.y - point.y)
-  }
+  def addX(value: Double): Point = this.copy(x = this.x + value)
+
+  def addY(value: Double): Point = this.copy(y = this.y + value)
+
+  def sub(point: Point): Point = Point(this.x - point.x, this.y - point.y)
+
+  def sub(x: Double, y: Double): Point = Point(this.x - x, this.y - y)
+
+  def sub(point: (Int, Int)): Point = Point(this.x - point._1, this.y - point._2)
 
   def len(point: Point): Double =
     Math.sqrt(Math.pow(point.x - this.x, 2) + Math.pow(point.y - this.y, 2))
@@ -49,9 +50,14 @@ case class Point(x: Double, y: Double) {
 
   def scale(multiplier: Point): Point = Point(this.x * multiplier.x, this.y * multiplier.y)
 
+  def scale(multiplier: (Int, Int)): Point = Point(this.x * multiplier._1, this.y * multiplier._2)
+
   def div(divider: Double): Point = Point(this.x / divider, this.y / divider)
 
   def div(divider: Point): Point = Point(this.x / divider.x, this.y / divider.y)
+
+  def div(divider: (Int, Int)): Point =
+    Point(this.x / divider._1.toDouble, this.y / divider._2.toDouble)
 
   def round: Point = Point(Math.round(this.x), Math.round(this.y))
 
@@ -85,6 +91,14 @@ case class Point(x: Double, y: Double) {
   def min(point: Point): Point = Point(Math.min(this.x, point.x), Math.min(this.y, point.y))
 
   def max(point: Point): Point = Point(Math.max(this.x, point.x), Math.max(this.y, point.y))
+
+  def /(divider: (Int, Int)): Point = div(divider)
+
+  def -(value: (Int, Int)): Point = sub(value)
+
+  def +(value: (Int, Int)): Point = add(value)
+
+  def *(value: (Int, Int)): Point = scale(value)
 
   def abs(): Point = {
     if (this.x < 0 || this.y < 0) Point(Math.abs(this.x), Math.abs(this.y))
@@ -145,6 +159,9 @@ case class Point(x: Double, y: Double) {
 
   }
 
+  def rotate(origin: Point, angleArg: Degree): Point =
+    rotate(origin, angleArg.value, radians = false)
+
   def rotate(origin: Point, angleArg: Double, radians: Boolean = true): Point = {
     val angle = if (!radians) angleArg * (Math.PI / 180) else angleArg
     val s     = Math.sin(angle)
@@ -163,7 +180,7 @@ case class Point(x: Double, y: Double) {
 
   def comma(): String = s"${this.x},${this.y} "
 
-  def toInt:(Int,Int) = (x.toInt,y.toInt)
+  def toInt: (Int, Int) = (x.toInt, y.toInt)
 }
 
 object BoundingBox {
@@ -196,7 +213,16 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
 
   }
 
+  def double: BoundingBox = {
+    val halfSize = size / 2
+    BoundingBox(position - halfSize, size * 2)
+  }
+
   def move(point: Point): BoundingBox = {
+    BoundingBox(point, this.size)
+  }
+
+  def position(point: Point): BoundingBox = {
     BoundingBox(point, this.size)
   }
 
@@ -220,15 +246,23 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
     BoundingBox(this.position, this.size.sub(point))
   }
 
+  def positionToSize: BoundingBox = BoundingBox(Point.zero, size + position.abs)
+//  def toZero:BoundingBox = this.addPosition((position - position.abs) /2)
+
   def inside(point: Point, pixelSizeCompensation: Double = 0): Boolean =
     point.x >= this.x && point.x <= this.bottomRight.x - pixelSizeCompensation && point.y >= this.y && point.y <= this.bottomRight.y - pixelSizeCompensation
+
+  def insideRotated(pointArg: Point,
+                    rotation: Degree,
+                    pixelSizeCompensation: Double = 0): Boolean =
+    inside(pointArg.rotate(position + (size / 2), rotation), pixelSizeCompensation)
 
   def intersect(box: BoundingBox): Boolean =
     !(this.position.x > box.position.x + box.size.x || this.position.x + this.size.x < box.position.x ||
       this.position.y > box.position.y + box.size.y || this.position.y + this.size.y < box.position.y)
 
-  def rotate(degrees: Double): (Point, Point, Point, Point) = {
-    val halfSizePoint = this.size.scale(0.5).add(this.position)
+  def rotate(degrees: Degree): (Point, Point, Point, Point) = {
+    val halfSizePoint = position + (size / 2)
     (
       this.position.rotate(halfSizePoint, degrees),
       this.topRight.rotate(halfSizePoint, degrees),
@@ -238,9 +272,9 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
 
   }
 
-  def rotatedBBox(degrees: Double): BoundingBox = {
-    if (degrees == 0 || degrees % 180 == 0) return this
-    val halfSizePoint = this.size.scale(0.5).add(this.position)
+  def rotatedBBox(degrees: Degree): BoundingBox = {
+    if (degrees.value == 0 || degrees.value % 180 == 0) return this
+    val halfSizePoint = position + (size / 2)
     BoundingBox.getBBox(
       List(
         this.position.rotate(halfSizePoint, degrees),
@@ -272,6 +306,14 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
     (point.y <= yMin + es.y && point.y >= yMin - es.y ||
     point.y <= yMax + es.y && point.y >= yMax - es.y))
 
+  }
+
+  def onEdgeRotated(point: Point,
+                    rotation: Degree,
+                    edgeSize: Point = Point.zero,
+                    pixelSizeCompensation: Double = 0): Boolean = {
+
+    onEdge(point.rotate(position + (size / 2), rotation), edgeSize, pixelSizeCompensation)
   }
 
 }

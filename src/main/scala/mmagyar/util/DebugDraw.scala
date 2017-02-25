@@ -8,12 +8,12 @@ class DebugDraw(val printSize: Point = Point(90, 40), val cameraOffset: Point = 
   def printPositionable(pos: List[Positionable]): Unit = {
     def hasGfx(point: Point, pbs: Positionable): Char = {
 
-      val tp          = point.round()
+      val tp          = point.round
       val bbox        = pbs.boundingBox
-      val topLeft     = bbox.topLeft.round()
-      val topRight    = bbox.topRight.round()
-      val bottomLeft  = bbox.bottomLeft.round()
-      val bottomRight = bbox.bottomRight.round()
+      val topLeft     = bbox.topLeft.round
+      val topRight    = bbox.topRight.round
+      val bottomLeft  = bbox.bottomLeft.round
+      val bottomRight = bbox.bottomRight.round
 //      println(topLeft,topRight,bottomLeft, bottomRight)
       if (topLeft == tp) '┌'
       else if (topRight == tp) '┐'

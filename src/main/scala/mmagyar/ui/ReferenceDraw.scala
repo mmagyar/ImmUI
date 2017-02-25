@@ -1,7 +1,8 @@
 package mmagyar.ui
 
-import mmagyar.util.font.bdf.{Font => FontBdf, FontManager}
-import mmagyar.util.{Color, Point}
+import mmagyar.layout.Align.{Center, Left, Right, Stretch}
+import mmagyar.util.font.bdf.{FontManager, Font => FontBdf}
+import mmagyar.util.{BoundingBox, Color, Point}
 
 /** Created by Magyar Máté on 2017-02-01, All rights reserved. */
 /**
@@ -19,19 +20,29 @@ class ReferenceDraw(val scale: Double = 1) {
     def draw(elements: Vector[Shapey], offset: Point): Vector[Color] = {
       elements.flatMap({
         case a: Groupable[_] =>
-          draw(a.elements, offset)
+//          if(a.position != Point.zero)println("GROPU", a.position)
+          draw(a.elements, a.position + offset)
+        case a: BitmapShapey if a.inside(point + offset, document.transform, scale) =>
+          val pxPoint = a.alignedPosition(point + offset, document.transform)
+          val pix     = a.bitmap.pixels
+          if (pxPoint.x < pix.size && pxPoint.x >= 0) {
+            val row = pix(pxPoint.x.toInt)
+            if (pxPoint.y < row.size && pxPoint.y >= 0) Vector(row(pxPoint.y.toInt).toColor)
+            else Vector.empty
+          } else Vector.empty
         case a: Text if a.inside(point + offset, document.transform, scale) =>
           a.font match {
             case b: FontBitmap =>
               val chars = b.organize(a.label)
               val pxPoint = (a.position.transform(document.transform).round - (point + offset))
-                .abs() * (Point.one / document.transform.scale)
+                  .abs() * (Point.one / document.transform.scale)
               Vector(
                 chars
                   .find(x => x._1._1 + x._2.size._1 > pxPoint.x)
                   .map(x => {
-                    val (xx, yy) = ((pxPoint.x.toInt - x._1._1).abs, (pxPoint.y.toInt - x._1._2).abs)
-                    val fnt      = x._2
+                    val (xx, yy) =
+                      ((pxPoint.x.toInt - x._1._1).abs, (pxPoint.y.toInt - x._1._2).abs)
+                    val fnt = x._2
                     if (fnt.pixels.size > yy) {
                       val row = fnt.pixels(yy)
                       if (row.size > xx && row(xx)) a.stroke
@@ -41,14 +52,18 @@ class ReferenceDraw(val scale: Double = 1) {
                   .getOrElse(a.fill))
             case _ => throw new Error("Only bitmap fonts are supported by the reference drawer")
           }
-
-
-        case a: Strokable[_]
+        case a: Strokable[_] with RotatableShapey
             if document.transform
-              .transform(a.boundingBox)
-              .onEdge(point + offset, document.transform.scale * a.lineWidth, scale) =>
+              .transform(
+                BoundingBox(a.position + offset + ((a.boundingBox.size - a.size) / 2), a.size))
+              .onEdgeRotated(point, a.rotation, document.transform.scale * a.lineWidth, scale) =>
           Vector(a.stroke)
-        case a: Fillable[_] if a.inside(point + offset, document.transform, scale) =>
+        case a: Fillable[_] with RotatableShapey
+            if a.insideRotated(
+              point,
+              a.rotation,
+              document.transform.copy(document.transform.offset + offset),
+              scale) =>
           Vector(a.fill)
         case _ => Vector()
       })

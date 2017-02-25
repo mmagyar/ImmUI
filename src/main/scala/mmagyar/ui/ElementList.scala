@@ -1,6 +1,6 @@
 package mmagyar.ui
 
-import mmagyar.layout.{FreeForm, Organize}
+import mmagyar.layout.{ Organize, Relative}
 import mmagyar.util.{BoundingBox, Point}
 
 import scala.language.implicitConversions
@@ -18,7 +18,7 @@ object ElementList {
     new ElementList(elements, organize)
 
   def apply(elements: Shapey*): ElementList =
-    new ElementList(elements, FreeForm())
+    new ElementList(elements, Relative(Point.zero))
 
 }
 
@@ -33,8 +33,10 @@ class ElementList(_elements: Seq[Shapey], val organize: Organize) {
   }.toVector
 
   val elements: Vector[Shapey] =
-    (organize.wrap[PositionableShapey](positionable) ++ static).sortWith(_.zOrder > _.zOrder)
+    (organize.organize[PositionableShapey](positionable) ++ static).sortWith(_.zOrder > _.zOrder)
 
   def copy(elements: Seq[Shapey] = _elements, organize: Organize = organize): ElementList =
     new ElementList(elements, organize)
+
+  override def toString: String =s"\n(ElementList: (organize: $organize),\n(elements:" + elements+ "))\n"
 }

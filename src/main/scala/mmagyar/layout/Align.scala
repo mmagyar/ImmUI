@@ -8,14 +8,14 @@ sealed trait Align {
 }
 object Align {
 
-   final case object Left extends Align {
+  final case object Left extends Align {
     override def align(maxSize: Double,
                        elementSize: Double,
                        sizeChangeable: Boolean = false): AlignResult =
       AlignResult(0, elementSize)
   }
 
-   final case object Right extends Align {
+  final case object Right extends Align {
 
     override def align(maxSize: Double,
                        elementSize: Double,
@@ -26,11 +26,12 @@ object Align {
   final case object Center extends Align {
 
     override def align(maxSize: Double,
-      elementSize: Double,
-      sizeChangeable: Boolean = false): AlignResult =
+                       elementSize: Double,
+                       sizeChangeable: Boolean = false): AlignResult =
       AlignResult((maxSize - elementSize) / 2, elementSize)
   }
 
+  //TODO this might need to be in a different place
   final case class Stretch(forNonSizable: Align) extends Align {
 
     override def align(maxSize: Double,
@@ -39,22 +40,22 @@ object Align {
       if (sizeChangeable) AlignResult(0, maxSize)
       else forNonSizable.align(maxSize, elementSize, sizeChangeable)
   }
-
-
   //TODO do these belong here? should it be a different trait all together, since it's much more complicated.
-  final case object SpaceBetween extends Align {
-
-    override def align(maxSize: Double,
-      elementSize: Double,
-      sizeChangeable: Boolean = false): AlignResult =
-      AlignResult((maxSize - elementSize) / 2, elementSize)
-  }
-
-  final case object SpaceAround extends Align {
-
-    override def align(maxSize: Double,
-      elementSize: Double,
-      sizeChangeable: Boolean = false): AlignResult =
-      AlignResult((maxSize - elementSize) / 2, elementSize)
-  }
+//  final case object SpaceBetween extends Align {
+//
+//    override def align(maxSize: Double,
+//      elementSize: Double,
+//      sizeChangeable: Boolean = false): AlignResult =
+//      AlignResult((maxSize - elementSize) / 2, elementSize)
+//  }
+//
+//  final case object SpaceAround extends Align {
+//
+//    override def align(maxSize: Double,
+//      elementSize: Double,
+//      sizeChangeable: Boolean = false): AlignResult =
+//      AlignResult((maxSize - elementSize) / 2, elementSize)
+//  }
 }
+
+case class Align2d(horizontal: Align = Align.Center, vertical: Align = Align.Center)

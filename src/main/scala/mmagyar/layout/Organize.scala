@@ -10,7 +10,7 @@ import scala.annotation.tailrec
 sealed trait Organize extends Positionable[Organize] {
   def layout: Layout
 
-  def wrap[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T]
+  def organize[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T]
 
   def size: LayoutSizeConstraint
 
@@ -18,8 +18,8 @@ sealed trait Organize extends Positionable[Organize] {
 }
 
 object Organize {
-  def maxSize[T](elements: Vector[hasSize]): Point =
-    elements.foldLeft(Point.zero)((p, c) => p.max(c.size))
+//  def maxSize(elements: Vector[hasSize]): Point =
+//    elements.foldLeft(Point.zero)((p, c) => p.max(c.size))
 
   def getSummedSize[T <: Material](elements: Vector[T], ps: PointSwapper): Double =
     elements.foldLeft(0.0)((p: Double, c: T) => p + ps._1(c.size))
@@ -58,9 +58,9 @@ object Organize {
   /**
     *
     * @param elements the elements to grow
-    * @param fill how to grow the elements
+    * @param fill     how to grow the elements
     * @param lineSize the size of the line where the elements need to grow
-    * @param ps point swapper says which is the main axis
+    * @param ps       point swapper says which is the main axis
     * @tparam T the type of the list, this function does not do anything if non of T has Sizable as subclass
     * @return the grown elements
     */
@@ -100,7 +100,10 @@ object Organize {
               //If there are elements that reaching maximum size, run layout again
               case a => (prev._1, prev._2 :+ a)
             }
-          }) match { case a if a._1 => grow(a._2, fill, lineSize, ps); case a => a._2 }
+          }) match {
+            case a if a._1 => grow(a._2, fill, lineSize, ps);
+            case a         => a._2
+          }
         } else elements
       case Largest  => ??? //Find the largest element and only stretch that
       case Smallest => ??? //find the smallest element and only stretch that
@@ -112,9 +115,9 @@ object Organize {
   /**
     *
     * @param elements the elements to shrink
-    * @param fill how to shrink the elements
+    * @param fill     how to shrink the elements
     * @param lineSize the size of the line where the elements need to shrink
-    * @param ps point swapper says which is the main axis
+    * @param ps       point swapper says which is the main axis
     * @tparam T the type of the list, this function does not do anything if non of T has Sizable as subclass
     * @return the shrunk elements
     */
@@ -162,6 +165,7 @@ object Organize {
       case Last     => ??? // find the last sizable and only stretch that
     }
   }
+
   def fitElementsOnLine[T <: Material with Positionable[T]](
       elements: Vector[T],
       lineSize: Point,
@@ -174,7 +178,7 @@ object Organize {
 
     //is this going to be shrunk or grown?
     val currentWidth = getSummedSize(elements, ps)
-//println(currentWidth,currentWidth > ps._1(lineSize))
+    //println(currentWidth,currentWidth > ps._1(lineSize))
     organize(
       if (currentWidth > ps._1(lineSize)) shrink(elements, fill, lineSize, ps)
       else grow(elements, fill, lineSize, ps),
@@ -192,14 +196,19 @@ object Organize {
                                                        basePoint: Point,
                                                        size: Point): Vector[T] = {
 
-    val maxSize = elements.foldLeft(Point.zero)((p, c) => p.max(c.size))
-
     //TODO full stretch wrap to container size
     //TODO try shrink when necessary (insufficient vertical space)
+
     val linesRaw = elements.foldLeft(Vector[(Point, Vector[T], Double)]())(
-      (p: Vector[(Point, Vector[T], Double)], c) => {
+      (p: Vector[(Point, Vector[T], Double)], cr) => {
         val last: (Point, Vector[T], Double) =
           if (p.nonEmpty) p.last else (Point.zero, Vector[T](), 0.0)
+        val c = cr match {
+          case a: Sizable[T @unchecked] =>
+            println("RESIZE", a.size, a.baseSize)
+            a.size(a.baseSize)
+          case a => a
+        }
         val lineSize = ps._1(last._1) + ps._1(c.size)
         if ((lineSize > ps._1(size) && ps._1(last._1) != 0) || p.isEmpty)
           p :+ (c.size, Vector(c), last._3 + ps._2(last._1))
@@ -219,6 +228,10 @@ object Organize {
             ._2Set(c._1, tallestLine), c._2, p.lastOption.map(_._3 + tallestLine).getOrElse(0.0))
       )
     } else linesRaw
+
+    //TODO handle too high wrap layout
+    //The solution is to sum all the width of all lines, and treat that
+    //as the current size, and shrink to fit in the space that's available.
     layout.wrap match {
       case Wrap.No(_) =>
         Organize.fitElementsOnLine[T](
@@ -259,7 +272,7 @@ object Organize {
 final case class Horizontal(layout: Layout = Layout(), position: Point, size: LayoutSizeConstraint)
     extends Organize {
 
-  override def wrap[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] =
+  override def organize[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] =
     Organize.wrapOrganize[T](elements, layout, PointSwapper.x, position, size.constraintSize)
 
   override def position(point: Point): Horizontal = copy(position = point)
@@ -268,29 +281,58 @@ final case class Horizontal(layout: Layout = Layout(), position: Point, size: La
 final case class Vertical(layout: Layout = Layout(), position: Point, size: LayoutSizeConstraint)
     extends Organize {
 
-  override def wrap[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] =
+  override def organize[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] =
     Organize.wrapOrganize(elements, layout, PointSwapper.y, position, size.constraintSize)
+
   override def position(point: Point): Vertical = copy(position = point)
 
 }
 
+/**
+  * Freeform layout, akin to absolute position, this layout always starts at Point zero
+  */
 case class FreeForm() extends Organize {
   val layout: Layout             = Layout()
   val position: Point            = Point.zero
   val size: LayoutSizeConstraint = Unbound()
-//  def size(point:Point):FreeForm     =  copy(size.)
-  override def wrap[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] =
+
+  //  def size(point:Point):FreeForm     =  copy(size.)
+  override def organize[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] =
     elements
 
   override def position(point: Point): FreeForm = this
 }
 
-case class Relative(position: Point) extends Organize {
+/**
+  * Simple layout, keeps the relative coordinates of the elements, does not change their position or size
+  */
+case class Relative(position: Point = Point.zero) extends Organize {
 
   val layout: Layout             = Layout()
   val size: LayoutSizeConstraint = Unbound()
-  override def wrap[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] =
+
+  override def organize[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] =
     elements
 
   override def position(point: Point): Relative = this.copy(position = point)
+}
+
+/**
+  * Union layout, sets every sub components position to zero,
+  * and resize all resizable elements to the size of the largest element.
+  */
+case class Union(position: Point = Point.zero) extends Organize {
+
+  val layout: Layout             = Layout()
+  val size: LayoutSizeConstraint = Unbound()
+
+  override def organize[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] = {
+    val largest = elements.foldLeft(Point.zero)((p, c) => p.max(c.size))
+    elements.map {
+      case a: Sizable[T @unchecked] => a.size(largest).position(Point.zero)
+      case a                        => a.position(Point.zero)
+    }
+  }
+
+  override def position(point: Point): Union = this.copy(position = point)
 }
