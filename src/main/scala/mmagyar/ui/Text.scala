@@ -28,6 +28,7 @@ trait BitmapChar {
   def size: (Int, Int)
   def offset: (Int, Int)
   def pixels: Vector[Vector[Boolean]]
+  def character: Char
 }
 
 sealed trait FontWeight

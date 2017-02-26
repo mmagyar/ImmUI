@@ -12,17 +12,15 @@ sealed trait Shapey extends Material {
   def hidden: Boolean
 //  def inside(point: Point): Boolean
   def inside(point: Point,
-             transform: Transform = Transform(),
-             pixelSizeCompensation: Double = 0): Boolean =
+             transform: Transform = Transform()): Boolean =
     BoundingBox(position.transform(transform), size.scale(transform.scale))
-      .inside(point, pixelSizeCompensation)
+      .inside(point)
 
   def insideRotated(point: Point,
                     rotate: Degree,
-                    transform: Transform = Transform(),
-                    pixelSizeCompensation: Double = 0): Boolean =
+                    transform: Transform = Transform()): Boolean =
     BoundingBox(position.transform(transform), size.scale(transform.scale))
-      .insideRotated(point, rotate, pixelSizeCompensation)
+      .insideRotated(point, rotate)
   def zOrder: Double
 //    boundingBox.inside(point)
 }
@@ -87,19 +85,17 @@ trait Groupable[A <: Groupable[A]] extends Shapey with PositionableShapey { this
 trait PositionableShapey extends Shapey with Positionable[PositionableShapey]
 trait SizableShapey      extends Shapey with Sizable[SizableShapey]
 trait LookableShapey     extends Shapey with Lookable[LookableShapey]
-//trait RotatableShapey    extends Shapey with Rotatable[RotatableShapey]
+trait RotatableShapey    extends Shapey with Rotatable[RotatableShapey]
 trait LabelableShapey extends Shapey with Labelable[LabelableShapey]
 
 final case class Rect(
     position: Point,
     sizing: Sizing,
     looks: Looks = Looks(),
-//    rotation: Degree = Degree(0),
     hidden: Boolean = false,
     zOrder: Double = 1
 ) extends Drawable
     with LookableShapey
-//    with RotatableShapey
     with PositionableShapey
     with SizableShapey {
 
@@ -178,9 +174,9 @@ final case class BitmapShapey(
 
   override def sizing(sizing: Sizing): BitmapShapey = copy(sizing = sizing)
 
-  def alignedPosition(point: Point, transform: Transform): Point = {
-    val pxPointRaw = (this.position.transform(transform).round - point)
-        .abs() * (Point.one / transform.scale)
+  def alignedPosition(pxPointRaw: Point): Point = {
+//    val pxPointRaw = (this.position.transform(transform).round - point)
+//        .abs() * (Point.one / transform.scale)
 
     def horizontal(mod: Double = 1): Double = align.horizontal match {
       case Right  => (size.x - (bitmap.size._1 / mod)) * mod

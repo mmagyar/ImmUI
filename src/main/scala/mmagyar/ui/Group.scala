@@ -1,7 +1,7 @@
 package mmagyar.ui
 
 import mmagyar.layout._
-import mmagyar.util.{BoundingBox, Point}
+import mmagyar.util.{BoundingBox, Degree, Point}
 
 object Group {
   def apply(elements: Shapey*): Group = Group(ElementList(elements: _*))
@@ -26,17 +26,27 @@ object Group {
 }
 
 /** Magyar Máté 2017, all rights reserved */
-final case class Group(elementList: ElementList, hidden: Boolean = false, zOrder: Double = 1)
-    extends Groupable[Group] {
-  //TODO add rotation to group, remove from individual elements
+final case class Group(elementList: ElementList,
+                       rotation: Degree = Degree(0),
+                       scale: Double = 1,
+                       zOrder: Double = 1,
+                       hidden: Boolean = false)
+    extends Groupable[Group]
+    with RotatableShapey {
+  private val boundingBoxProto: BoundingBox = this.elements
+    .foldLeft(BoundingBox.zero)((p, c) =>
+      BoundingBox(Point.zero, p.size max c.boundingBox.addSize(c.boundingBox.position).size))
+    .rotatedBBox(rotation)
+
+  //This is required for the reference drawer, might need to find a better solution in the future
+  val rotationPositionCorrection: Point = boundingBoxProto.position * scale
 
   override val boundingBox: BoundingBox =
-    this.elements.foldLeft(BoundingBox.zero)((p, c) =>
-      BoundingBox(Point.zero, p.size max c.boundingBox.addSize(c.boundingBox.position).size)) //c.boundingBox.add(p))
+    boundingBoxProto.position(elementList.organize.position).size(boundingBoxProto.size * scale)
 
-  override val size: Point     = boundingBox.size
-  override val position: Point = elementList.organize.position
+  override val size: Point = boundingBox.size
 
+  override val position: Point = boundingBox.position
   override def replace[K <: Shapey, L <: Shapey](oldElement: K, newElement: L): Group =
     this.copy(elementList = elementList.copy(elements.map {
       case a if a == oldElement => newElement
@@ -71,4 +81,8 @@ final case class Group(elementList: ElementList, hidden: Boolean = false, zOrder
 
   override def position(point: Point): PositionableShapey =
     copy(elementList = elementList.copy(organize = elementList.organize.position(point)))
+
+  override def rotation(degree: Degree): Group = copy(rotation = degree)
+
+  def scale(value: Double): Group = copy(scale = value)
 }

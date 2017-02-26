@@ -21,6 +21,8 @@ object Point {
 
 case class Point(x: Double, y: Double) {
 
+
+
   def subX(amount: Double): Point = this.copy(x = this.x - amount)
   def subY(amount: Double): Point = this.copy(y = this.y - amount)
 
@@ -60,6 +62,8 @@ case class Point(x: Double, y: Double) {
     Point(this.x / divider._1.toDouble, this.y / divider._2.toDouble)
 
   def round: Point = Point(Math.round(this.x), Math.round(this.y))
+  def ceil:Point = Point(x.ceil,y.ceil)
+  def floor:Point = Point(x.floor,y.floor)
 
   def aspectMatchWidth(newWidth: Double): Point = Point(newWidth, this.y * (newWidth / this.x))
 
@@ -103,6 +107,12 @@ case class Point(x: Double, y: Double) {
   def abs(): Point = {
     if (this.x < 0 || this.y < 0) Point(Math.abs(this.x), Math.abs(this.y))
     else this
+  }
+
+
+  //Truncates it to the precision of Int.MaxValue
+  def truncate(factor: Long = Int.MaxValue.toLong): Point = {
+    Point((x * factor).round / factor, (y * factor).round / factor)
   }
 
   def sum: Double = x + y
@@ -162,6 +172,9 @@ case class Point(x: Double, y: Double) {
   def rotate(origin: Point, angleArg: Degree): Point =
     rotate(origin, angleArg.value, radians = false)
 
+  def rotate(rotation: Rotation): Point =
+    rotate(rotation.origin, rotation.degree.value, radians = false)
+
   def rotate(origin: Point, angleArg: Double, radians: Boolean = true): Point = {
     val angle = if (!radians) angleArg * (Math.PI / 180) else angleArg
     val s     = Math.sin(angle)
@@ -179,8 +192,12 @@ case class Point(x: Double, y: Double) {
   def isZero: Boolean = this.x == 0 && this.y == 0
 
   def comma(): String = s"${this.x},${this.y} "
+  lazy val info: String =
+    if (this == Point.large) "(point near infinity)"
+    else f"(x: ${this.x}%.2f, y: ${this.y}%.2f)"
 
-  def toInt: (Int, Int) = (x.toInt, y.toInt)
+  override def toString: String = info
+  def toInt: (Int, Int)         = (x.toInt, y.toInt)
 }
 
 object BoundingBox {
@@ -234,7 +251,7 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
     BoundingBox(this.position.sub(point), this.size)
   }
 
-  def resize(point: Point): BoundingBox = {
+  def size(point: Point): BoundingBox = {
     BoundingBox(this.position, point)
   }
 
@@ -248,6 +265,9 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
 
   def positionToSize: BoundingBox = BoundingBox(Point.zero, size + position.abs)
 //  def toZero:BoundingBox = this.addPosition((position - position.abs) /2)
+
+//  def inside(point: Point, pixelSizeCompensation: Double = 0): Boolean =
+//    point.x >= this.x && point.x <= this.bottomRight.x - pixelSizeCompensation && point.y >= this.y && point.y <= this.bottomRight.y - pixelSizeCompensation
 
   def inside(point: Point, pixelSizeCompensation: Double = 0): Boolean =
     point.x >= this.x && point.x <= this.bottomRight.x - pixelSizeCompensation && point.y >= this.y && point.y <= this.bottomRight.y - pixelSizeCompensation
@@ -273,8 +293,14 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
   }
 
   def rotatedBBox(degrees: Degree): BoundingBox = {
+
     if (degrees.value == 0 || degrees.value % 180 == 0) return this
-    val halfSizePoint = position + (size / 2)
+    val halfSizePoint = position + (size / 2.0)
+
+    println("ROTATING",  this.position.rotate(halfSizePoint, degrees),
+      this.topRight.rotate(halfSizePoint, degrees),
+      this.bottomRight.rotate(halfSizePoint, degrees),
+      this.bottomLeft.rotate(halfSizePoint, degrees))
     BoundingBox.getBBox(
       List(
         this.position.rotate(halfSizePoint, degrees),
@@ -295,7 +321,8 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
   def onEdge(point: Point,
              edgeSize: Point = Point.zero,
              pixelSizeCompensation: Double = 0): Boolean = {
-    val es = edgeSize / 2
+    //fuck if i know why is this neccessery, might try to find it out later.
+    val es = edgeSize * 0.95 //707
     val (xMin, xMax, yMax, yMin) = (topLeft.x,
                                     bottomRight.x - pixelSizeCompensation,
                                     topLeft.y,
@@ -316,23 +343,6 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
     onEdge(point.rotate(position + (size / 2), rotation), edgeSize, pixelSizeCompensation)
   }
 
-}
-
-object Transform {
-  val zero: Transform = Transform()
-}
-
-case class Transform(offset: Point = Point.zero, scale: Point = Point.one) {
-  def withScale(scale: Point): Transform = Transform(this.offset, scale)
-
-  def withOffset(offset: Point): Transform = Transform(offset, this.scale)
-
-  def transform(point: Point): Point = {
-    (point + offset).scale(scale)
-  }
-
-  def transform(boundingBox: BoundingBox): BoundingBox =
-    BoundingBox(boundingBox.position.transform(this), boundingBox.size.scale(scale))
 }
 
 object Box {
