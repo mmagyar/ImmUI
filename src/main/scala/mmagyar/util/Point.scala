@@ -297,10 +297,10 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
     if (degrees.value == 0 || degrees.value % 180 == 0) return this
     val halfSizePoint = position + (size / 2.0)
 
-    println("ROTATING",  this.position.rotate(halfSizePoint, degrees),
-      this.topRight.rotate(halfSizePoint, degrees),
-      this.bottomRight.rotate(halfSizePoint, degrees),
-      this.bottomLeft.rotate(halfSizePoint, degrees))
+//    println("ROTATING",  this.position.rotate(halfSizePoint, degrees),
+//      this.topRight.rotate(halfSizePoint, degrees),
+//      this.bottomRight.rotate(halfSizePoint, degrees),
+//      this.bottomLeft.rotate(halfSizePoint, degrees))
     BoundingBox.getBBox(
       List(
         this.position.rotate(halfSizePoint, degrees),

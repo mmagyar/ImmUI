@@ -2,14 +2,25 @@ package mmagyar.util
 
 /** Copyright (C) 2016 Magyar Máté dev@mmagyar.com */
 object Color {
-  val black       = Color(0, 0, 0)
-  val white       = Color(255, 255, 255)
-  val red         = Color(255, 0, 0)
-  val green       = Color(0, 255, 0)
-  val blue        = Color(0, 0, 255)
-  val grey        = Color(127, 127, 127)
   val transparent = Color(0, 0, 0, 0)
+  val aqua        = Color(0, 255, 255)
+  val black       = Color(0, 0, 0)
+  val blue        = Color(0, 0, 255)
+  val fuchsia     = Color(255, 0, 255)
+  val grey        = Color(128, 128, 128)
+  val green       = Color(0, 128, 0)
+  val lime        = Color(0, 255, 0)
+  val maroon      = Color(128, 0, 0)
+  val navy        = Color(0, 0, 128)
+  val olive       = Color(128, 128, 0)
+  val purple      = Color(128, 0, 128)
+  val red         = Color(255, 0, 0)
   val silver      = Color(192, 192, 192)
+  val teal        = Color(0, 128, 128)
+  val white       = Color(255, 255, 255)
+  val yellow      = Color(255, 255, 0)
+  val amber       = Color(255, 128, 0)
+
 }
 
 object ColorByte {
@@ -47,6 +58,16 @@ case class Color(red: Int, green: Int, blue: Int, opacity: Double = 1) {
   def darken(amount: Int): Color =
     Color((red - amount).max(0), (green - amount).max(0), (blue - amount).max(0), opacity)
 
+  def toRgbaInt: Int = {
+    var i = red
+    i = i << 8
+    i = i | green
+    i = i << 8
+    i = i | blue
+    i = i << 8
+    i = i | (opacity * 0xFF).toInt
+    i
+  }
 }
 
 object NamedColor {

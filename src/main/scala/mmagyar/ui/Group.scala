@@ -25,12 +25,13 @@ object Group {
     Group(ElementList(Relative(position), elements: _*))
 }
 
-/** Magyar Máté 2017, all rights reserved */
+//TODO maybe i need to make this optionally sizable, when sizing changes the bounding size
 final case class Group(elementList: ElementList,
                        rotation: Degree = Degree(0),
                        scale: Double = 1,
                        zOrder: Double = 1,
-                       hidden: Boolean = false)
+                       hidden: Boolean = false,
+                       id: ShapeyId = ShapeyId())
     extends Groupable[Group]
     with RotatableShapey {
   private val boundingBoxProto: BoundingBox = this.elements
@@ -85,4 +86,7 @@ final case class Group(elementList: ElementList,
   override def rotation(degree: Degree): Group = copy(rotation = degree)
 
   def scale(value: Double): Group = copy(scale = value)
+
+  override def toString: String =s"Group(id: $id rotation: ${rotation.value} pos: $position + size: $size)"
+
 }

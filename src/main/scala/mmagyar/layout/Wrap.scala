@@ -10,7 +10,7 @@ sealed trait Wrap {
 
 object Wrap {
 
-  val default = No()
+  val default = Simple()
   /** No wrap happens, just overflows, does this even make sense?*/
   final case class No(uniformLineSize: Boolean = false) extends Wrap
 
