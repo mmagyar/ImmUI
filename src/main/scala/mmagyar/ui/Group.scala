@@ -87,6 +87,7 @@ final case class Group(elementList: ElementList,
 
   def scale(value: Double): Group = copy(scale = value)
 
-  override def toString: String =s"Group(id: $id rotation: ${rotation.value} pos: $position + size: $size)"
+  override lazy val customToString: String = s"rotation: ${rotation.value}"
+
 
 }

@@ -10,6 +10,25 @@ import mmagyar.util.font.bdf.FontManager
 import scala.language.implicitConversions
 
 /** Created by Magyar Máté on 2017-01-31, All rights reserved. */
+/**
+  * This will be the BIG docblock for the whole Shapey element system
+  *
+  * todo:
+  *  - animation
+  *    - idea: create parameter animate
+  *    - signature: (delta : MilliSeconds) => Shapey
+  *    - default: delta => this
+  *  - behaviour
+  *    - idea: create a parameter which should be a collection of functions
+  *           it should not be able to escape it's own scope
+  *    - signature: interaction: Option[Behaviour[T < : this ] ]
+  *      - Behaviour class : Behaviour[T < : Shapey](click:Option[Action[T] ],
+  *                                                  move:Option[Action[T] ],
+  *                                                  drag:Option[Action[T] ],
+  *                                                  down:Option[Action[T] ],up:Option[Action[T] ])
+  *      - Action class: Action{ def action[T < : Shapey](in:T, tracker:interaction.Tracker):T }
+  *
+  *    */
 object ShapeyId {
   //TODO maybe add option to throw on collision?
   val index: AtomicLong = new AtomicLong(0)
@@ -41,7 +60,7 @@ sealed trait Shapey extends Material {
 
   //    boundingBox.inside(point)
 
-  def elementsString(nest: Int): String = {
+  final def elementsString(nest: Int): String = {
     this match {
       case a: Groupable[_] =>
         (if (nest < 2) s"\n${prepend(nest).dropRight(3)}└─┬──elements(\n"
@@ -53,18 +72,24 @@ sealed trait Shapey extends Material {
     }
   }
 
-  def prepend(nest: Int): String =
+  final private def prepend(nest: Int): String =
     (1 to (nest * 3)).foldLeft("")((p, c) => p + (if (c % 3 == 0) "│" else " "))
 
-  def elementsPrint(nest: Int = 0): String = {
-    prepend(nest) + toString + elementsString(nest + 1)
-  }
+  //TODO tabulated fields for readability
+  final def elementsPrint(nest: Int = 0): String =
+    prepend(nest) +
+      s"$stringName(id: ${id.identifierString} pos: $position size: $size${customToString match {
+        case "" => ""
+        case a  => s", $a"
+      }})" +
+      elementsString(nest + 1)
 
-  override def toString: String =
-    s"Shapey(id: $id ${getClass.getName
-      .split('.')
-      .lastOption
-      .getOrElse("")} pos: $position size: $size)"
+  lazy val customToString: String = ""
+
+  lazy val stringName: String = getClass.getName.split('.').lastOption.getOrElse("Shapey")
+
+  final override def toString: String = elementsPrint()
+
 }
 
 case class Document(transform: Transform = Transform(), root: Group)
