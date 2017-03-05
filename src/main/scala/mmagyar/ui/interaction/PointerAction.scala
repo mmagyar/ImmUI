@@ -22,27 +22,36 @@ import mmagyar.util.{Point, PointTransform, Rotation}
   *
   * In the future i clickable group may be added,
   * but right now, the correct way is to set a transparent RECT the size you want your group to be.
-  *
-  * @param  group Document the document
   */
-class PointerAction(val group: Document) {
+class PointerAction(
+    /** This is needed when the action group is not the main one,
+      * but additional behaviour, we don't want to trigger actions multiple times */
+    val triggerBehaviour: Boolean = false) {
 
   var lastTracker: Tracker = Tracker(switch = false, lastMove = Point.zero, downPos = Point.zero)
   var tracker: Tracker     = Tracker(switch = false, lastMove = Point.zero, downPos = Point.zero)
 
-  def act(pointerState: PointerState): Unit = {
+  /**
+    * This method will modify the Document according to it's behaviour
+    * @param pointerState PointerState
+    * @param group Document
+    * @return Document
+    */
+  def act(pointerState: PointerState, group: Document): Document = {
 
     lastTracker = tracker
     tracker = tracker.processPointer(pointerState)
     if (tracker != lastTracker) {
-      val clickedElements = getElement(group, tracker.lastMove)
-      if (tracker.state == State.Release)
-        println(
-          "CHANGE",
-          tracker.state,
-          clickedElements.foldLeft("")(_ + "\n" + _))
+      val actionElements = getElement(group, tracker.lastMove)
+      tracker = tracker.copy(downElements = actionElements)
 
-    }
+      val behavables = actionElements.collect {
+        case a: Groupable[_] if a.behaviour.canBehave(tracker) => a
+      }
+
+      group.copy(root = behavables.reverse.foldLeft(group.root)((p, c) =>
+        p.change(_.id == c.id, { case a: Groupable[_] => a.behave(tracker); case a => a })))
+    } else group
 
   }
 

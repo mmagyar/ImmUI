@@ -19,13 +19,13 @@ import mmagyar.util._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 
-object BufferedGui {
+object JavaFxTesting {
   def main(args: Array[String]) {
-    Application.launch(classOf[BufferedGui], args: _*)
+    Application.launch(classOf[JavaFxTesting], args: _*)
   }
 }
 
-class BufferedGui extends Application {
+class JavaFxTesting extends Application {
   val width: Int      = 320
   val height: Int     = 240
   val multiplier: Int = 2
@@ -50,7 +50,7 @@ class BufferedGui extends Application {
 
   private var document: Document = Document(root = DemoScenarios.doublePresence)
 
-  var actions = new PointerAction(document)
+  var actions = new PointerAction()
   def start(stage: Stage) {
     val root = new Pane
 
@@ -63,11 +63,9 @@ class BufferedGui extends Application {
         benchmark()
 
       case a: KeyEvent if a.getText == "r" =>
-//        val root = document.root.copy(rotation = Degree(document.root.rotation.value + 1))
-//        document(document.copy(root = root))
         val root = document.root.change(_.id("AHOY"), {
           case b: Group => b.copy(rotation = Degree(b.rotation.value + 5))
-          case b => b
+          case b        => b
         })
         document(document.copy(root = root))
         println(document.root)
@@ -78,36 +76,51 @@ class BufferedGui extends Application {
 
     scene.setOnMouseMoved({
       case a: MouseEvent =>
-        actions.act(PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = false))
+        document(
+          actions.act(
+            PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = false),
+            document))
     })
     scene.setOnMouseDragged({
       case a: MouseEvent =>
-        actions.act(PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = true))
+        document(
+          actions.act(
+            PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = true),
+            document))
     })
 
     scene.setOnMousePressed({
       case a: MouseEvent =>
-        actions.act(PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = true))
+        document(
+          actions.act(
+            PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = true),
+            document))
     })
 
     scene.setOnMouseReleased({
       case a: MouseEvent =>
-        actions.act(PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = false))
+        document(
+          actions.act(
+            PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = false),
+            document))
     })
     stage.setScene(scene)
     stage.setTitle("ImmuGUI")
     stage.setY(0)
     stage.setX(2890)
+//    stage.setX(1620)
     stage.show()
 //    stage.setResizable(false)
     update()
   }
 
   def document(document: Document): Unit = {
-    this.document = document
-    actions = new PointerAction(document)
 
-    update()
+    if (document != this.document) {
+      this.document = document
+
+      update()
+    }
   }
 
   val refD = new ReferenceDraw

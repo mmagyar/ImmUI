@@ -11,36 +11,36 @@ object State {
   case object Idle    extends State
 }
 sealed trait State
-
-trait Action {
-  val position: Point
-  val elements: List[Shapey]
-  val rawPosition: Point
-}
-case class Down(position: Point, elements: List[Shapey], rawPosition: Point)  extends Action
-case class Click(position: Point, elements: List[Shapey], rawPosition: Point) extends Action
-
-case class Drag(position: Point,
-                elements: List[Shapey],
-                rawPosition: Point,
-                downPos: Point,
-                lastPos: Point,
-                state: State = State.Idle)
-    extends Action
-
-case class Select(position: Point,
-                  elements: List[Shapey],
-                  rawPosition: Point,
-                  downPos: Point,
-                  lastPos: Point,
-                  state: State = State.Idle)
-    extends Action
+//
+//trait Action {
+//  val position: Point
+//  val elements: List[Shapey]
+//  val rawPosition: Point
+//}
+//case class Down(position: Point, elements: List[Shapey], rawPosition: Point)  extends Action
+//case class Click(position: Point, elements: List[Shapey], rawPosition: Point) extends Action
+//
+//case class Drag(position: Point,
+//                elements: List[Shapey],
+//                rawPosition: Point,
+//                downPos: Point,
+//                lastPos: Point,
+//                state: State = State.Idle)
+//    extends Action
+//
+//case class Select(position: Point,
+//                  elements: List[Shapey],
+//                  rawPosition: Point,
+//                  downPos: Point,
+//                  lastPos: Point,
+//                  state: State = State.Idle)
+//    extends Action
 
 case class Tracker(switch: Boolean ,
                    lastMove: Point ,
                    state: State = State.Idle,
                    downPos: Point,
-                   downElements: List[Shapey] = List(),
+                   downElements: Vector[Shapey] = Vector.empty,
                    upPos: Point = Point.zero) {
   def processPointer(pointerState: PointerState): Tracker = {
     if (pointerState.switch && !switch)

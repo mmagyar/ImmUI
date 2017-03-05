@@ -270,7 +270,9 @@ object Organize {
 
 }
 
-final case class Horizontal(layout: Layout = Layout(), position: Point, size: LayoutSizeConstraint)
+final case class Horizontal(layout: Layout = Layout(),
+                            position: Point = Point.zero,
+                            size: LayoutSizeConstraint = Unbound())
     extends Organize {
 
   override def organize[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] =
@@ -279,7 +281,9 @@ final case class Horizontal(layout: Layout = Layout(), position: Point, size: La
   override def position(point: Point): Horizontal = copy(position = point)
 }
 
-final case class Vertical(layout: Layout = Layout(), position: Point, size: LayoutSizeConstraint)
+final case class Vertical(layout: Layout = Layout(),
+                          position: Point = Point.zero,
+                          size: LayoutSizeConstraint = Unbound())
     extends Organize {
 
   override def organize[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] =
@@ -321,6 +325,8 @@ case class Relative(position: Point = Point.zero) extends Organize {
 /**
   * Union layout, sets every sub components position to zero,
   * and resize all resizable elements to the size of the largest element.
+  * @note might want to make this sizable
+  *       (although the handling of over sized elements leave a lot of questions
   */
 case class Union(position: Point = Point.zero) extends Organize {
 

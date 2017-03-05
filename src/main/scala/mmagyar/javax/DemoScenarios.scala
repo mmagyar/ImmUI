@@ -2,6 +2,7 @@ package mmagyar.javax
 
 import mmagyar.layout._
 import mmagyar.ui._
+import mmagyar.ui.interaction.{Behaviour, InjectedBehaviourAction}
 import mmagyar.util.{Bitmap, Color, Degree, Point}
 
 /** Magyar Máté 2017, all rights reserved */
@@ -56,7 +57,7 @@ object DemoScenarios {
   val simpleGroup: Group = Group
     .horizontal(
       Point.zero,
-      BoundWidthAndHeight(Point(320-1, 240-1)),
+      BoundWidthAndHeight(Point(320 - 1, 240 - 1)),
       Layout(),
       Rect(Sizing(30, 40)),
       Rect(Sizing(30, 60), looks = Looks(Color.white, Color.blue, 2)),
@@ -65,34 +66,45 @@ object DemoScenarios {
         looks = Looks(Color.green, Color.silver, 10))
     )
 
-
-  val simpleGroup2: Group = Group(Relative(),Group
-    .horizontal(
-      Point.zero,
-      BoundWidthAndHeight(Point(320-1, 240-1)),
-      Layout(),
-      Rect(Sizing(30, 40)),
-      Rect(Sizing(30, 60), looks = Looks(Color.white, Color.blue, 2)),
-      Rect(
-        Sizing(Point(50, 50), grow = Grow.Affinity),
-        looks = Looks(Color.green, Color.silver, 10))
-    )
-    .copy(rotation = Degree(0),id = ShapeyId("AHOY"))
+  val simpleGroup2: Group = Group(
+    Relative(),
+    Group
+      .horizontal(
+        Point.zero,
+        BoundWidthAndHeight(Point(320 - 1, 240 - 1)),
+        Layout(),
+        Rect(Sizing(30, 40)),
+        Rect(Sizing(30, 60), looks = Looks(Color.white, Color.blue, 2)),
+        Rect(
+          Sizing(Point(50, 50), grow = Grow.Affinity),
+          looks = Looks(Color.green, Color.silver, 10))
+      )
+      .copy(rotation = Degree(0), id = ShapeyId("AHOY"))
   )
 
-  private val doubleThis=      Rect(Sizing(30, 60), looks = Looks(Color.white, Color.blue, 2),id = ShapeyId("DOUBLE VISION"))
+  private val doubleThis =
+    Rect(Sizing(30, 60), looks = Looks(Color.white, Color.blue, 2), id = ShapeyId("DOUBLE VISION"))
 
-  val doublePresence: Group = Group(Relative(),doubleThis,Group
-    .horizontal(
-      Point.zero,
-      BoundWidthAndHeight(Point(320-1, 240-1)),
-      Layout(),
-      Rect(Sizing(30, 40)),
-      doubleThis,
-      Rect(
-        Sizing(Point(50, 50), grow = Grow.Affinity),
-        looks = Looks(Color.green, Color.silver, 10))
-    )
-    .copy(rotation = Degree(0),id = ShapeyId("AHOY"))
+  val doublePresence: Group = Group(
+    Relative(),
+    doubleThis,
+    Group
+      .horizontal(
+        Point.zero,
+        BoundWidthAndHeight(Point(320 - 1, 240 - 1)),
+        Layout(),
+        Rect(Sizing(30, 40)),
+        doubleThis,
+        Rect(
+          Sizing(Point(50, 50), grow = Grow.Affinity),
+          looks = Looks(Color.green, Color.silver, 10))
+      )
+//    .copy(rotation = Degree(0),id = ShapeyId("AHOY"),behaviour = Behaviour.diag[Group])
+      .copy(
+        rotation = Degree(0),
+        id = ShapeyId("AHOY"),
+        behaviour = Behaviour(click = Some(InjectedBehaviourAction[Group]((a, t) =>
+          a.copy(rotation = Degree(a.rotation.value + 5)))))
+      )
   )
 }

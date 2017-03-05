@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import mmagyar.layout.Align.{Center, Right}
 import mmagyar.layout._
+import mmagyar.ui.interaction.{Behaviour, Tracker}
 import mmagyar.util._
 import mmagyar.util.font.bdf.FontManager
 
@@ -11,7 +12,7 @@ import scala.language.implicitConversions
 
 /** Created by Magyar Máté on 2017-01-31, All rights reserved. */
 /**
-  * This will be the BIG docblock for the whole Shapey element system
+  * This will be the BIG doc block for the whole Shapey element system
   *
   * todo:
   *  - animation
@@ -97,65 +98,10 @@ case class Document(transform: Transform = Transform(), root: Group)
 sealed trait Drawable extends Shapey
 
 trait Groupable[A <: Groupable[A]] extends Shapey with PositionableShapey { this: A =>
-
   val elementList: ElementList
   lazy val elements: Vector[Shapey] = elementList.elements
-
-  /**
-    * Returns all the elements that has the 'element' as direct ascendants
-    *
-    * @param element the element who misses mommy
-    * @tparam K the type of the element
-    * @return all the direct ascendants
-    */
-  def getParents[K <: Shapey](element: K): Vector[Groupable[_]] = {
-    if (has(element, recursive = false)) Vector(this)
-    else
-      elements.flatMap {
-        case a: Groupable[_] => a.getParents(a)
-        case _               => List.empty
-      }
-  }
-
-  /**
-    * Returns all the paths to 'element'
-    *
-    * @param element the element who misses mommy
-    * @tparam K the type of the element
-    * @return all the available paths, empty if not available
-    */
-  def getPath[K <: Shapey](element: K): Vector[Groupable[_]] = {
-    if (has(element)) Vector(this)
-    else
-      elements
-        .collect { case a: Groupable[_] => a.getParents(element) }
-        .filter(_.nonEmpty)
-        .flatten
-  }
-
-  def has[K <: Shapey](element: K, recursive: Boolean = true): Boolean = {
-    val direct = elements.contains(element)
-    if (direct || !recursive) direct
-    else
-      elements.exists {
-        case a: Groupable[_] => a.has(element, recursive)
-        case _               => false
-      }
-  }
-
-  //TODO they might not belong here,
-  //TODO since not all groups have elements thate are modifiable this way
-  def replace[K <: Shapey, L <: Shapey](oldElement: K, newElement: L): A
-
-  def change[K <: Shapey](where: (Shapey) => Boolean,
-                          change: (Shapey) => K,
-                          recursive: Boolean = true): A
-
-  def remove[K <: Shapey](element: K, recursive: Boolean = true): A
-
-  def add[K <: Shapey](element: K): A
-
-  def get(where: (Shapey) => Boolean, recursive: Boolean = true): Vector[Shapey]
+  def behaviour: Behaviour[A]
+  def behave(tracker:Tracker) :A
 }
 
 trait PositionableShapey extends Shapey with Positionable[PositionableShapey]
