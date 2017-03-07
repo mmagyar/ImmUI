@@ -56,6 +56,17 @@ case class Font(characters: Map[Char, CharPixel],
     organize(string).foldLeft(Point.zero)((p, c) => p.max(Point(c._1) + Point(c._2.size))).toInt
 
   override def toString: String = s"font: $family $name"
+
+  override def sliceToMaxLineWidth(string: String, maxWidth: Double): Vector[String] = {
+    val res = string.foldLeft((0.0, "", Vector[String]()))((p, c) => {
+      val currentWidth = getSizeForString(c.toString)._1.toDouble
+      if (p._1 + currentWidth > maxWidth) {
+        (currentWidth, c.toString, p._3 :+ p._2)
+      } else (p._1 + currentWidth, p._2 + c, p._3)
+    })
+    if (res._2.nonEmpty) res._3 :+ res._2 else res._3
+  }
+
 }
 
 trait FontLoaderBDF {

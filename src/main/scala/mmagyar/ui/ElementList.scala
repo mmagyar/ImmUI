@@ -1,6 +1,6 @@
 package mmagyar.ui
 
-import mmagyar.layout.{ Organize, Relative}
+import mmagyar.layout.{Organize, Relative}
 import mmagyar.util.{BoundingBox, Point}
 
 import scala.language.implicitConversions
@@ -38,5 +38,8 @@ class ElementList(_elements: Seq[Shapey], val organize: Organize) {
   def copy(elements: Seq[Shapey] = _elements, organize: Organize = organize): ElementList =
     new ElementList(elements, organize)
 
-  override def toString: String =s"\n(ElementList: (organize: $organize),\n(elements:" + elements+ "))\n"
+  override def toString: String =
+    s"\n(ElementList: (organize: $organize),\nelements:\n" + elements
+      .map(x => x.elementsPrint(1))
+      .reduce(_ + "\n" + _) + ")\n"
 }

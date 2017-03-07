@@ -48,7 +48,7 @@ class JavaFxTesting extends Application {
 //  private val imageView = new WritableImage(800, 400)
 //  private val imageBf   = imageView.getPixelWriter
 
-  private var document: Document = Document(root = DemoScenarios.doublePresence)
+  private var document: Document = Document(root = DemoScenarios.mainDemo)
 
   var actions = new PointerAction()
   def start(stage: Stage) {
@@ -64,7 +64,7 @@ class JavaFxTesting extends Application {
 
       case a: KeyEvent if a.getText == "r" =>
         val root = document.root.change(_.id("AHOY"), {
-          case b: Group => b.copy(rotation = Degree(b.rotation.value + 5))
+          case b: Group => b.copy(position = Point.zero, rotation = Degree(b.rotation.value + 5))
           case b        => b
         })
         document(document.copy(root = root))

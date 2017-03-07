@@ -5,25 +5,25 @@ import mmagyar.ui.interaction.{Behaviour, Tracker}
 import mmagyar.util.{BoundingBox, Degree, Point}
 
 object Group {
-  def apply(elements: Shapey*): Group = Group(ElementList(elements: _*))
+  def apply(elements: Shapey*): Group = Group(ElementList(elements: _*), Point.zero)
 
   def apply(organize: Organize, elements: Shapey*): Group =
-    Group(ElementList(organize, elements: _*))
+    Group(ElementList(organize, elements: _*), Point.zero)
 
   def vertical(position: Point,
                size: LayoutSizeConstraint,
                layout: Layout,
                elements: Shapey*): Group =
-    Group(ElementList(Vertical(layout, position, size), elements: _*))
+    Group(ElementList(Vertical(layout, Point.zero, size), elements: _*), position)
 
   def horizontal(position: Point,
                  size: LayoutSizeConstraint,
                  layout: Layout,
                  elements: Shapey*): Group =
-    Group(ElementList(Horizontal(layout, position, size), elements: _*))
+    Group(ElementList(Horizontal(layout, Point.zero, size), elements: _*), position)
 
   def relative(position: Point, elements: Shapey*): Group =
-    Group(ElementList(Relative(position), elements: _*))
+    Group(ElementList(Relative(Point.zero), elements: _*), position)
 }
 
 /**
@@ -31,22 +31,15 @@ object Group {
   *
   * This group is special because it can be rotated and scaled.
   * Because of these parameters, it's size can not be direct set.
-  *
+  * todo position of group, should not come from elements
   * @param elementList ElementList
   * @param rotation    Degree
   * @param scale       Double
   * @param zOrder      Double
-  * @param hidden      Boolean
   * @param id          ShapeyId
   * @param behaviour   Behaviour
   */
-final case class Group(elementList: ElementList,
-                       rotation: Degree = Degree(0),
-                       scale: Double = 1,
-                       zOrder: Double = 1,
-                       hidden: Boolean = false,
-                       id: ShapeyId = ShapeyId(),
-                       behaviour: Behaviour[Group] = Behaviour())
+final case class Group(elementList: ElementList, position: Point, rotation: Degree = Degree(0), scale: Double = 1, zOrder: Double = 1, id: ShapeyId = ShapeyId(), behaviour: Behaviour[Group] = Behaviour())
     extends GenericGroup[Group]
     with RotatableShapey {
 
@@ -59,19 +52,19 @@ final case class Group(elementList: ElementList,
   val rotationPositionCorrection: Point = boundingBoxProto.position * scale
 
   override val boundingBox: BoundingBox =
-    boundingBoxProto.position(elementList.organize.position).size(boundingBoxProto.size * scale)
+    boundingBoxProto.position(elementList.organize.position + position).size(boundingBoxProto.size * scale)
 
   override val size: Point     = boundingBox.size
-  override val position: Point = boundingBox.position
+//  override val position: Point = boundingBox.position
 
-  override def rotation(degree: Degree): Group = copy(rotation = degree)
+  override def rotation(degree: Degree): Group = copy(position = Point.zero, rotation = degree)
 
-  def scale(value: Double): Group = copy(scale = value)
+  def scale(value: Double): Group = copy(position = Point.zero, scale = value)
 
-  override def setElements(elementList: ElementList): Group = copy(elementList)
+  override def setElements(elementList: ElementList): Group = copy(elementList, Point.zero)
 
-  override def position(point: Point): PositionableShapey =
-    setElements(elementList = elementList.copy(organize = elementList.organize.position(point)))
+  override def position(point: Point): PositionableShapey = copy(position = point)
+//    setElements(elementList = elementList.copy(organize = elementList.organize.position(point)))
 
   override lazy val customToString: String = s"rotation: ${rotation.value}"
 
@@ -88,14 +81,12 @@ final case class Group(elementList: ElementList,
   * @param elements  ElementList
   * @param sizing    Sizing
   * @param zOrder    Double
-  * @param hidden    Boolean
   * @param id        ShapeyId
   * @param behaviour Behaviour
   */
 final class SizableGroup(elements: ElementList,
                          val sizing: Sizing,
                          val zOrder: Double = 1,
-                         val hidden: Boolean = false,
                          val id: ShapeyId = ShapeyId(),
                          val behaviour: Behaviour[SizableGroup] = Behaviour())
     extends GenericGroup[SizableGroup]
@@ -119,8 +110,7 @@ final class SizableGroup(elements: ElementList,
   def copy(elementList: ElementList = elementList,
            sizing: Sizing = sizing,
            zOrder: Double = zOrder,
-           hidden: Boolean = hidden,
            id: ShapeyId = id,
            behaviour: Behaviour[SizableGroup] = behaviour): SizableGroup =
-    new SizableGroup(elementList, sizing, zOrder, hidden, id, behaviour)
+    new SizableGroup(elementList, sizing, zOrder, id, behaviour)
 }

@@ -7,6 +7,13 @@ import mmagyar.util.{Point, PointSwapper}
 import scala.annotation.tailrec
 
 /** Magyar Máté 2017, all rights reserved */
+
+/**
+  * This group of traits and classes is responsible for the order, organization of elements
+  *
+  * @todo we might want to remove the position from the layouts,
+  *       since they do not serve anything useful
+  */
 sealed trait Organize extends Positionable[Organize] {
   def layout: Layout
 
@@ -189,7 +196,7 @@ object Organize {
       ps)
 
   }
-
+//TODO size submitted by some scenarios are actually not a size, but a maximum size
   def wrapOrganize[T <: Positionable[T] with Material](elements: Vector[T],
                                                        layout: Layout,
                                                        ps: PointSwapper,
@@ -311,7 +318,11 @@ case class FreeForm() extends Organize {
 /**
   * Simple layout, keeps the relative coordinates of the elements, does not change their position or size
   */
-case class Relative(position: Point = Point.zero) extends Organize {
+object Relative {
+  val zero              = Relative(Point.zero)
+  def apply(): Relative = zero
+}
+case class Relative(position: Point) extends Organize {
 
   val layout: Layout             = Layout()
   val size: LayoutSizeConstraint = Unbound()

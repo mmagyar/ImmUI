@@ -44,7 +44,6 @@ case class ShapeyId(identifierString: String) {
 }
 
 sealed trait Shapey extends Material {
-  def hidden: Boolean
 
   //  def inside(point: Point): Boolean
   def inside(point: Point, transform: Transform = Transform()): Boolean =
@@ -101,7 +100,7 @@ trait Groupable[A <: Groupable[A]] extends Shapey with PositionableShapey { this
   val elementList: ElementList
   lazy val elements: Vector[Shapey] = elementList.elements
   def behaviour: Behaviour[A]
-  def behave(tracker:Tracker) :A
+  def behave(tracker: Tracker): A
 }
 
 trait PositionableShapey extends Shapey with Positionable[PositionableShapey]
@@ -117,7 +116,6 @@ trait LabelableShapey extends Shapey with Labelable[LabelableShapey]
 final case class Rect(sizing: Sizing,
                       position: Point = Point.zero,
                       looks: Looks = Looks(Color.amber, Color.green),
-                      hidden: Boolean = false,
                       zOrder: Double = 1,
                       id: ShapeyId = ShapeyId())
     extends Drawable
@@ -137,20 +135,75 @@ final case class Rect(sizing: Sizing,
 
   override def sizing(sizing: Sizing): SizableShapey = copy(sizing = sizing)
 }
+//TODO we might want to remove "HIDDEN" attribute
 
+final case class MultilineText(
+    position: Point,
+    text: String,
+    maxLineWidth: Double,
+    looks: Looks = Looks(Color.transparent, Color.grey),
+    zOrder: Double = 1,
+    id: ShapeyId = ShapeyId.apply(),
+    font: Font = Text.defaultFont
+) extends Groupable[MultilineText] {
+
+  private case class LinesMetric(sizeX: Int, sizeY: Int, maxX: Int, posY: Int, text: String)
+  val textLines: Vector[String] = font.sliceToMaxLineWidth(text, maxLineWidth)
+  private val linePositions: Vector[LinesMetric] =
+    textLines.foldLeft(Vector[LinesMetric]())((p, c) => {
+      val currentSize = font.getSizeForString(c)
+      p :+ p.lastOption
+        .map(x => {
+          LinesMetric(
+            currentSize._1,
+            currentSize._2,
+            x.maxX.max(currentSize._1),
+            x.posY + font.getSizeForString(x.text)._2,
+            c)
+        })
+        .getOrElse(LinesMetric(currentSize._1, currentSize._2, currentSize._1, 0, c))
+    })
+
+  val behaviour: Behaviour[MultilineText] = Behaviour()
+
+  override def behave(tracker: Tracker): MultilineText = this
+
+  val size: Point =
+    linePositions.lastOption
+      .map(x => Point(x.maxX, x.posY + font.getSizeForString(x.text)._2))
+      .getOrElse(Point.zero)
+
+  override def position(point: Point): PositionableShapey = copy(position = point)
+
+  val lineElements: Vector[Shapey] = linePositions.map(
+    x =>
+      Text(
+        Point(0, x.posY),
+        x.text,
+        Sizing(Point(x.sizeX, x.sizeY)),
+        looks,
+        zOrder,
+        font,
+        ShapeyId()))
+
+  override val elementList: ElementList = ElementList(lineElements, Relative.zero)
+
+  override lazy val customToString: String = s"text: $text"
+
+
+}
 object Text {
   lazy val defaultFont: Font = FontManager.loadBdfFont("fonts/u_vga16.bdf")
 
   def apply(position: Point,
             label: String,
             looks: Looks = Looks(Color.transparent, Color.grey),
-            hidden: Boolean = false,
             zOrder: Double = 1,
             font: Font = Text.defaultFont,
             id: ShapeyId = ShapeyId()): Text = {
     val stringSize = Point(font.getSizeForString(label))
     val sizing     = Sizing(stringSize, stringSize, stringSize)
-    Text(position, label, sizing, looks, hidden, zOrder, font, id)
+    Text(position, label, sizing, looks, zOrder, font, id)
   }
 }
 
@@ -159,7 +212,6 @@ final case class Text(
     label: String,
     sizing: Sizing,
     looks: Looks,
-    hidden: Boolean,
     zOrder: Double,
     font: Font,
     id: ShapeyId
@@ -177,6 +229,9 @@ final case class Text(
   override def label(string: String): Text = copy(label = string)
 
   override def sizing(sizing: Sizing): Text = copy(sizing = sizing)
+
+  override lazy val customToString: String = s"text: $label"
+
 }
 
 sealed trait BitmapFill
@@ -200,7 +255,6 @@ final case class BitmapShapey(
     bitmap: Bitmap,
     bitmapFill: BitmapFill = Clip,
     align: Align2d = Align2d(),
-    hidden: Boolean = false,
     zOrder: Double = 1,
     id: ShapeyId = ShapeyId()
 ) extends Drawable

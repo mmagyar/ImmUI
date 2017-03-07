@@ -71,11 +71,12 @@ class ReferenceDraw(var scale: Double = 1) {
         a.font match {
           case b: FontBitmap =>
             val chars = b.organize(a.label)
+            val cp    = (currentPoint - a.position).toInt
             chars
-              .find(x => x._1._1 + x._2.size._1 > currentPoint.x)
+              .find(x => x._1._1 + x._2.size._1 > cp._1)
               .map(x => {
                 val (xx, yy) =
-                  ((currentPoint.x.toInt - x._1._1).abs, (currentPoint.y.toInt - x._1._2).abs)
+                  ((cp._1 - x._1._1).abs, (cp._2 - x._1._2).abs)
                 val fnt = x._2
                 if (fnt.pixels.size > yy) {
                   val row = fnt.pixels(yy)
@@ -91,7 +92,11 @@ class ReferenceDraw(var scale: Double = 1) {
       case a: Strokable[_]
           if a.boundingBox
             .onEdge(currentPoint, Point(a.lineWidth, a.lineWidth), 1.0 / scale) =>
-        a.stroke
+        val stroke = a.stroke
+
+        if (stroke == Color.transparent) a match {
+          case b: Fillable[_] => b.fill; case _ => Color.transparent
+        } else stroke
       case a: Fillable[_] if a.boundingBox.inside(currentPoint, 1.0 / scale) =>
         a.fill
       case _ => Color.transparent

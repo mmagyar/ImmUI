@@ -7,14 +7,19 @@ object Font {}
 
 sealed trait Font {
   def getSizeForString(string: String): (Int, Int)
+  def sliceToMaxLineWidth(string: String,width:Double): Vector[String]
 }
 
 case class FontUrl(url: String, fontStyle: FontStyle) extends Font {
   override def getSizeForString(string: String): (Int, Int) = ???
+
+  override def sliceToMaxLineWidth(string: String, width:Double): Vector[String] = ???
 }
 
 case class FontBinary(binary: Vector[Byte]) extends Font {
   override def getSizeForString(string: String): (Int, Int) = ???
+
+  override def sliceToMaxLineWidth(string: String, width:Double) : Vector[String] = ???
 }
 
 trait FontBitmap extends Font {
