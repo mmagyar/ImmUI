@@ -10,8 +10,10 @@ trait Sizable[A <: Sizable[A]] extends hasSize { this: A =>
   def sizing(sizing: Sizing): A
 
   final def size: Point           = sizing.size
+  //TODO this might be misleading, since a layout will destroy a manually set parameter
   final def size(point: Point): A = sizing(sizing.copy(size = point))
 
+  //TODO maybe base size should be called 'size' and size should be called 'transientSize'
   final def baseSize: Point           = sizing.baseSize
   final def baseSize(point: Point): A = sizing(sizing.copy(baseSize = point))
 

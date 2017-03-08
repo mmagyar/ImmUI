@@ -6,6 +6,6 @@ import mmagyar.util.Color
 case class Style(
     background: Color = Color.grey,
   fontColor: Color = Color.black,
-  fontBgColor: Color = Color.transparent,
-    stroke: Color = Color.transparent
+  fontBgColor: Color = Color.red,
+    stroke: Color = Color.green
 ) {}

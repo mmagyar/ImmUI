@@ -1,7 +1,7 @@
 package mmagyar.ui.widget
 
 import mmagyar.layout._
-import mmagyar.ui.interaction.{Behaviour, Tracker}
+import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, Tracker}
 import mmagyar.ui._
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Color, Point}
@@ -26,15 +26,23 @@ class Dialogue(text: String,
 
   val buttons: Group =
     Group
-      .vertical(
+      .horizontal(
         Point(0, size.y / 2),
         //      Point(0, 0),
-        BoundWidthAndHeight(Point(size.x, size.y / 2)),
-        Layout(Align.Center, alignContent = Align.Center),
-        options.map(x => Text(Point.zero, x.text, Looks(
-//          style.fontBgColor,
-          Color.red,
-          style.fontColor))): _*
+        BoundWidthAndHeight(Point(size.x, size.y / 2)), //size.x, size.y / 2)),
+//        BoundWidthAndHeight(Point(size.x, 18)),
+        Layout(Align.Left, wrap = Wrap.Simple(Align.SpaceAround)),
+//        Layout(Align.Right, wrap = Wrap.No()),
+        options
+          .map(x => Text(Point.zero, x.text, Looks(style.fontBgColor, style.fontColor)))
+//          .foldLeft(Vector[Shapey]())((p, c) => {
+//            if (p.isEmpty) p :+ c
+//            else
+//              p ++ Vector(
+//                Rect(Sizing(Point(1, 26), grow = Grow.Affinity), looks = Looks(Color.amber)),
+//                c)
+//          })
+          : _*
       )
       .copy(position = Point(0, size.y / 2), zOrder = 33)
 
@@ -54,7 +62,7 @@ class Dialogue(text: String,
   )
 
   println(elementList)
-  override def behaviour: Behaviour[Dialogue] = Behaviour()
+  override def behaviour: Behaviour[Dialogue] = BehaviourBasic()
 
   override def behave(tracker: Tracker): Dialogue = this
 

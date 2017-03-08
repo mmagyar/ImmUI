@@ -1,7 +1,7 @@
 package mmagyar.ui
 
 import mmagyar.layout._
-import mmagyar.ui.interaction.{Behaviour, Tracker}
+import mmagyar.ui.interaction.{BehaviourBasic, Tracker}
 import mmagyar.util.{BoundingBox, Degree, Point}
 
 object Group {
@@ -39,7 +39,7 @@ object Group {
   * @param id          ShapeyId
   * @param behaviour   Behaviour
   */
-final case class Group(elementList: ElementList, position: Point, rotation: Degree = Degree(0), scale: Double = 1, zOrder: Double = 1, id: ShapeyId = ShapeyId(), behaviour: Behaviour[Group] = Behaviour())
+final case class Group(elementList: ElementList, position: Point, rotation: Degree = Degree(0), scale: Double = 1, zOrder: Double = 1, id: ShapeyId = ShapeyId(), behaviour: BehaviourBasic[Group] = BehaviourBasic())
     extends GenericGroup[Group]
     with RotatableShapey {
 
@@ -88,7 +88,7 @@ final class SizableGroup(elements: ElementList,
                          val sizing: Sizing,
                          val zOrder: Double = 1,
                          val id: ShapeyId = ShapeyId(),
-                         val behaviour: Behaviour[SizableGroup] = Behaviour())
+                         val behaviour: BehaviourBasic[SizableGroup] = BehaviourBasic())
     extends GenericGroup[SizableGroup]
     with SizableShapey  {
 
@@ -111,6 +111,6 @@ final class SizableGroup(elements: ElementList,
            sizing: Sizing = sizing,
            zOrder: Double = zOrder,
            id: ShapeyId = id,
-           behaviour: Behaviour[SizableGroup] = behaviour): SizableGroup =
+           behaviour: BehaviourBasic[SizableGroup] = behaviour): SizableGroup =
     new SizableGroup(elementList, sizing, zOrder, id, behaviour)
 }

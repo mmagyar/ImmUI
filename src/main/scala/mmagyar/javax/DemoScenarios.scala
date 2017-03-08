@@ -2,7 +2,7 @@ package mmagyar.javax
 
 import mmagyar.layout._
 import mmagyar.ui._
-import mmagyar.ui.interaction.{Behaviour, InjectedBehaviourAction}
+import mmagyar.ui.interaction.{BehaviourBasic, InjectedBehaviourAction}
 import mmagyar.ui.widget.{Dialogue, DialogueOption}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Bitmap, Color, Degree, Point}
@@ -91,12 +91,12 @@ object DemoScenarios {
     Relative(),
     doubleThis,
 //    Text(Point(100,100),"OHHZ NO",looks = Looks(Color.red, Color.blue,3),5),
-    new Dialogue(
-      "ohh hawdy, this text overlaps",
-      Point.zero,
-      Point(100, 100),
-      Vector(DialogueOption("OK"), DialogueOption("CANCEL")),
-      4)(Style()),
+//    new Dialogue(
+//      "ohh hawdy, this text overlaps",
+//      Point.zero,
+//      Point(100, 100),
+//      Vector(DialogueOption("OK"), DialogueOption("CANCEL")),
+//      4)(Style()),
     Group
           .horizontal(
             Point.zero,
@@ -109,9 +109,14 @@ object DemoScenarios {
               looks = Looks(Color.green, Color.silver, 10))
           )
     //    .copy(rotation = Degree(0),id = ShapeyId("AHOY"),behaviour = Behaviour.diag[Group])
-          .copy(position = Point.zero, rotation = Degree(0), id = ShapeyId("AHOY"), behaviour = Behaviour(click = Some(InjectedBehaviourAction[Group]((a, t) =>
+          .copy(position = Point.zero, rotation = Degree(0), id = ShapeyId("AHOY"), behaviour = BehaviourBasic(click = Some(InjectedBehaviourAction[Group]((a, t) =>
               a.copy(rotation = Degree(a.rotation.value + 5))))))
   )
 
-  val mainDemo: Group = doublePresence
+  val mainDemo: Group = Group(new Dialogue(
+    "ohh hawdy, this text overlaps",
+    Point.zero,
+    Point(100, 200),
+    Vector(DialogueOption("OK"), DialogueOption("CANCEL"),DialogueOption("MAYBE"), DialogueOption("NOT ENOUGH")),
+    4)(Style()))
 }

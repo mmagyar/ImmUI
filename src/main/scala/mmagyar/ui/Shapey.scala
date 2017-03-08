@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import mmagyar.layout.Align.{Center, Right}
 import mmagyar.layout._
-import mmagyar.ui.interaction.{Behaviour, Tracker}
+import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, Tracker}
 import mmagyar.util._
 import mmagyar.util.font.bdf.FontManager
 
@@ -164,7 +164,7 @@ final case class MultilineText(
         .getOrElse(LinesMetric(currentSize._1, currentSize._2, currentSize._1, 0, c))
     })
 
-  val behaviour: Behaviour[MultilineText] = Behaviour()
+  val behaviour: Behaviour[MultilineText] = BehaviourBasic()
 
   override def behave(tracker: Tracker): MultilineText = this
 
@@ -207,6 +207,7 @@ object Text {
   }
 }
 
+//TODO are text objects really sizable?
 final case class Text(
     position: Point,
     label: String,
@@ -230,8 +231,11 @@ final case class Text(
 
   override def sizing(sizing: Sizing): Text = copy(sizing = sizing)
 
+
   override lazy val customToString: String = s"text: $label"
 
+  if(size != boundingBox.size)
+  println(size, boundingBox.size, id)
 }
 
 sealed trait BitmapFill

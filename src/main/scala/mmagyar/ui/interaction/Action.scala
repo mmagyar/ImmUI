@@ -17,9 +17,9 @@ case class InjectedBehaviourAction[T <: Shapey](act: (T, Tracker) => T)
   override def action(in: T, tracker: Tracker): T = act(in, tracker)
 }
 
-object Behaviour {
+object BehaviourBasic {
 
-  def diag[T <: Shapey]: Behaviour[T] = Behaviour[T](
+  def diag[T <: Shapey]: BehaviourBasic[T] = BehaviourBasic[T](
     Some(InjectedBehaviourAction[T]((in, track) => { println("Click", in, track); in })),
     Some(InjectedBehaviourAction[T]((in, track) => { println("move", in, track); in })),
     Some(InjectedBehaviourAction[T]((in, track) => { println("down", in, track); in })),
@@ -27,13 +27,38 @@ object Behaviour {
     Some(InjectedBehaviourAction[T]((in, track) => { println("drag", in, track); in }))
   )
 }
-case class Behaviour[T <: Shapey](
-    click: Option[BehaviourAction[T]] = None,
-    move: Option[BehaviourAction[T]] = None,
-    down: Option[BehaviourAction[T]] = None,
-    up: Option[BehaviourAction[T]] = None,
-    drag: Option[BehaviourAction[T]] = None
-) {
+
+/**
+  * This is used to define behaviour for widgets
+  * This method is chosen, since then
+  * behaviour can be injected to any similar objects,
+  * and reused multiple times and combined
+  * @tparam T Behaviour's type
+  */
+trait Behaviour[T <: Shapey] {
+//  trait Behaviour[T <: Shapey, A <: Behaviour[T, A]] { this: A =>
+  def click: Option[BehaviourAction[T]]
+  def move: Option[BehaviourAction[T]]
+  def down: Option[BehaviourAction[T]]
+  def up: Option[BehaviourAction[T]]
+  def drag: Option[BehaviourAction[T]]
+
+  def combine(element: Behaviour[T]): Behaviour[T] = {
+    element.copy(
+      element.click.map(x => click.map(_.combine(x)).getOrElse(x)),
+      element.move.map(x => move.map(_.combine(x)).getOrElse(x)),
+      element.down.map(x => down.map(_.combine(x)).getOrElse(x)),
+      element.up.map(x => up.map(_.combine(x)).getOrElse(x)),
+      element.drag.map(x => drag.map(_.combine(x)).getOrElse(x))
+    )
+  }
+
+  def copy(click: Option[BehaviourAction[T]] = click,
+           move: Option[BehaviourAction[T]] = move,
+           down: Option[BehaviourAction[T]] = down,
+           up: Option[BehaviourAction[T]] = up,
+           drag: Option[BehaviourAction[T]] = drag): Behaviour[T]
+
   val clickEllipseSize = 10
   def canBehave(tracker: Tracker): Boolean = tracker.state match {
     case Press => down.isDefined
@@ -52,4 +77,19 @@ case class Behaviour[T <: Shapey](
     case Drag    => drag
     case Idle    => move
   }
+}
+
+case class BehaviourBasic[T <: Shapey](
+    click: Option[BehaviourAction[T]] = None,
+    move: Option[BehaviourAction[T]] = None,
+    down: Option[BehaviourAction[T]] = None,
+    up: Option[BehaviourAction[T]] = None,
+    drag: Option[BehaviourAction[T]] = None
+) extends Behaviour[T] {
+  override def copy(click: Option[BehaviourAction[T]],
+                    move: Option[BehaviourAction[T]],
+                    down: Option[BehaviourAction[T]],
+                    up: Option[BehaviourAction[T]],
+                    drag: Option[BehaviourAction[T]]): BehaviourBasic[T] =
+    BehaviourBasic(click, move, down, up, drag)
 }

@@ -75,16 +75,14 @@ class ReferenceDraw(var scale: Double = 1) {
             chars
               .find(x => x._1._1 + x._2.size._1 > cp._1)
               .map(x => {
-                val (xx, yy) =
-                  ((cp._1 - x._1._1).abs, (cp._2 - x._1._2).abs)
+                val (xx, yy) = ((cp._1 - x._1._1).abs, (cp._2 - x._1._2).abs)
                 val fnt = x._2
                 if (fnt.pixels.size > yy) {
                   val row = fnt.pixels(yy)
                   if (row.size > xx && row(xx)) a.stroke
                   else a.fill
                 } else a.fill
-              })
-              .getOrElse(a.fill)
+              }).getOrElse(a.fill)
           case _ =>
             throw new Error("Only bitmap fonts are supported by the reference drawer")
         }

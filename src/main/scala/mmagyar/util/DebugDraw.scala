@@ -1,12 +1,13 @@
 package mmagyar.util
 
-import mmagyar.layout.mutable.Positionable
+import mmagyar.layout.{Material, Positionable}
+
 
 /** Created by Magyar Máté on 2017-01-22, All rights reserved. */
 class DebugDraw(val printSize: Point = Point(90, 40), val cameraOffset: Point = Point.zero) {
 
-  def printPositionable(pos: List[Positionable]): Unit = {
-    def hasGfx(point: Point, pbs: Positionable): Char = {
+  def printPositionable(pos: List[Material]): Unit = {
+    def hasGfx(point: Point, pbs: Material): Char = {
 
       val tp          = point.round
       val bbox        = pbs.boundingBox
