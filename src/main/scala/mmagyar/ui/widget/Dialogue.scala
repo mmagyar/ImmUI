@@ -24,7 +24,7 @@ class Dialogue(text: String,
   val multiText =
     MultilineText(Point.zero, text, size.x, Looks(style.fontBgColor, style.fontColor), 2)
 
-  val buttons: Group =
+  /*val buttons: Group =
     Group
       .horizontal(
         Point(0, size.y / 2),
@@ -44,7 +44,30 @@ class Dialogue(text: String,
 //          })
           : _*
       )
-      .copy(position = Point(0, size.y / 2), zOrder = 33)
+      .copy(position = Point(0, size.y / 2), zOrder = 33)*/
+
+  val buttons: SizableGroup = new SizableGroup(
+    ElementList(
+//      (
+      options
+        .map(x => Text(Point.zero, x.text, Looks(style.fontBgColor, style.fontColor))),
+//        :+
+//          Rect(
+//            Sizing(Point(1, 26), grow = Grow.Affinity, shrink = Shrink.Affinity),
+//            looks = Looks(Color.amber)),
+//      :+ Rect(Sizing(Point(1, 32), grow = Grow.Affinity), looks = Looks(Color.green)),
+      Horizontal(
+        Layout(
+          wrap = Wrap.Simple(Align.SpaceAround, Align.Stretch(Align.Center), false, true),
+          alignContent = Align.Center),
+        BoundWidthAndHeight(Point(size.x, size.y / 2))
+        //        BoundWidthAndHeight(Point(size.x, 18)),
+      )
+    ),
+    Point(0, size.y / 2),
+    Sizing(Point(size.x, size.y / 2)),
+    33
+  )
 
 //  println(buttons)
   override val elementList: ElementList = ElementList(

@@ -8,15 +8,19 @@ case class AlignResult(offset: Double, size: Double)
 sealed trait Align {
 
   //TODO deprecate this
-  def align(maxSize: Double, elementSize: Double, sizeChangeable: Boolean = false): AlignResult
+
 
   def complex[T <: Material](maxSize: Double,
                              ps: PointSwapper,
                              elements: Vector[T]): Vector[(T, AlignResult)]
 }
+
+sealed trait AlignSimple extends Align{
+  def align(maxSize: Double, elementSize: Double, sizeChangeable: Boolean = false): AlignResult
+}
 object Align {
 
-  final case object Left extends Align {
+  final case object Left extends AlignSimple {
     override def align(maxSize: Double,
                        elementSize: Double,
                        sizeChangeable: Boolean = false): AlignResult =
@@ -27,13 +31,13 @@ object Align {
                                elements: Vector[T]): Vector[(T, AlignResult)] = {
       elements
         .foldLeft((Vector[(T, AlignResult)](), 0.0))((p, c) =>
-          (p._1 :+ (c, AlignResult(p._2, 0)), p._2 + ps._1(c.size)))
+          (p._1 :+ (c, AlignResult(p._2, ps._1(c.size))), p._2 + ps._1(c.size)))
         ._1
     }
 
   }
 
-  final case object Right extends Align {
+  final case object Right extends AlignSimple {
 
     override def align(maxSize: Double,
                        elementSize: Double,
@@ -48,12 +52,12 @@ object Align {
 
       elements
         .foldLeft((Vector[(T, AlignResult)](), offset))((p, c) =>
-          (p._1 :+ (c, AlignResult(p._2, 0)), p._2 + ps._1(c.size)))
+          (p._1 :+ (c, AlignResult(p._2, ps._1(c.size))), p._2 + ps._1(c.size)))
         ._1
     }
   }
 
-  final case object Center extends Align {
+  final case object Center extends AlignSimple {
 
     override def align(maxSize: Double,
                        elementSize: Double,
@@ -68,13 +72,13 @@ object Align {
 
       elements
         .foldLeft((Vector[(T, AlignResult)](), offset))((p, c) =>
-          (p._1 :+ (c, AlignResult(p._2, 0)), p._2 + ps._1(c.size)))
+          (p._1 :+ (c, AlignResult(p._2, ps._1(c.size))), p._2 + ps._1(c.size)))
         ._1
     }
   }
 
-  final case class Stretch(forNonSizable: Align) extends Align {
-
+  final case class Stretch(forNonSizable: AlignSimple) extends AlignSimple {
+//
     override def align(maxSize: Double,
                        elementSize: Double,
                        sizeChangeable: Boolean = false): AlignResult =
@@ -97,14 +101,8 @@ object Align {
     }
 
   }
-  //TODO do these belong here? should it be a different trait all together, since it's much more complicated.
+
   final case object SpaceBetween extends Align {
-
-    override def align(maxSize: Double,
-                       elementSize: Double,
-                       sizeChangeable: Boolean = false): AlignResult =
-      AlignResult((maxSize - elementSize) / 2, elementSize)
-
     def complex[T <: Material](maxSize: Double,
                                ps: PointSwapper,
                                elements: Vector[T]): Vector[(T, AlignResult)] = {
@@ -113,7 +111,7 @@ object Align {
 
       elements
         .foldLeft((Vector[(T, AlignResult)](), 0.0))((p, c) =>
-          (p._1 :+ (c, AlignResult(p._2, 0)), p._2 + space + ps._1(c.size)))
+          (p._1 :+ (c, AlignResult(p._2, ps._1(c.size))), p._2 + space + ps._1(c.size)))
         ._1
     }
 
@@ -121,11 +119,6 @@ object Align {
   }
 //
   final case object SpaceAround extends Align {
-
-    override def align(maxSize: Double,
-                       elementSize: Double,
-                       sizeChangeable: Boolean = false): AlignResult =
-      AlignResult((maxSize - elementSize) / 2, elementSize)
 
     def complex[T <: Material](maxSize: Double,
                                ps: PointSwapper,
@@ -135,7 +128,7 @@ object Align {
 
       elements
         .foldLeft((Vector[(T, AlignResult)](), space))((p, c) =>
-          (p._1 :+ (c, AlignResult(p._2, 0)), p._2 + space + ps._1(c.size)))
+          (p._1 :+ (c, AlignResult(p._2, ps._1(c.size))), p._2 + space + ps._1(c.size)))
         ._1
     }
 

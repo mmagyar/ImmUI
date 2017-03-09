@@ -2,7 +2,6 @@ package mmagyar.layout
 
 import mmagyar.layout.Fill._
 import mmagyar.layout.Wrap.{EqualLineCut, EqualLines, Simple, SimpleCut}
-import mmagyar.ui.ElementList
 import mmagyar.util.{Point, PointSwapper}
 
 import scala.annotation.tailrec
@@ -11,21 +10,17 @@ import scala.annotation.tailrec
 /**
   * This group of traits and classes is responsible for the order, organization of elements
   *
-  * @todo we might want to remove the position from the layouts,
-  *       since they do not serve anything useful  ,just leave in relative
-  *
-  * @todo alignment should be a property of wrap, since we don't want to align non-wrapped items
-  *       might need to do multiple passes,
-  *       (to see which lines are the longest, and how to align properly)
+  * @todo gosh, this really need tests
   */
-sealed trait Organize extends Positionable[Organize] {
+sealed trait Organize {
   def layout: Layout
 
-  def organize[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T]
+  def organize[T <: Positionable[T] with Material](elements: Vector[T],
+                                                   offset: Point = Point.zero,
+                                                   organizeToBounds: Boolean = false): Vector[T]
 
   def size: LayoutSizeConstraint
 
-  def position: Point
 }
 
 object Organize {
@@ -41,23 +36,23 @@ object Organize {
   def organize[T <: Material with Positionable[T]](elementsToOrganize: Vector[T],
                                                    lineSize: Point,
                                                    startPosition: Point,
-                                                   alignContent: Align,
+                                                   alignContent: AlignSimple,
                                                    alignItem: Align,
                                                    ps: PointSwapper): Vector[T] = {
 
-    val withAlignInfo = alignItem.complex(ps._1(lineSize),ps,elementsToOrganize)
-    println("______________ORGANIZE",lineSize)
-    withAlignInfo.foreach(println)
+    val withAlignInfo = alignItem.complex(ps._1(lineSize), ps, elementsToOrganize)
+//    println("______________ORGANIZE", lineSize)
+//    withAlignInfo.foreach(println)
 
     //order and alignContent elements
 //    val finalWidth = withAlignInfo.foldLeft(0.0)((p, c) => p + ps._1(c._1.size))
 
 //    val primaryOffset = alignItem.align(ps._1(lineSize), finalWidth).offset
     withAlignInfo
-      .foldLeft((ps._1(startPosition) , Vector[T]()))((pp, cc) => {
+      .foldLeft((ps._1(startPosition), Vector[T]()))((pp, cc) => {
         val sizeSec = ps._2(cc._1.size)
 
-        val sizedEl: T = cc._1.position(ps._1Set(startPosition,  cc._2.offset)) match {
+        val sizedEl: T = cc._1.position(ps._1Set(startPosition, cc._2.offset)) match {
           case a: Sizable[T @unchecked] =>
             val maxSize = ps._2(lineSize).min(ps._2(a.sizing.maxSize))
             val result  = alignContent.align(maxSize, sizeSec, sizeChangeable = true)
@@ -221,7 +216,6 @@ object Organize {
   private def uniformLineSize[T](ps: PointSwapper, linesRaw: Vector[LineSummer[T]]) = {
     val tallestLine =
       linesRaw.foldLeft(0.0)((p, c) => ps._2(c.lineSize).max(p))
-
     linesRaw.foldLeft(Vector[LineSummer[T]]())(
       (p: Vector[LineSummer[T]], c: LineSummer[T]) =>
         p :+ LineSummer(
@@ -239,7 +233,6 @@ object Organize {
     remaining / lines.size
   }
 
-//TODO size submitted by some scenarios are actually not a size, but a maximum size
   def wrapOrganize[T <: Positionable[T] with Material](
       elements: Vector[T],
       layout: Layout,
@@ -250,8 +243,6 @@ object Organize {
 
     //TODO try shrink when necessary (insufficient vertical space),
     // handle too high wrap layout
-
-    //TODO option maybe to have concrete size to stretch to
 
     val linesRaw = elements.foldLeft(Vector[LineSummer[T]]())(partitionLines(ps, bounds, _, _))
 
@@ -270,7 +261,7 @@ object Organize {
         else grow(c.elements, layout.fill, bounds, ps)
 
       val lineL   = getSummed_1(elements, ps)
-      val tallest = getMax_2(elements, ps) + additional
+      val tallest = getMax_2(elements, ps).max(ps._2(c.lineSize)) + additional
       val summer =
         LineSummer(ps._2Set(ps._1Set(c.lineSize, lineL), tallest), elements, p.previousOffset)
 
@@ -287,47 +278,62 @@ object Organize {
           layout.wrap.alignItem,
           ps
         )
-      case Simple(alignItem, _, _) =>
+      case Simple(alignItem, alignContent, _, _) =>
+        val wholeOffset =
+          if (organizeToBounds)
+            layout.alignContent.align(ps._2(bounds), lineGrow.previousOffset).offset
+          else 0
         lineGrow.lines.foldLeft[Vector[T]](Vector.empty[T])((p, ln: LineSummer[T]) => {
           p ++ organize(
             ln.elements,
             if (organizeToBounds) ps._1Set(ln.lineSize, ps._1(bounds))
             else ps._1Set(ln.lineSize, lineGrow.longestLineLength),
-            ps._2Set(basePoint, ln.offset_2),
-            layout.alignContent,
+            ps._2Set(basePoint, ln.offset_2 + wholeOffset),
+            alignContent,
             alignItem,
             ps
           )
         })
-      case EqualLines(_, _, _)   => ???
-      case SimpleCut(_, _, _)    => ???
-      case EqualLineCut(_, _, _) => ???
+      case EqualLines(_, _, _, _)   => ???
+      case SimpleCut(_, _, _, _)    => ???
+      case EqualLineCut(_, _, _, _) => ???
     }
 
   }
 
 }
 
-final case class Horizontal(layout: Layout = Layout(),
-                            position: Point = Point.zero,
-                            size: LayoutSizeConstraint = Unbound())
+final case class Horizontal(layout: Layout = Layout(), size: LayoutSizeConstraint = Unbound())
     extends Organize {
 
-  override def organize[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] =
-    Organize.wrapOrganize[T](elements, layout, PointSwapper.x, position, size.constraintSize)
+  override def organize[T <: Positionable[T] with Material](
+      elements: Vector[T],
+      offset: Point = Point.zero,
+      organizeToBounds: Boolean = false): Vector[T] =
+    Organize.wrapOrganize[T](
+      elements,
+      layout,
+      PointSwapper.x,
+      offset,
+      size.constraintSize,
+      organizeToBounds)
 
-  override def position(point: Point): Horizontal = copy(position = point)
 }
 
-final case class Vertical(layout: Layout = Layout(),
-                          position: Point = Point.zero,
-                          size: LayoutSizeConstraint = Unbound())
+final case class Vertical(layout: Layout = Layout(), size: LayoutSizeConstraint = Unbound())
     extends Organize {
 
-  override def organize[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] =
-    Organize.wrapOrganize(elements, layout, PointSwapper.y, position, size.constraintSize)
-
-  override def position(point: Point): Vertical = copy(position = point)
+  override def organize[T <: Positionable[T] with Material](
+      elements: Vector[T],
+      offset: Point = Point.zero,
+      organizeToBounds: Boolean = false): Vector[T] =
+    Organize.wrapOrganize(
+      elements,
+      layout,
+      PointSwapper.y,
+      offset,
+      size.constraintSize,
+      organizeToBounds)
 
 }
 
@@ -336,14 +342,15 @@ final case class Vertical(layout: Layout = Layout(),
   */
 case class FreeForm() extends Organize {
   val layout: Layout             = Layout()
-  val position: Point            = Point.zero
   val size: LayoutSizeConstraint = Unbound()
 
   //  def size(point:Point):FreeForm     =  copy(size.)
-  override def organize[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] =
+  override def organize[T <: Positionable[T] with Material](
+      elements: Vector[T],
+      offset: Point,
+      organizeToBounds: Boolean = false): Vector[T] =
     elements
 
-  override def position(point: Point): FreeForm = this
 }
 
 /**
@@ -358,10 +365,13 @@ case class Relative(position: Point) extends Organize {
   val layout: Layout             = Layout()
   val size: LayoutSizeConstraint = Unbound()
 
-  override def organize[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] =
+  override def organize[T <: Positionable[T] with Material](
+      elements: Vector[T],
+      offset: Point,
+      organizeToBounds: Boolean = false): Vector[T] =
     elements
 
-  override def position(point: Point): Relative = this.copy(position = point)
+//  def position(point: Point): Relative = this.copy(position = point)
 }
 
 /**
@@ -370,18 +380,20 @@ case class Relative(position: Point) extends Organize {
   * @note might want to make this sizable
   *       (although the handling of over sized elements leave a lot of questions
   */
-case class Union(position: Point = Point.zero) extends Organize {
+case class Union() extends Organize {
 
   val layout: Layout             = Layout()
   val size: LayoutSizeConstraint = Unbound()
 
-  override def organize[T <: Positionable[T] with Material](elements: Vector[T]): Vector[T] = {
+  override def organize[T <: Positionable[T] with Material](
+      elements: Vector[T],
+      offset: Point = Point.zero,
+      organizeToBounds: Boolean = false): Vector[T] = {
     val largest = elements.foldLeft(Point.zero)((p, c) => p.max(c.size))
     elements.map {
-      case a: Sizable[T @unchecked] => a.size(largest).position(Point.zero)
-      case a                        => a.position(Point.zero)
+      case a: Sizable[T @unchecked] => a.size(largest).position(Point.zero + offset)
+      case a                        => a.position(Point.zero + offset)
     }
   }
 
-  override def position(point: Point): Union = this.copy(position = point)
 }

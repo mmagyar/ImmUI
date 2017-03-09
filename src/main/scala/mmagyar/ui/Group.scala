@@ -14,13 +14,13 @@ object Group {
                size: LayoutSizeConstraint,
                layout: Layout,
                elements: Shapey*): Group =
-    Group(ElementList(Vertical(layout, Point.zero, size), elements: _*), position)
+    Group(ElementList(Vertical(layout, size), elements: _*), position)
 
   def horizontal(position: Point,
                  size: LayoutSizeConstraint,
                  layout: Layout,
                  elements: Shapey*): Group =
-    Group(ElementList(Horizontal(layout, Point.zero, size), elements: _*), position)
+    Group(ElementList(Horizontal(layout, size), elements: _*), position)
 
   def relative(position: Point, elements: Shapey*): Group =
     Group(ElementList(Relative(Point.zero), elements: _*), position)
@@ -39,7 +39,13 @@ object Group {
   * @param id          ShapeyId
   * @param behaviour   Behaviour
   */
-final case class Group(elementList: ElementList, position: Point, rotation: Degree = Degree(0), scale: Double = 1, zOrder: Double = 1, id: ShapeyId = ShapeyId(), behaviour: BehaviourBasic[Group] = BehaviourBasic())
+final case class Group(elementList: ElementList,
+                       position: Point,
+                       rotation: Degree = Degree(0),
+                       scale: Double = 1,
+                       zOrder: Double = 1,
+                       id: ShapeyId = ShapeyId(),
+                       behaviour: BehaviourBasic[Group] = BehaviourBasic())
     extends GenericGroup[Group]
     with RotatableShapey {
 
@@ -52,9 +58,9 @@ final case class Group(elementList: ElementList, position: Point, rotation: Degr
   val rotationPositionCorrection: Point = boundingBoxProto.position * scale
 
   override val boundingBox: BoundingBox =
-    boundingBoxProto.position(elementList.organize.position + position).size(boundingBoxProto.size * scale)
+    boundingBoxProto.position(position).size(boundingBoxProto.size * scale)
 
-  override val size: Point     = boundingBox.size
+  override val size: Point = boundingBox.size
 //  override val position: Point = boundingBox.position
 
   override def rotation(degree: Degree): Group = copy(position = Point.zero, rotation = degree)
@@ -85,32 +91,35 @@ final case class Group(elementList: ElementList, position: Point, rotation: Degr
   * @param behaviour Behaviour
   */
 final class SizableGroup(elements: ElementList,
+                         val position: Point,
                          val sizing: Sizing,
                          val zOrder: Double = 1,
                          val id: ShapeyId = ShapeyId(),
                          val behaviour: BehaviourBasic[SizableGroup] = BehaviourBasic())
     extends GenericGroup[SizableGroup]
-    with SizableShapey  {
+    with SizableShapey {
 
   override val elementList: ElementList =
-    elementList.copy(organize = elementList.organize match {
+    elements.copy(organize = elements.organize match {
       case a: Horizontal => a.copy(size = BoundWidthAndHeight(sizing.size))
       case a: Vertical   => a.copy(size = BoundWidthAndHeight(sizing.size))
-      case a             => Horizontal(a.layout, a.position, BoundWidthAndHeight(sizing.size))
-    })
+      case a             => Horizontal(a.layout, BoundWidthAndHeight(sizing.size))
+    }, organizeToBounds = true)
 
   override def setElements(elementList: ElementList): SizableGroup = copy(elementList)
 
   override def sizing(sizing: Sizing): SizableShapey = copy(sizing = sizing)
 
-  val position: Point = elementList.organize.position
-  override def position(point: Point): PositionableShapey =
-    setElements(elementList = elementList.copy(organize = elementList.organize.position(point)))
+  override def position(point: Point): PositionableShapey = copy(position = point)
 
   def copy(elementList: ElementList = elementList,
+           position: Point = position,
            sizing: Sizing = sizing,
            zOrder: Double = zOrder,
            id: ShapeyId = id,
            behaviour: BehaviourBasic[SizableGroup] = behaviour): SizableGroup =
-    new SizableGroup(elementList, sizing, zOrder, id, behaviour)
+    new SizableGroup(elementList, position, sizing, zOrder, id, behaviour)
+
+  //TODO rendered with 0 size on X?
+  println(boundingBox)
 }
