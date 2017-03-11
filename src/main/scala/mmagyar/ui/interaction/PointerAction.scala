@@ -46,11 +46,11 @@ class PointerAction(
       tracker = tracker.copy(downElements = actionElements)
 
       val behavables = actionElements.collect {
-        case a: Groupable[_] if a.behaviour.canBehave(tracker) => a
+        case a: Behaveable[_] if a.behaviour.canBehave(tracker) => a
       }
 
-      group.copy(root = behavables.reverse.foldLeft(group.root)((p, c) =>
-        p.change(_.id == c.id, { case a: Groupable[_] => a.behave(tracker); case a => a })))
+      group.copy(root = behavables.foldLeft(group.root)((p, c) =>
+        p.change(_.id == c.id, { case a: Behaveable[_] => a.behave(tracker); case a => a })))
     } else group
 
   }

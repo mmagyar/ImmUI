@@ -3,7 +3,9 @@ package mmagyar.ui
 import mmagyar.ui.interaction.Tracker
 
 /** Magyar Máté 2017, all rights reserved */
-trait GenericGroup[T <: Groupable[T]] extends Groupable[T] { this: T =>
+trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]
+    extends GroupableWithBehaveableChildren[T]
+    with Behaveable[T] { this: T =>
 
   def setElements(elementList: ElementList): T
 
@@ -65,14 +67,14 @@ trait GenericGroup[T <: Groupable[T]] extends Groupable[T] { this: T =>
   def add[K <: Shapey](element: K): T =
     setElements(elementList.copy(elementList.elements :+ element))
 
-  def change[K <: Shapey](where: (Shapey) => Boolean,
-                          change: (Shapey) => K,
-                          recursive: Boolean = true): T =
-    setElements(elementList.copy(elements.map {
-      case a if where(a)                   => change(a)
-      case a: GenericGroup[_] if recursive => a.change(where, change, recursive)
-      case a                               => a
-    }))
+//  def change[K <: Shapey](where: (Shapey) => Boolean,
+//                          change: (Shapey) => K,
+//                          recursive: Boolean = true): T =
+//    setElements(elementList.copy(elements.map {
+//      case a if where(a)                   => change(a)
+//      case a: GenericGroup[_] if recursive => a.change(where, change, recursive)
+//      case a                               => a
+//    }))
 
   def get(where: (Shapey) => Boolean, recursive: Boolean = true): Vector[Shapey] =
     elements.collect {
@@ -80,7 +82,7 @@ trait GenericGroup[T <: Groupable[T]] extends Groupable[T] { this: T =>
       case a: GenericGroup[_] if recursive => a.get(where, recursive)
     }.flatten
 
-  override def behave(tracker: Tracker): T =
-    behaviour.behave(tracker).map(x => x.action(this, tracker)).getOrElse(this)
+//  override def behave(tracker: Tracker): T =
+//    behaviour.behave(tracker).map(x => x.action(this, tracker)).getOrElse(this)
 
 }

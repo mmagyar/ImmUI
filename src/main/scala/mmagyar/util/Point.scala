@@ -21,8 +21,6 @@ object Point {
 
 case class Point(x: Double, y: Double) {
 
-
-
   def subX(amount: Double): Point = this.copy(x = this.x - amount)
   def subY(amount: Double): Point = this.copy(y = this.y - amount)
 
@@ -62,8 +60,8 @@ case class Point(x: Double, y: Double) {
     Point(this.x / divider._1.toDouble, this.y / divider._2.toDouble)
 
   def round: Point = Point(Math.round(this.x), Math.round(this.y))
-  def ceil:Point = Point(x.ceil,y.ceil)
-  def floor:Point = Point(x.floor,y.floor)
+  def ceil: Point  = Point(x.ceil, y.ceil)
+  def floor: Point = Point(x.floor, y.floor)
 
   def aspectMatchWidth(newWidth: Double): Point = Point(newWidth, this.y * (newWidth / this.x))
 
@@ -109,7 +107,6 @@ case class Point(x: Double, y: Double) {
     else this
   }
 
-
   //Truncates it to the precision of Int.MaxValue
   def truncate(factor: Long = Int.MaxValue.toLong): Point = {
     Point((x * factor).round / factor, (y * factor).round / factor)
@@ -130,10 +127,10 @@ case class Point(x: Double, y: Double) {
 
       val current = i / steps
       result = result ++ List(
-          new Point(
-            Point.interpolate(point.x, this.x, current),
-            Point.interpolate(point.y, this.y, current)
-          ))
+        new Point(
+          Point.interpolate(point.x, this.x, current),
+          Point.interpolate(point.y, this.y, current)
+        ))
       i += 1
     }
 
@@ -323,10 +320,11 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
              pixelSizeCompensation: Double = 0): Boolean = {
     //fuck if i know why is this neccessery, might try to find it out later.
     val es = edgeSize * 0.95 //707
-    val (xMin, xMax, yMax, yMin) = (topLeft.x,
-                                    bottomRight.x - pixelSizeCompensation,
-                                    topLeft.y,
-                                    bottomRight.y - pixelSizeCompensation)
+    val (xMin, xMax, yMax, yMin) = (
+      topLeft.x,
+      bottomRight.x - pixelSizeCompensation,
+      topLeft.y,
+      bottomRight.y - pixelSizeCompensation)
 
     inside(point, pixelSizeCompensation) && ((point.x <= xMin + es.x && point.x >= xMin - es.x ||
     point.x <= xMax + es.x && point.x >= xMax - es.x) ||
@@ -354,27 +352,29 @@ object Box {
   val zero: Box = Box(Point.zero, Point.zero)
 
   val four: Box = Box(4)
+
+  def apply(size: Point): Box = Box(size, size)
 }
 
 /**
   * <p>Describes the size of two axis
   * Advised use for consistency :</p>
   * <ul>
-  * <li>horizontal.x = left</li>
-  * <li>horizontal.y = right</li>
-  * <li>vertical.x   = top</li>
-  * <li>vertical.y   = bottom</li></ul>
+  * <li>topLeft.x = left</li>
+  * <li>topLef.y = top</li>
+  * <li>bottomRight.x   = right</li>
+  * <li>bottomRight.y   = bottom</li></ul>
   */
-case class Box(horizontal: Point = Point.zero, vertical: Point = Point.zero) {
-  def add(value: Box): Box = Box(horizontal + value.horizontal, horizontal + value.vertical)
+case class Box(topLeft: Point, bottomRight: Point) {
+  def add(value: Box): Box = Box(topLeft + value.topLeft, topLeft + value.bottomRight)
 
-  def sub(value: Box): Box = Box(horizontal - value.horizontal, horizontal - value.vertical)
+  def sub(value: Box): Box = Box(topLeft - value.topLeft, topLeft - value.bottomRight)
 
-  def scale(value: Box): Box = Box(horizontal * value.horizontal, horizontal * value.vertical)
+  def scale(value: Box): Box = Box(topLeft * value.topLeft, topLeft * value.bottomRight)
 
-  def scale(value: Point): Box = Box(horizontal * value, horizontal * value)
+  def scale(value: Point): Box = Box(topLeft * value, topLeft * value)
 
-  def div(value: Box): Box = Box(horizontal / value.horizontal, horizontal / value.vertical)
+  def div(value: Box): Box = Box(topLeft / value.topLeft, topLeft / value.bottomRight)
 
   def +(value: Box): Box = add(value)
 
@@ -386,6 +386,11 @@ case class Box(horizontal: Point = Point.zero, vertical: Point = Point.zero) {
 
   def /(value: Box): Box = div(value)
 
+  def xSum: Double = topLeft.x + bottomRight.x
+
+  def ySum: Double = topLeft.y + bottomRight.y
+
+  def pointSum: Point = topLeft + bottomRight
 }
 
 object PointSwapper {

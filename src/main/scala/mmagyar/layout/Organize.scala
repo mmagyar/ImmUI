@@ -41,13 +41,6 @@ object Organize {
                                                    ps: PointSwapper): Vector[T] = {
 
     val withAlignInfo = alignItem.complex(ps._1(lineSize), ps, elementsToOrganize)
-//    println("______________ORGANIZE", lineSize)
-//    withAlignInfo.foreach(println)
-
-    //order and alignContent elements
-//    val finalWidth = withAlignInfo.foldLeft(0.0)((p, c) => p + ps._1(c._1.size))
-
-//    val primaryOffset = alignItem.align(ps._1(lineSize), finalWidth).offset
     withAlignInfo
       .foldLeft((ps._1(startPosition), Vector[T]()))((pp, cc) => {
         val sizeSec = ps._2(cc._1.size)

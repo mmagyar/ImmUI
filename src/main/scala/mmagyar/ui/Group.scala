@@ -2,7 +2,7 @@ package mmagyar.ui
 
 import mmagyar.layout._
 import mmagyar.ui.interaction.{BehaviourBasic, Tracker}
-import mmagyar.util.{BoundingBox, Degree, Point}
+import mmagyar.util.{BoundingBox, Box, Degree, Point}
 
 object Group {
   def apply(elements: Shapey*): Group = Group(ElementList(elements: _*), Point.zero)
@@ -47,7 +47,8 @@ final case class Group(elementList: ElementList,
                        id: ShapeyId = ShapeyId(),
                        behaviour: BehaviourBasic[Group] = BehaviourBasic())
     extends GenericGroup[Group]
-    with RotatableShapey {
+    with RotatableShapey
+    with PositionableShapey {
 
   private val boundingBoxProto: BoundingBox = this.elements
     .foldLeft(BoundingBox.zero)((p, c) =>
@@ -69,11 +70,63 @@ final case class Group(elementList: ElementList,
 
   override def setElements(elementList: ElementList): Group = copy(elementList, Point.zero)
 
-  override def position(point: Point): PositionableShapey = copy(position = point)
+
+  override def position(point: Point): Group = copy(position = point)
 //    setElements(elementList = elementList.copy(organize = elementList.organize.position(point)))
 
   override lazy val customToString: String = s"rotation: ${rotation.value}"
+  override def mapElements(map: (Shapey) => Shapey): Group =
+    setElements(elementList.copy(elements = elementList.elements.map(map)))
+}
 
+object SizableGroup {
+
+  val defaultLayout: Layout = Layout(
+    wrap = Wrap.Simple(
+      Align.SpaceAround,
+      Align.Stretch(Align.Center),
+      stretchLinesToBounds = true,
+      uniformLineSize = true),
+    alignContent = Align.Center)
+
+  def apply(position: Point,
+            size: Point,
+            elements: Vector[Shapey],
+            layout: Layout = defaultLayout,
+            zOrder: Int = 1): SizableGroup =
+    new SizableGroup(
+      ElementList(elements, Horizontal(layout, BoundWidthAndHeight(size))),
+      position,
+      Sizing(size),
+      zOrder)
+
+  def addMargin(element: Shapey,
+                margin: Box,
+                layout: Layout = defaultLayout,
+                zOrder: Double = 1,
+                maxSize: Option[Point] = None): SizableGroup = {
+    val size = maxSize.getOrElse(Point.infinity).min(element.size + margin.pointSum)
+    new SizableGroup(
+      ElementList(Vector(element), Horizontal(layout)),
+      element.position,
+      Sizing(size),
+      zOrder
+    )
+  }
+
+  def margin(element: PositionableAndSizable,
+             totalSize: Point,
+             margin: Box,
+             layout: Layout = defaultLayout,
+             zOrder: Double = 1): SizableGroup = {
+    val s  = totalSize - margin.pointSum
+    val el = element.sizing(element.sizing.copy(s, s, s, s)).position(margin.topLeft)
+    new SizableGroup(
+      ElementList(Vector(el), Relative()),
+      element.position,
+      Sizing(totalSize),
+      zOrder)
+  }
 }
 
 /**
@@ -97,20 +150,26 @@ final class SizableGroup(elements: ElementList,
                          val id: ShapeyId = ShapeyId(),
                          val behaviour: BehaviourBasic[SizableGroup] = BehaviourBasic())
     extends GenericGroup[SizableGroup]
-    with SizableShapey {
+    with PositionableAndSizable {
 
   override val elementList: ElementList =
-    elements.copy(organize = elements.organize match {
-      case a: Horizontal => a.copy(size = BoundWidthAndHeight(sizing.size))
-      case a: Vertical   => a.copy(size = BoundWidthAndHeight(sizing.size))
-      case a             => Horizontal(a.layout, BoundWidthAndHeight(sizing.size))
-    }, organizeToBounds = true)
+    elements.copy(
+      organize = elements.organize match {
+        case a: Horizontal => a.copy(size = BoundWidthAndHeight(sizing.size))
+        case a: Vertical   => a.copy(size = BoundWidthAndHeight(sizing.size))
+        case a             => Horizontal(a.layout, BoundWidthAndHeight(sizing.size))
+      },
+      organizeToBounds = true
+    )
 
   override def setElements(elementList: ElementList): SizableGroup = copy(elementList)
 
-  override def sizing(sizing: Sizing): SizableShapey = copy(sizing = sizing)
+  override def mapElements(map: (Shapey) => Shapey): SizableGroup =
+    setElements(elementList.copy(elements = elementList.elements.map(map)))
 
-  override def position(point: Point): PositionableShapey = copy(position = point)
+  override def sizing(sizing: Sizing): SizableGroup = copy(sizing = sizing)
+
+  override def position(point: Point): SizableGroup = copy(position = point)
 
   def copy(elementList: ElementList = elementList,
            position: Point = position,
@@ -121,5 +180,5 @@ final class SizableGroup(elements: ElementList,
     new SizableGroup(elementList, position, sizing, zOrder, id, behaviour)
 
   //TODO rendered with 0 size on X?
-  println(boundingBox)
+//  println(boundingBox)
 }

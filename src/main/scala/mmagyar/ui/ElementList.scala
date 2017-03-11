@@ -39,7 +39,7 @@ trait ElementListable {
   override def toString: String =
     s"\n(ElementList: (organize: $organize),\nelements:\n" + elements
       .map(x => x.elementsPrint(1))
-      .reduce(_ + "\n" + _) + ")\n"
+      .foldLeft("")((p, c) => p + (if (p.nonEmpty) "\n" else "") + c) + ")\n"
 }
 
 class ElementList(_elements: Vector[Shapey],
@@ -55,6 +55,7 @@ class ElementList(_elements: Vector[Shapey],
     case a if !a.isInstanceOf[PositionableShapey] => a
   }
 
+  def map(fn: (Shapey) => Shapey): ElementList = copy(elements.map(fn))
   val elements: Vector[Shapey] =
     (organize
       .organize[PositionableShapey](positionable, organizeToBounds = organizeToBounds) ++ static)

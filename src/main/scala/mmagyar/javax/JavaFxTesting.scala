@@ -63,7 +63,7 @@ class JavaFxTesting extends Application {
         benchmark()
 
       case a: KeyEvent if a.getText == "r" =>
-        val root = document.root.change(_.id("AHOY"), {
+        val root = document.root.change(_.id('AHOY), {
           case b: Group => b.copy(position = Point.zero, rotation = Degree(b.rotation.value + 5))
           case b        => b
         })

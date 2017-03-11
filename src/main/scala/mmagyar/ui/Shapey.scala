@@ -21,24 +21,26 @@ import scala.language.implicitConversions
   *    - default: delta => this
   *  - behaviour
   *    - idea: create a parameter which should be a collection of functions
-  *           it should not be able to escape it's own scope
+  * it should not be able to escape it's own scope
   *    - signature: interaction: Option[Behaviour[T < : this ] ]
   *      - Behaviour class : Behaviour[T < : Shapey](click:Option[Action[T] ],
-  *                                                  move:Option[Action[T] ],
-  *                                                  drag:Option[Action[T] ],
-  *                                                  down:Option[Action[T] ],up:Option[Action[T] ])
+  * move:Option[Action[T] ],
+  * drag:Option[Action[T] ],
+  * down:Option[Action[T] ],up:Option[Action[T] ])
   *      - Action class: Action{ def action[T < : Shapey](in:T, tracker:interaction.Tracker):T }
   *
-  *    */
+  **/
 object ShapeyId {
   //TODO maybe add option to throw on collision?
   val index: AtomicLong = new AtomicLong(0)
 
-  def apply(): ShapeyId = ShapeyId("AUTO_GEN_ID: " + index.addAndGet(1).toHexString)
+  def apply(): ShapeyId = ShapeyId(Symbol("AUTO_GEN_ID: " + index.addAndGet(1).toHexString))
+
+  def apply(identifier: String): ShapeyId = ShapeyId(Symbol(identifier))
 }
 
-case class ShapeyId(identifierString: String) {
-  def apply(string: String): Boolean = identifierString == string
+case class ShapeyId(symbol: Symbol) {
+  def apply(string: Symbol): Boolean = symbol == string
 
   //  override def toString: String = identifierString
 }
@@ -78,7 +80,7 @@ sealed trait Shapey extends Material {
   //TODO tabulated fields for readability
   final def elementsPrint(nest: Int = 0): String =
     prepend(nest) +
-      s"$stringName(id: ${id.identifierString} pos: $position size: $size${customToString match {
+      s"$stringName(id: ${id.symbol} pos: $position size: $size${customToString match {
         case "" => ""
         case a  => s", $a"
       }})" +
@@ -96,16 +98,45 @@ case class Document(transform: Transform = Transform(), root: Group)
 
 sealed trait Drawable extends Shapey
 
-trait Groupable[A <: Groupable[A]] extends Shapey with PositionableShapey { this: A =>
+trait Groupable[A <: Groupable[A]] extends Shapey { this: A =>
   val elementList: ElementList
   lazy val elements: Vector[Shapey] = elementList.elements
+
+}
+
+trait Behaveable[A <: Behaveable[A]] extends Shapey { this: A =>
   def behaviour: Behaviour[A]
-  def behave(tracker: Tracker): A
+
+  def behave(tracker: Tracker): A =
+    behaviour.behave(tracker).map(x => x.action(this, tracker)).getOrElse(this)
+
+}
+
+trait GroupableWithBehaveableChildren[A <: Groupable[A]] extends Groupable[A] { this: A =>
+
+  def mapElements(map: (Shapey) => Shapey): A
+
+  /**
+    *
+    * Change method is neccessery, since this is the way behaviour can act on it's children
+    */
+  def change[K <: Shapey](where: (Shapey) => Boolean,
+                          change: (Shapey) => K,
+                          recursive: Boolean = true): A = mapElements {
+    case a if where(a)                                      => change(a)
+    case a: GroupableWithBehaveableChildren[_] if recursive => a.change(where, change, recursive)
+    case a                                                  => a
+  }
 }
 
 trait PositionableShapey extends Shapey with Positionable[PositionableShapey]
 
 trait SizableShapey extends Shapey with Sizable[SizableShapey]
+
+trait PositionableAndSizable
+    extends Shapey
+    with Positionable[PositionableAndSizable]
+    with Sizable[PositionableAndSizable]
 
 trait LookableShapey extends Shapey with Lookable[LookableShapey]
 
@@ -135,6 +166,7 @@ final case class Rect(sizing: Sizing,
 
   override def sizing(sizing: Sizing): SizableShapey = copy(sizing = sizing)
 }
+
 //TODO we might want to remove "HIDDEN" attribute
 
 final case class MultilineText(
@@ -145,9 +177,11 @@ final case class MultilineText(
     zOrder: Double = 1,
     id: ShapeyId = ShapeyId.apply(),
     font: Font = Text.defaultFont
-) extends Groupable[MultilineText] {
+) extends Groupable[MultilineText]
+    with PositionableShapey {
 
   private case class LinesMetric(sizeX: Int, sizeY: Int, maxX: Int, posY: Int, text: String)
+
   val textLines: Vector[String] = font.sliceToMaxLineWidth(text, maxLineWidth)
   private val linePositions: Vector[LinesMetric] =
     textLines.foldLeft(Vector[LinesMetric]())((p, c) => {
@@ -163,10 +197,6 @@ final case class MultilineText(
         })
         .getOrElse(LinesMetric(currentSize._1, currentSize._2, currentSize._1, 0, c))
     })
-
-  val behaviour: Behaviour[MultilineText] = BehaviourBasic()
-
-  override def behave(tracker: Tracker): MultilineText = this
 
   val size: Point =
     linePositions.lastOption
@@ -190,8 +220,8 @@ final case class MultilineText(
 
   override lazy val customToString: String = s"text: $text"
 
-
 }
+
 object Text {
   lazy val defaultFont: Font = FontManager.loadBdfFont("fonts/u_vga16.bdf")
 
@@ -231,11 +261,10 @@ final case class Text(
 
   override def sizing(sizing: Sizing): Text = copy(sizing = sizing)
 
-
   override lazy val customToString: String = s"text: $label"
 
-  if(size != boundingBox.size)
-  println(size, boundingBox.size, id)
+  if (size != boundingBox.size)
+    println(size, boundingBox.size, id)
 }
 
 sealed trait BitmapFill
