@@ -57,10 +57,11 @@ case class Font(characters: Map[Char, CharPixel],
 
   override def toString: String = s"font: $family $name"
 
+  //TODO nicer splitter for text, this one might slice words into two
   override def sliceToMaxLineWidth(string: String, maxWidth: Double): Vector[String] = {
     val res = string.foldLeft((0.0, "", Vector[String]()))((p, c) => {
       val currentWidth = getSizeForString(c.toString)._1.toDouble
-      if (p._1 + currentWidth > maxWidth) {
+      if (p._1 + currentWidth > maxWidth || p._2.lastOption.contains('\n')) {
         (currentWidth, c.toString, p._3 :+ p._2)
       } else (p._1 + currentWidth, p._2 + c, p._3)
     })

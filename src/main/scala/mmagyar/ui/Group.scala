@@ -70,7 +70,6 @@ final case class Group(elementList: ElementList,
 
   override def setElements(elementList: ElementList): Group = copy(elementList, Point.zero)
 
-
   override def position(point: Point): Group = copy(position = point)
 //    setElements(elementList = elementList.copy(organize = elementList.organize.position(point)))
 
@@ -89,8 +88,9 @@ object SizableGroup {
       uniformLineSize = true),
     alignContent = Align.Center)
 
-  def apply(position: Point,
+  def apply(position: Point = Point.zero,
             size: Point,
+            margin: Box = Box.zero,
             elements: Vector[Shapey],
             layout: Layout = defaultLayout,
             zOrder: Int = 1): SizableGroup =
@@ -98,35 +98,59 @@ object SizableGroup {
       ElementList(elements, Horizontal(layout, BoundWidthAndHeight(size))),
       position,
       Sizing(size),
-      zOrder)
+      zOrder,
+      margin = margin)
 
-  def addMargin(element: Shapey,
-                margin: Box,
-                layout: Layout = defaultLayout,
-                zOrder: Double = 1,
-                maxSize: Option[Point] = None): SizableGroup = {
-    val size = maxSize.getOrElse(Point.infinity).min(element.size + margin.pointSum)
+  def horizontal(sizing: Sizing,
+                 margin: Box = Box.zero,
+                 elements: Vector[Shapey],
+                 layout: Layout = defaultLayout,
+                 zOrder: Int = 1,
+                 position: Point = Point.zero): SizableGroup =
     new SizableGroup(
-      ElementList(Vector(element), Horizontal(layout)),
-      element.position,
-      Sizing(size),
-      zOrder
+      ElementList(elements, Horizontal(layout, BoundWidthAndHeight(sizing.size))),
+      position,
+      sizing,
+      zOrder,
+      margin = margin)
+
+  def selfSizedHorizontal(maxTotalWidth: Double,
+                          elements: Vector[Shapey],
+                          margin: Box = Box.zero,
+                          layout: Layout = defaultLayout,
+                          zOrder: Int = 1,
+                          position: Point = Point.zero): SizableGroup = {
+    val bound = BoundWidth(maxTotalWidth - margin.xSum)
+    //TODO revise this
+    val elementHeight = Group(
+      Horizontal(layout.copy(layout.wrap.copy(stretchLinesToBounds = false)), bound),
+      elements: _*
+    ).size.y + margin.ySum
+    new SizableGroup(
+      ElementList(elements, Horizontal(layout)),
+      position,
+      Sizing(Point(maxTotalWidth, elementHeight)),
+      zOrder,
+      margin = margin)
+  }
+
+  def selfSizedVertical(maxTotalHeight: Double,
+                        elements: Vector[Shapey],
+                        margin: Box = Box.zero,
+                        layout: Layout = defaultLayout,
+                        zOrder: Int = 1,
+                        position: Point = Point.zero): SizableGroup = {
+    val bound         = BoundHeight(maxTotalHeight - margin.ySum)
+    val elementsWidth = Group(Vertical(layout, bound), elements: _*).size.x + margin.xSum
+    new SizableGroup(
+      ElementList(elements, Vertical(layout.copy(layout.wrap.copy(stretchLinesToBounds = false)))),
+      position,
+      Sizing(Point(elementsWidth, maxTotalHeight)),
+      zOrder,
+      margin = margin
     )
   }
 
-  def margin(element: PositionableAndSizable,
-             totalSize: Point,
-             margin: Box,
-             layout: Layout = defaultLayout,
-             zOrder: Double = 1): SizableGroup = {
-    val s  = totalSize - margin.pointSum
-    val el = element.sizing(element.sizing.copy(s, s, s, s)).position(margin.topLeft)
-    new SizableGroup(
-      ElementList(Vector(el), Relative()),
-      element.position,
-      Sizing(totalSize),
-      zOrder)
-  }
 }
 
 /**
@@ -135,7 +159,6 @@ object SizableGroup {
   * The organization class must be either Horizontal or Vertical.
   * Only organized groups can have a set size
   *
-  * @todo test this, it's untested
   *
   * @param elements  ElementList
   * @param sizing    Sizing
@@ -143,41 +166,81 @@ object SizableGroup {
   * @param id        ShapeyId
   * @param behaviour Behaviour
   */
-final class SizableGroup(elements: ElementList,
-                         val position: Point,
-                         val sizing: Sizing,
-                         val zOrder: Double = 1,
-                         val id: ShapeyId = ShapeyId(),
-                         val behaviour: BehaviourBasic[SizableGroup] = BehaviourBasic())
+class SizableGroup(elements: ElementList,
+                   val position: Point,
+                   val sizing: Sizing,
+                   val zOrder: Double = 1,
+                   val id: ShapeyId = ShapeyId(),
+                   val margin: Box = Box.zero,
+                   //Setting an offset can violate the margin
+                   _offset: Point = Point.zero,
+                   val behaviour: BehaviourBasic[SizableGroup] = BehaviourBasic())
     extends GenericGroup[SizableGroup]
-    with PositionableAndSizable {
+    with PositionableShapey
+    with SizableShapey {
+
+  def processElementList(elements: ElementList, offset: Point): ElementList = {
+    elements.copy(
+      elements = elements.elements,
+      organize = elements.organize match {
+        case a: Horizontal => a.copy(size = BoundWidthAndHeight(sizing.size - margin.pointSum))
+        case a: Vertical   => a.copy(size = BoundWidthAndHeight(sizing.size - margin.pointSum))
+        case a =>
+          System.err.println(
+            "Sizable group needs a Bounded size organizer, defaulting to horizontal layout")
+          Horizontal(a.layout, BoundWidthAndHeight(sizing.size))
+      },
+      organizeToBounds = true,
+      offset = margin.topLeft + offset.invert
+    )
+  }
+
+  private val preOffset: Point = _offset.max(Point.zero)
+  private val processed        = processElementList(elements, preOffset)
+
+  private val childrenSize = processed.elements
+    .foldLeft(BoundingBox.zero)((p, c) =>
+      BoundingBox(Point.zero, p.size max c.boundingBox.addSize(c.boundingBox.position).size))
+    .size
+
+  //Should we add the bottomRight margin to scroll? it would mean that the full margin would be scrollable
+  private val diff = childrenSize - (size) // - margin.bottomRight)
+  val offset: Point =
+    Point(
+      if (diff.x > 0) preOffset.x else if (diff.x + preOffset.x > 0) diff.x + preOffset.x else 0,
+      if (diff.y > 0) preOffset.y else if (diff.y + preOffset.y > 0) diff.y + preOffset.y else 0)
+
+  /**
+    * The percentage of the scroll, ranges from 0-1
+    */
+  lazy val scrollPercent: Point   = offset / (diff + offset)
+  lazy val totalScrollSize: Point = (diff + offset) + margin.pointSum
+  //todo add method `canOffset:(Boolean,Boolean)`
+
 
   override val elementList: ElementList =
-    elements.copy(
-      organize = elements.organize match {
-        case a: Horizontal => a.copy(size = BoundWidthAndHeight(sizing.size))
-        case a: Vertical   => a.copy(size = BoundWidthAndHeight(sizing.size))
-        case a             => Horizontal(a.layout, BoundWidthAndHeight(sizing.size))
-      },
-      organizeToBounds = true
-    )
+    if (offset != preOffset) processElementList(processed, offset) else processed
 
   override def setElements(elementList: ElementList): SizableGroup = copy(elementList)
 
   override def mapElements(map: (Shapey) => Shapey): SizableGroup =
     setElements(elementList.copy(elements = elementList.elements.map(map)))
 
-  override def sizing(sizing: Sizing): SizableGroup = copy(sizing = sizing)
+  override def sizing(sizing: Sizing): SizableGroup =
+    if (sizing == this.sizing) this else copy(sizing = sizing)
 
-  override def position(point: Point): SizableGroup = copy(position = point)
+  override def position(point: Point): SizableGroup =
+    if (point == position) this else copy(position = point)
 
   def copy(elementList: ElementList = elementList,
            position: Point = position,
            sizing: Sizing = sizing,
            zOrder: Double = zOrder,
            id: ShapeyId = id,
+           margin: Box = margin,
+           offset: Point = offset,
            behaviour: BehaviourBasic[SizableGroup] = behaviour): SizableGroup =
-    new SizableGroup(elementList, position, sizing, zOrder, id, behaviour)
+    new SizableGroup(elementList, position, sizing, zOrder, id, margin, offset, behaviour)
 
   //TODO rendered with 0 size on X?
 //  println(boundingBox)

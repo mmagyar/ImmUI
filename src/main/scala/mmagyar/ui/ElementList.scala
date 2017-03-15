@@ -7,6 +7,7 @@ import scala.language.implicitConversions
 
 /** Magyar Máté 2017, all rights reserved */
 object ElementList {
+  val empty = ElementList()
   implicit def toElementList(elements: Seq[Shapey]): ElementList =
     ElementList(elements: _*)
 
@@ -44,7 +45,8 @@ trait ElementListable {
 
 class ElementList(_elements: Vector[Shapey],
                   val organize: Organize,
-                  val organizeToBounds: Boolean = false)
+                  val organizeToBounds: Boolean = false,
+                  val offsetElements: Point = Point.zero)
     extends ElementListable {
 
   private val positionable: Vector[PositionableShapey] = _elements.collect {
@@ -56,23 +58,36 @@ class ElementList(_elements: Vector[Shapey],
   }
 
   def map(fn: (Shapey) => Shapey): ElementList = copy(elements.map(fn))
+
   val elements: Vector[Shapey] =
     (organize
-      .organize[PositionableShapey](positionable, organizeToBounds = organizeToBounds) ++ static)
+      .organize[PositionableShapey](positionable, offsetElements, organizeToBounds) ++ static)
       .sortWith(_.zOrder > _.zOrder)
 
-//  def copy(elements: Vector[Shapey] = _elements, organize: Organize = organize): ElementList =
-//    new ElementList(elements, organize)
-
   def copy(elements: Vector[Shapey] = _elements,
-           organize: Organize = organize,
-           organizeToBounds: Boolean = organizeToBounds): ElementList =
-    new ElementList(elements, organize, organizeToBounds)
+    organize: Organize = organize,
+    organizeToBounds: Boolean = organizeToBounds): ElementList =
+    new ElementList(elements, organize, organizeToBounds, offsetElements)
+
+  def copy(elements: Vector[Shapey] ,
+           organize: Organize ,
+           organizeToBounds: Boolean ,
+           offset: Point): ElementList =
+    new ElementList(elements, organize, organizeToBounds, offset)
 
   def asOrganizeToBounds: ElementList =
-    if (organizeToBounds) this else new ElementList(elements, organize, true)
+    if (organizeToBounds) this else new ElementList(elements, organize, true, offsetElements)
 
   def asOrganizeToActual: ElementList =
-    if (organizeToBounds) new ElementList(elements, organize, false) else this
+    if (organizeToBounds) new ElementList(elements, organize, false, offsetElements) else this
+
+  override def equals(o: Any): Boolean = o match {
+    case that: ElementList =>
+      that.elements == elements &&
+        that.organize == organize &&
+        that.organizeToBounds == organizeToBounds &&
+        that.offsetElements == offsetElements
+    case _ => false
+  }
 
 }

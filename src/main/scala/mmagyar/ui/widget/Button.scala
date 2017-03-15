@@ -4,11 +4,12 @@ import mmagyar.layout.Sizing
 import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction, Tracker}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.ui._
-import mmagyar.util.Point
+import mmagyar.util.{Box, Point}
 
 /** Magyar Máté 2017, all rights reserved */
 case class Button(position: Point,
                   text: String,
+                  minWidth: Double=16,
                   zOrder: Double = 1,
                   id: ShapeyId = ShapeyId(),
                   isActive: Boolean = false)(implicit style: Style)
@@ -16,15 +17,27 @@ case class Button(position: Point,
     with Behaveable[Button]
     with PositionableShapey {
 
-  private val textEl = Text(
-    style.defaultButtonMargin.topLeft,
+  private val margin = style.buttonMargin
+  private val textElPre = Text(
+    style.defaultButtonTextMargin.topLeft + margin.topLeft,
     text,
     if (isActive) style.fontLooksActive else style.fontLooks)
 
-  val size: Point = textEl.size + style.defaultButtonMargin.pointSum
+  private val minSizeDiff = minWidth - textElPre.size.x
+
+  private val textEl =
+    if (minSizeDiff < 0) textElPre
+    else textElPre.position(textElPre.position.addX(minSizeDiff / 2))
+
+  private val rectSize
+    : Point       = textEl.size.max(Point(minWidth, textEl.size.y)) + style.defaultButtonTextMargin.pointSum
+  val size: Point = rectSize + margin.pointSum
 
   private val bg: Rect =
-    Rect(Sizing(size), looks = if (isActive) style.buttonLooksActive else style.buttonLooks)
+    Rect(
+      Sizing(rectSize),
+      margin.topLeft,
+      if (isActive) style.buttonLooksActive else style.buttonLooks)
 
   override val elementList: ElementList = ElementList(textEl, bg)
 

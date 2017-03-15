@@ -32,6 +32,10 @@ sealed trait Wrap {
     */
   def stretchLinesToBounds: Boolean
 
+  def copy(alignItem: Align = alignItem,
+           alignContent: AlignSimple = alignContent,
+           stretchLinesToBounds: Boolean = stretchLinesToBounds,
+           uniformLineSize: Boolean = uniformLineSize):Wrap
   //todo add option for margin to wrap (wrap sooner there are less then x amount of empty space on the line, can help with layout
 }
 
@@ -49,6 +53,11 @@ object Wrap {
     /** This value is ignored when using this wrap type **/
     val alignItem = Align.Left
 
+    def copy(alignItem: Align = alignItem,
+             alignContent: AlignSimple = alignContent,
+             stretchLinesToBounds: Boolean = stretchLinesToBounds,
+             uniformLineSize: Boolean = uniformLineSize): No =
+      No(stretchLinesToBounds, uniformLineSize)
   }
 
   /** Wraps the elements to a next line, in case of an overflow*/
@@ -56,21 +65,39 @@ object Wrap {
                           alignContent: AlignSimple = Align.Left,
                           stretchLinesToBounds: Boolean = false,
                           uniformLineSize: Boolean = false)
-      extends Wrap
+      extends Wrap {
+    def copy(alignItem: Align = alignItem,
+             alignContent: AlignSimple = alignContent,
+             stretchLinesToBounds: Boolean = stretchLinesToBounds,
+             uniformLineSize: Boolean = uniformLineSize): Simple =
+      Simple(alignItem, alignContent, stretchLinesToBounds, uniformLineSize)
+  }
 
   /** Tries to place the same width/ amount of elements on each line, using the least possible amount of lines and lest possible amount of stretch*/
   final case class EqualLines(alignItem: Align = Align.Left,
                               alignContent: AlignSimple = Align.Left,
                               stretchLinesToBounds: Boolean = false,
                               uniformLineSize: Boolean = false)
-      extends Wrap
+      extends Wrap {
+    def copy(alignItem: Align = alignItem,
+             alignContent: AlignSimple = alignContent,
+             stretchLinesToBounds: Boolean = stretchLinesToBounds,
+             uniformLineSize: Boolean = uniformLineSize): EqualLines =
+      EqualLines(alignItem, alignContent, stretchLinesToBounds, uniformLineSize)
+  }
 
   /** same as @SimpleWrap , but cuts the elements that can not fit in the designated space*/
   final case class SimpleCut(alignItem: Align = Align.Left,
                              alignContent: AlignSimple = Align.Left,
                              stretchLinesToBounds: Boolean = false,
                              uniformLineSize: Boolean = false)
-      extends Wrap
+      extends Wrap {
+    def copy(alignItem: Align = alignItem,
+             alignContent: AlignSimple = alignContent,
+             stretchLinesToBounds: Boolean = stretchLinesToBounds,
+             uniformLineSize: Boolean = uniformLineSize): SimpleCut =
+      SimpleCut(alignItem, alignContent, stretchLinesToBounds, uniformLineSize)
+  }
 
   /** same as @EqualLineWrap , but cuts the elements that can not fit in the designated space,
     * basically, it runs @SimpleCutWrap and after that @EqualLinesWrap */
@@ -78,6 +105,12 @@ object Wrap {
                                 alignContent: AlignSimple = Align.Left,
                                 stretchLinesToBounds: Boolean = false,
                                 uniformLineSize: Boolean = false)
-      extends Wrap
+      extends Wrap {
+    def copy(alignItem: Align = alignItem,
+             alignContent: AlignSimple = alignContent,
+             stretchLinesToBounds: Boolean = stretchLinesToBounds,
+             uniformLineSize: Boolean = uniformLineSize): EqualLineCut =
+      EqualLineCut(alignItem, alignContent, stretchLinesToBounds, uniformLineSize)
+  }
 
 }

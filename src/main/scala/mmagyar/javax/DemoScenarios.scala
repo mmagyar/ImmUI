@@ -120,14 +120,14 @@ object DemoScenarios {
 
   val mainDemo: Group = Group(
     Dialogue(
-      "ohh hawdy, this text overlaps thorught multiple lines of text",
+      "ohh hawdy, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
       Point.zero,
-      Sizing(Point(240, 100)),
+      Sizing(Point(240, 110)),
       Vector(
         DialogueOption("OK"),
         DialogueOption("CANCEL"),
-        DialogueOption("MAYBE"),
-        DialogueOption("NOT ENOUGH")),
+        DialogueOption("MAYBE"), DialogueOption("NOT ENOUGH")
+      ),
       4
     )(Style()))
 }

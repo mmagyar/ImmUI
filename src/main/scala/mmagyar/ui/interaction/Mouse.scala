@@ -8,6 +8,7 @@ object State {
   case object Release extends State
   case object Press   extends State
   case object Drag    extends State
+  case object Move    extends State
   case object Idle    extends State
 }
 sealed trait State
@@ -36,28 +37,56 @@ sealed trait State
 //                  state: State = State.Idle)
 //    extends Action
 
-case class Tracker(switch: Boolean ,
-                   lastMove: Point ,
+case class Tracker(switch: Boolean,
+                   currentPosition: Point,
                    state: State = State.Idle,
                    downPos: Point,
+                   lastMove: Point,
                    downElements: Vector[Shapey] = Vector.empty,
-                   upPos: Point = Point.zero) {
-  def processPointer(pointerState: PointerState): Tracker = {
+                   overElements: Vector[Shapey] = Vector.empty,
+                   upPos: Point = Point.zero,
+                   scroll: Point = Point.zero) {
+  def processPointer(pointerState: PointerState, scroll: Point): Tracker = {
     if (pointerState.switch && !switch)
-      copy(pointerState.switch, pointerState.position, state = State.Press, pointerState.position)
-    else if (pointerState.switch && switch && lastMove != pointerState.position)
-      copy(pointerState.switch, pointerState.position, State.Drag)
+      copy(
+        pointerState.switch,
+        pointerState.position,
+        state = State.Press,
+        pointerState.position,
+        lastMove = currentPosition,
+        scroll = scroll)
+    else if (pointerState.switch && switch && currentPosition != pointerState.position)
+      copy(
+        pointerState.switch,
+        pointerState.position,
+        State.Drag,
+        lastMove = currentPosition,
+        scroll = scroll)
     else if (!pointerState.switch && switch)
       copy(
         pointerState.switch,
         pointerState.position,
         State.Release,
-        upPos = pointerState.position)
-    else if (!pointerState.switch && !switch)
-      copy(pointerState.switch, pointerState.position, State.Idle)
-    else copy(pointerState.switch, pointerState.position)
+        lastMove = currentPosition,
+        upPos = pointerState.position,
+        scroll = scroll)
+    else if (!pointerState.switch && !switch && currentPosition != pointerState.position)
+      copy(
+        pointerState.switch,
+        pointerState.position,
+        State.Move,
+        lastMove = currentPosition,
+        scroll = scroll)
+    else
+      copy(
+        pointerState.switch,
+        pointerState.position,
+        State.Idle,
+        lastMove = currentPosition,
+        scroll = scroll)
 
   }
+
 }
 
 case class PointerState(

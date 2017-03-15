@@ -69,7 +69,7 @@ sealed trait Shapey extends Material {
          else s"\n${prepend(nest).dropRight(4)}├┴─┬──elements(\n") +
           a.elementList.elements
             .map(x => x.elementsPrint(nest))
-            .reduce(_ + "\n" + _) + ")"
+            .foldLeft("")((p, c) => p + (if (p.nonEmpty) "\n" else "") + c) + ")"
       case a => ""
     }
   }
@@ -107,7 +107,7 @@ trait Groupable[A <: Groupable[A]] extends Shapey { this: A =>
 trait Behaveable[A <: Behaveable[A]] extends Shapey { this: A =>
   def behaviour: Behaviour[A]
 
-  def behave(tracker: Tracker): A =
+  final def behave(tracker: Tracker): A =
     behaviour.behave(tracker).map(x => x.action(this, tracker)).getOrElse(this)
 
 }
@@ -132,11 +132,6 @@ trait GroupableWithBehaveableChildren[A <: Groupable[A]] extends Groupable[A] { 
 trait PositionableShapey extends Shapey with Positionable[PositionableShapey]
 
 trait SizableShapey extends Shapey with Sizable[SizableShapey]
-
-trait PositionableAndSizable
-    extends Shapey
-    with Positionable[PositionableAndSizable]
-    with Sizable[PositionableAndSizable]
 
 trait LookableShapey extends Shapey with Lookable[LookableShapey]
 
@@ -203,7 +198,7 @@ final case class MultilineText(
       .map(x => Point(x.maxX, x.posY + font.getSizeForString(x.text)._2))
       .getOrElse(Point.zero)
 
-  override def position(point: Point): PositionableShapey = copy(position = point)
+  override def position(point: Point): MultilineText = copy(position = point)
 
   val lineElements: Vector[Shapey] = linePositions.map(
     x =>

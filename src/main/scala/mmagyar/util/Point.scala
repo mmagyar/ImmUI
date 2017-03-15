@@ -59,6 +59,7 @@ case class Point(x: Double, y: Double) {
   def div(divider: (Int, Int)): Point =
     Point(this.x / divider._1.toDouble, this.y / divider._2.toDouble)
 
+  def invert:Point = Point(-x,-y)
   def round: Point = Point(Math.round(this.x), Math.round(this.y))
   def ceil: Point  = Point(x.ceil, y.ceil)
   def floor: Point = Point(x.floor, y.floor)
@@ -390,7 +391,7 @@ case class Box(topLeft: Point, bottomRight: Point) {
 
   def ySum: Double = topLeft.y + bottomRight.y
 
-  def pointSum: Point = topLeft + bottomRight
+  lazy val pointSum: Point = topLeft + bottomRight
 }
 
 object PointSwapper {
@@ -418,7 +419,7 @@ case class PointSwapper private (_1: (Point) => Double,
                                  _1Set: (Point, Double) => Point,
                                  _2: (Point) => Double,
                                  _2Set: (Point, Double) => Point) {
-  def addSecondary(point: Point, value: Double): Point =
-    _2Set(point, value + _2(point))
-  def addPrimary(point: Point, value: Double): Point = _1Set(point, value + _1(point))
+
+  def _1Add(point: Point, value: Double): Point = _1Set(point, value + _1(point))
+  def _2Add(point: Point, value: Double): Point = _2Set(point, value + _2(point))
 }

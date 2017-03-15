@@ -28,8 +28,16 @@ class PointerAction(
       * but additional behaviour, we don't want to trigger actions multiple times */
     val triggerBehaviour: Boolean = false) {
 
-  var lastTracker: Tracker = Tracker(switch = false, lastMove = Point.zero, downPos = Point.zero)
-  var tracker: Tracker     = Tracker(switch = false, lastMove = Point.zero, downPos = Point.zero)
+  var lastPointerState: PointerState = PointerState(Point.zero, switch = false)
+  var lastTracker: Tracker =
+    Tracker(
+      switch = false,
+      currentPosition = Point.zero,
+      lastMove = Point.zero,
+      downPos = Point.zero)
+  var tracker: Tracker = lastTracker
+
+  def act(pointerState: PointerState, group: Document): Document = act(Some(pointerState), group)
 
   /**
     * This method will modify the Document according to it's behaviour
@@ -37,17 +45,32 @@ class PointerAction(
     * @param group Document
     * @return Document
     */
-  def act(pointerState: PointerState, group: Document): Document = {
+  def act(pointerState: Option[PointerState] = None,
+          group: Document,
+          scroll: Point = Point.zero): Document = {
 
     lastTracker = tracker
-    tracker = tracker.processPointer(pointerState)
-    if (tracker != lastTracker) {
-      val actionElements = getElement(group, tracker.lastMove)
-      tracker = tracker.copy(downElements = actionElements)
+    val currentPointerState = pointerState.getOrElse(lastPointerState)
+    tracker = tracker.processPointer(currentPointerState, scroll)
+    lastPointerState = currentPointerState
 
-      val behavables = actionElements.collect {
-        case a: Behaveable[_] if a.behaviour.canBehave(tracker) => a
-      }
+    if (tracker != lastTracker || tracker.scroll != Point.zero) {
+      val actionElements = getElement(group, tracker.currentPosition)
+
+      tracker =
+        if (tracker.state == State.Press)
+          tracker.copy(downElements = actionElements, overElements = actionElements)
+        else tracker.copy(overElements = actionElements)
+
+      /**
+        * When dragging, also fire the event the origin elements
+        * Or should it also fire the current elements as well
+        */
+      val behavables =
+        (if (tracker.state == State.Drag)  tracker.downElements
+         else actionElements).collect {
+          case a: Behaveable[_] if a.behaviour.canBehave(tracker) => a
+        }
 
       group.copy(root = behavables.foldLeft(group.root)((p, c) =>
         p.change(_.id == c.id, { case a: Behaveable[_] => a.behave(tracker); case a => a })))
@@ -58,21 +81,22 @@ class PointerAction(
   def getElement(document: Document,
                  pointArg: Point,
                  drawableOnly: Boolean = false): Vector[Shapey] =
-    draw(
+    sense(
       Vector(document.root),
       Vector(PointTransform(document.transform.offset)),
       pointArg,
       drawableOnly)
 
-  def draw(elements: Vector[Shapey],
-           rotate: Vector[PointTransform] = Vector.empty,
-           point: Point,
-           drawableOnly: Boolean): Vector[Shapey] = {
+  def sense(elements: Vector[Shapey],
+            rotate: Vector[PointTransform] = Vector.empty,
+            point: Point,
+            drawableOnly: Boolean,
+            addEmptyGroup: Boolean = true): Vector[Shapey] = {
 
     val currentPoint = rotate.foldLeft(point)((p, c) => c.transform(p)).truncate()
     (elements collect {
       case a: Groupable[_] if a.boundingBox.inside(currentPoint, -1) =>
-        draw(
+        sense(
           a.elements,
           a match {
             case b: Group =>
@@ -83,10 +107,11 @@ class PointerAction(
             case b => rotate :+ PointTransform(b.position)
           },
           point,
-          drawableOnly
+          drawableOnly,
+          addEmptyGroup
         ) match {
-          case c if drawableOnly || c.isEmpty => c
-          case c                              => c :+ a
+          case c if drawableOnly || (c.isEmpty && !addEmptyGroup) => c
+          case c                                                  => c :+ a
 
         }
       case a: Shapey if a.boundingBox.inside(currentPoint) => Vector(a)

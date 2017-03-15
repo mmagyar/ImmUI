@@ -45,13 +45,15 @@ object Organize {
       .foldLeft((ps._1(startPosition), Vector[T]()))((pp, cc) => {
         val sizeSec = ps._2(cc._1.size)
 
-        val sizedEl: T = cc._1.position(ps._1Set(startPosition, cc._2.offset)) match {
+        val initPos = cc._1.position(ps._1Add(startPosition, cc._2.offset))
+        val sizedEl: T = initPos match {
           case a: Sizable[T @unchecked] =>
             val maxSize = ps._2(lineSize).min(ps._2(a.sizing.maxSize))
             val result  = alignContent.align(maxSize, sizeSec, sizeChangeable = true)
             a.size(ps._2Set(a.size, result.size))
           case a => a
         }
+
         val alignResult = alignContent.align(ps._2(lineSize), ps._2(sizedEl.size))
         val positioned =
           sizedEl.position(ps._2Set(sizedEl.position, alignResult.offset + ps._2(startPosition)))
@@ -264,8 +266,9 @@ object Organize {
     layout.wrap match {
       case Wrap.No(_, _) =>
         organize(
-          lineGrow.lines.head.elements,
-          if (organizeToBounds) bounds else lineGrow.lines.head.lineSize,
+          lineGrow.lines.headOption.map(_.elements).getOrElse(Vector.empty),
+          if (organizeToBounds) bounds
+          else lineGrow.lines.headOption.map(_.lineSize).getOrElse(Point.zero),
           basePoint,
           layout.alignContent,
           layout.wrap.alignItem,
@@ -281,7 +284,7 @@ object Organize {
             ln.elements,
             if (organizeToBounds) ps._1Set(ln.lineSize, ps._1(bounds))
             else ps._1Set(ln.lineSize, lineGrow.longestLineLength),
-            ps._2Set(basePoint, ln.offset_2 + wholeOffset),
+            ps._2Add(basePoint, ln.offset_2 + wholeOffset),
             alignContent,
             alignItem,
             ps

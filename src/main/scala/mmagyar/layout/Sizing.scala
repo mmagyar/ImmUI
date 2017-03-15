@@ -16,7 +16,7 @@ object Sizing {
     * @param shrink   Should this element shrink if there are not enough space in the layout
     */
   def apply(baseSize: Point,
-            minSize: Point = Point.zero,
+            minSize: Point = Point.one,
             maxSize: Point = Point.large,
             grow: Grow = Grow.No,
             shrink: Shrink = Shrink.No): Sizing =

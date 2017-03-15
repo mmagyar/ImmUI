@@ -6,7 +6,7 @@ import javafx.application.Application
 import javafx.event.EventHandler
 import javafx.scene.Scene
 import javafx.scene.canvas.{Canvas, GraphicsContext}
-import javafx.scene.input.{KeyEvent, MouseEvent}
+import javafx.scene.input.{KeyEvent, MouseEvent, ScrollEvent}
 import javafx.scene.layout.Pane
 import javafx.scene.paint.{Color => FxColor}
 import javafx.stage.Stage
@@ -103,6 +103,11 @@ class JavaFxTesting extends Application {
           actions.act(
             PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = false),
             document))
+    })
+
+    scene.setOnScroll({
+      case a: ScrollEvent =>
+        document(actions.act(None, document, Point(a.getDeltaX, a.getDeltaY)))
     })
     stage.setScene(scene)
     stage.setTitle("ImmuGUI")

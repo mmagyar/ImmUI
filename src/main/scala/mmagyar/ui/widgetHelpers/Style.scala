@@ -4,6 +4,8 @@ import mmagyar.ui.Looks
 import mmagyar.util.{Box, Color, Point}
 
 /** Magyar Máté 2017, all rights reserved */
+
+
 case class Style(
     background: Color = Color.grey,
     stroke: Color = Color.green,
@@ -11,9 +13,12 @@ case class Style(
     fontBgColor: Color = Color.transparent,
     buttonStrokeColor: Color = Color.blue,
     buttonBgColor: Color = Color.aqua,
-    defaultGroupMargin: Box = Box(Point(20, 10)),
-    defaultButtonMargin: Box = Box(Point(4, 2)),
-    strokeWidth: Double = 2
+    defaultGroupMargin: Box = Box(Point(10, 6)),
+    defaultButtonTextMargin: Box = Box(Point(4, 2)),
+    buttonMargin: Box = Box(Point(4, 2)),
+    strokeWidth: Double = 2,
+  scrollBar:Point = Point(4,4),
+  scrollBarColor: Color = Color.blue
 ) {
   lazy val fontLooks: Looks       = Looks(fontBgColor, fontColor, strokeWidth)
   lazy val fontLooksActive: Looks = Looks(fontBgColor, fontColor.lighten(100), strokeWidth)

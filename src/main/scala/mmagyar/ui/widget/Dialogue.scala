@@ -3,6 +3,7 @@ package mmagyar.ui.widget
 import mmagyar.layout._
 import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction, Tracker}
 import mmagyar.ui._
+import mmagyar.ui.widget.UpdateReason.{Text => _, _}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Color, Point}
 
@@ -12,7 +13,6 @@ object DialogueOption {
 }
 case class DialogueOption(text: String, id: Symbol)
 
-//TODO separate button selection logic
 object Dialogue {
   def apply(text: String,
             position: Point,
@@ -21,28 +21,20 @@ object Dialogue {
             zOrder: Double = 1,
             id: ShapeyId = ShapeyId.apply(),
             currentSelection: Option[DialogueOption] = None)(implicit style: Style): Dialogue = {
-
-    new Dialogue(
-      text,
-      position,
-      sizing,
-      options,
-      zOrder,
-      id,
-      currentSelection,
-      _elementList = ElementList())
+    new Dialogue(UpdateReason.New, text, position, sizing, options, zOrder, id, currentSelection)
 
   }
 }
-class Dialogue private (text: String,
+class Dialogue private (updateReason: UpdateReason,
+                        text: String,
                         val position: Point,
                         val sizing: Sizing,
                         val options: Vector[DialogueOption],
                         val zOrder: Double = 1,
                         val id: ShapeyId = ShapeyId.apply(),
                         val currentSelection: Option[DialogueOption] = None,
-                        _elementList: ElementList)(implicit style: Style)
-    extends ComplexWidgetBase[Dialogue](_elementList, UpdateReason.New)
+                        _elementList: ElementList = ElementList.empty)(implicit style: Style)
+    extends ComplexWidgetBase[Dialogue](_elementList, updateReason)
     with SizableShapey {
 
   /**
@@ -55,45 +47,64 @@ class Dialogue private (text: String,
     */
   override def updateElementList(elementList: ElementList,
                                  updateReason: UpdateReason): ElementList = {
-    val currentList = if (_elementList.elements.size != 3) {
-      val size        = sizing.baseSize
-      val margin: Box = style.defaultGroupMargin
 
-      val minHeightForButtons
-        : Double = Text(Point.zero, "ZXA").size.y + style.defaultButtonMargin.pointSum.y +
-        margin.pointSum.y
+    updateReason match {
+      case New | Size | UpdateReason.Text =>
+        val size        = sizing.size
+        val margin: Box = style.defaultGroupMargin
 
-      val multiText: SizableGroup =
-        SizableGroup.addMargin(
-          MultilineText(Point.zero, text, size.x - margin.xSum, style.fontLooks),
-          margin,
-          maxSize = Some(Point(size.x, size.y - minHeightForButtons)))
+        val buttons = options.map(x =>
+          Button(Point.zero, x.text, id = ShapeyId(x.id), isActive = currentSelection.contains(x)))
 
-      val buttons: SizableGroup =
-        SizableGroup.margin(
-          SizableGroup(
-            //TODO we are ignoring the above margin here, make a more elegant solution
-            //TODO make sure text can't push out buttons
-            Point(0, multiText.position.y + multiText.size.y - margin.bottomRight.y),
-            Point.zero,
-            options.map(x => Button(Point.zero, x.text, id = ShapeyId(x.id))),
-            Layout.centeredDown
-          ),
-          Point(size.x, size.y - margin.ySum * 2),
-          margin,
-          zOrder = 4
-        )
-      //      val elementList =
-      ElementList(Rect(Sizing(size), looks = style.groupLooks, zOrder = -2), multiText, buttons)
-    } else _elementList
-    currentList.copy(elements = currentList.elements.map({
-      case x: GenericGroup[_] =>
-        x.change(y => options.exists(z => y.id(z.id)), {
-          case a: Button => a.copy(isActive = currentSelection.exists(_.id == a.id.symbol))
-          case a         => a
-        })
-      case x => x
-    }))
+        val textSize = Point(size.x, 32)//margin.ySum+1)
+
+        val multiText =
+          SizableGroup
+            .horizontal(
+              Sizing(textSize, Point(textSize.x, 1), grow = Grow.Affinity),
+              margin,
+              Vector(MultilineText(Point.zero, text, size.x - margin.xSum, style.fontLooks)),
+              Layout.left,
+              zOrder = 2
+            )
+            .copy(behaviour = BehaviourBasic[SizableGroup](
+              scroll = Some(InjectedBehaviourAction((el, track) =>{
+
+              println("SCROLL")
+                el.copy(offset = el.offset + (track.scroll / 8))})),
+              drag = Some(InjectedBehaviourAction((el, track) =>
+                el.copy(offset = el.offset + (track.lastMove - track.currentPosition))))
+            ))
+
+        val wrapText =new ScrollbarGroup(multiText)
+        println(wrapText)
+        val buttonsGr: SizableGroup =
+          SizableGroup.selfSizedHorizontal(size.x, buttons, margin, Layout.centeredDown)
+        val innards =
+          ElementList(Vertical(Layout.centered, BoundWidthAndHeight(size)),
+            wrapText
+
+            ,
+
+            buttonsGr)
+
+        val list = ElementList(
+          Rect(Sizing(size), looks = style.groupLooks, zOrder = -2),
+          new SizableGroup(innards, Point.zero, Sizing(size)))
+println(list)
+        list
+      case Position => elementList
+      case Content | Behaviour =>
+        elementList.copy(elements = elementList.elements.map({
+          case x: GenericGroup[_] =>
+            x.change(y => options.exists(z => y.id(z.id)), {
+              case a: Button => a.copy(isActive = currentSelection.exists(_.id == a.id.symbol))
+              case a         => a
+            })
+          case x => x
+        }))
+      case _: Other => elementList
+    }
   }
 
   override val behaviour: Behaviour[Dialogue] =
@@ -101,33 +112,52 @@ class Dialogue private (text: String,
       val clickedOption = t.downElements
         .find(x => options.exists(y => x.id(y.id)))
         .flatMap(x => options.find(y => x.id(y.id)))
-      println("cli", clickedOption)
-//      t.downElements.foreach(println)
-      clickedOption.map(x => el.select(x)).getOrElse(el)
+      clickedOption.map(el.select).getOrElse(el)
     })))
 
-  override def position(point: Point): Dialogue = copy(position = point)
+  override def position(point: Point): Dialogue =
+    copyInternal(UpdateReason.Position, position = point)
 
   def select(dialogueOption: DialogueOption): Dialogue = {
-    if (options.contains(dialogueOption)) copy(currentSelection = Some(dialogueOption))
+    if (options.contains(dialogueOption))
+      copyInternal(UpdateReason.Content, currentSelection = Some(dialogueOption))
     else this
   }
   override def mapElements(map: (Shapey) => Shapey): Dialogue =
-    copy(elementList = elementList.map(map))
+    copyInternal(UpdateReason.Content, elementList = elementList.map(map))
 
-  def copy(
+  def copy(text: String = text,
+           position: Point = position,
+           sizing: Sizing = sizing,
+           options: Vector[DialogueOption] = options,
+           zOrder: Double = zOrder,
+           id: ShapeyId = id,
+           currentSelection: Option[DialogueOption] = currentSelection): Dialogue =
+    new Dialogue(UpdateReason.New, text, position, sizing, options, zOrder, id, currentSelection)
+
+  private def copyInternal(
+      updateReason: UpdateReason,
       text: String = text,
       position: Point = position,
       sizing: Sizing = sizing,
       options: Vector[DialogueOption] = options,
       zOrder: Double = zOrder,
       id: ShapeyId = id,
-      currentSelection: Option[DialogueOption] = None,
+      currentSelection: Option[DialogueOption] = currentSelection,
       elementList: ElementList = elementList
   ): Dialogue =
-    new Dialogue(text, position, sizing, options, zOrder, id, currentSelection, elementList)
+    new Dialogue(
+      updateReason,
+      text,
+      position,
+      sizing,
+      options,
+      zOrder,
+      id,
+      currentSelection,
+      elementList)
 
   override def sizing(sizing: Sizing): SizableShapey =
-    Dialogue(text, position, sizing, options, zOrder, id, currentSelection)
+    copyInternal(UpdateReason.Size, sizing = sizing)
 
 }
