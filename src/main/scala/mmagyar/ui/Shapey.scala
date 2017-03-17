@@ -41,6 +41,7 @@ object ShapeyId {
 
 case class ShapeyId(symbol: Symbol) {
   def apply(string: Symbol): Boolean = symbol == string
+  def apply(string: String): Boolean = symbol.name == string
 
   //  override def toString: String = identifierString
 }

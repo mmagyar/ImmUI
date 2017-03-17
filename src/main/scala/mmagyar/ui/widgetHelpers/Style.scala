@@ -17,8 +17,9 @@ case class Style(
     defaultButtonTextMargin: Box = Box(Point(4, 2)),
     buttonMargin: Box = Box(Point(4, 2)),
     strokeWidth: Double = 2,
-  scrollBar:Point = Point(4,4),
-  scrollBarColor: Color = Color.blue
+  scrollBar:Point = Point(16,16),
+  scrollBarColor: Color = Color.aqua,
+  scrollBarBgColor: Color = Color.blue
 ) {
   lazy val fontLooks: Looks       = Looks(fontBgColor, fontColor, strokeWidth)
   lazy val fontLooksActive: Looks = Looks(fontBgColor, fontColor.lighten(100), strokeWidth)

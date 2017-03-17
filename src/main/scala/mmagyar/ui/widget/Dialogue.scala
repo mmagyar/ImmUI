@@ -56,27 +56,27 @@ class Dialogue private (updateReason: UpdateReason,
         val buttons = options.map(x =>
           Button(Point.zero, x.text, id = ShapeyId(x.id), isActive = currentSelection.contains(x)))
 
-        val textSize = Point(size.x, 32)//margin.ySum+1)
+        val textSize = Point(size.x - style.scrollBar.x, 32)//margin.ySum+1)
 
         val multiText =
           SizableGroup
             .horizontal(
               Sizing(textSize, Point(textSize.x, 1), grow = Grow.Affinity),
               margin,
-              Vector(MultilineText(Point.zero, text, size.x - margin.xSum, style.fontLooks)),
+              Vector(MultilineText(Point.zero, text, textSize.x - margin.xSum+100, style.fontLooks)),
               Layout.left,
               zOrder = 2
             )
             .copy(behaviour = BehaviourBasic[SizableGroup](
               scroll = Some(InjectedBehaviourAction((el, track) =>{
 
-              println("SCROLL")
+//              println("SCROLL")
                 el.copy(offset = el.offset + (track.scroll / 8))})),
               drag = Some(InjectedBehaviourAction((el, track) =>
                 el.copy(offset = el.offset + (track.lastMove - track.currentPosition))))
             ))
 
-        val wrapText =new ScrollbarGroup(multiText)
+        val wrapText =new ScrollbarGroup(Point.zero ,multiText)
         println(wrapText)
         val buttonsGr: SizableGroup =
           SizableGroup.selfSizedHorizontal(size.x, buttons, margin, Layout.centeredDown)

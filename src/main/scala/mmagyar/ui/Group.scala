@@ -204,19 +204,25 @@ class SizableGroup(elements: ElementList,
     .size
 
   //Should we add the bottomRight margin to scroll? it would mean that the full margin would be scrollable
-  private val diff = childrenSize - (size) // - margin.bottomRight)
+  private val diff = childrenSize - size // - margin.bottomRight)
   val offset: Point =
     Point(
       if (diff.x > 0) preOffset.x else if (diff.x + preOffset.x > 0) diff.x + preOffset.x else 0,
       if (diff.y > 0) preOffset.y else if (diff.y + preOffset.y > 0) diff.y + preOffset.y else 0)
 
+  lazy val totalScrollSize: Point = childrenSize + margin.pointSum + offset
+
   /**
     * The percentage of the scroll, ranges from 0-1
     */
-  lazy val scrollPercent: Point   = offset / (diff + offset)
-  lazy val totalScrollSize: Point = (diff + offset) + margin.pointSum
-  //todo add method `canOffset:(Boolean,Boolean)`
+  lazy val scrollPercent: Point = offset / (diff + offset)
 
+//  lazy val totalScrollSize: Point = (diff + offset) + margin.pointSum match {
+//    case a if a.x < size.x || a.y < size.x =>
+//      a.union((x, ps) => if (x < ps._1(size)) ps._1(size) else x)
+//    case a => a
+//  }
+  //todo add method `canOffset:(Boolean,Boolean)`
 
   override val elementList: ElementList =
     if (offset != preOffset) processElementList(processed, offset) else processed

@@ -1,6 +1,7 @@
 package mmagyar.ui
 
 import mmagyar.layout.Align.{Center, Left, Right, Stretch}
+import mmagyar.ui.widget.{ComplexWidgetBase, ScrollbarGroup}
 import mmagyar.util.font.bdf.{FontManager, Font => FontBdf}
 import mmagyar.util._
 
@@ -45,6 +46,14 @@ class ReferenceDraw(var scale: Double = 1) {
   def getColor(x: Shapey, point: Point, rotate: Vector[PointTransform]): Color = {
     val currentPoint = rotate.foldLeft(point)((p, c) => c.transform(p)).truncate()
     x match {
+      case a: ScrollbarGroup if a.boundingBox.onEdge(currentPoint, Point(1, 1), 0) =>
+        Color.aqua
+      case a: ComplexWidgetBase[_] if a.boundingBox.onEdge(currentPoint, Point(1, 1), 0) =>
+        Color.fuchsia
+      case a: SizableGroup if a.boundingBox.onEdge(currentPoint, Point(1, 1), 0) =>
+        Color.red
+      case a: Group if a.boundingBox.onEdge(currentPoint, Point(1, 1), 0) =>
+        Color.lime
       case a: Groupable[_] if a.boundingBox.inside(currentPoint, -1) =>
         val res = draw(
           a.elements,

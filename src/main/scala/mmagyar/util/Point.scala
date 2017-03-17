@@ -59,10 +59,10 @@ case class Point(x: Double, y: Double) {
   def div(divider: (Int, Int)): Point =
     Point(this.x / divider._1.toDouble, this.y / divider._2.toDouble)
 
-  def invert:Point = Point(-x,-y)
-  def round: Point = Point(Math.round(this.x), Math.round(this.y))
-  def ceil: Point  = Point(x.ceil, y.ceil)
-  def floor: Point = Point(x.floor, y.floor)
+  def invert: Point = Point(-x, -y)
+  def round: Point  = Point(Math.round(this.x), Math.round(this.y))
+  def ceil: Point   = Point(x.ceil, y.ceil)
+  def floor: Point  = Point(x.floor, y.floor)
 
   def aspectMatchWidth(newWidth: Double): Point = Point(newWidth, this.y * (newWidth / this.x))
 
@@ -102,6 +102,9 @@ case class Point(x: Double, y: Double) {
   def +(value: (Int, Int)): Point = add(value)
 
   def *(value: (Int, Int)): Point = scale(value)
+
+  def union(proc: (Double, PointSwapper) => Double): Point =
+    Point(proc(this.x, PointSwapper.x), proc(this.y, PointSwapper.y))
 
   def abs(): Point = {
     if (this.x < 0 || this.y < 0) Point(Math.abs(this.x), Math.abs(this.y))
