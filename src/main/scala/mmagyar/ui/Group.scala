@@ -2,6 +2,7 @@ package mmagyar.ui
 
 import mmagyar.layout._
 import mmagyar.ui.interaction._
+import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{BoundingBox, Box, Degree, Point}
 
 object Group {
@@ -90,7 +91,7 @@ object SizableGroup {
       in.copy(offset = in.offset + (tracker.lastMove - tracker.currentPosition))
   }
 
-  case object DefaultBehaviour extends Behaviour[SizableGroup] {
+  case object ScrollBehaviour extends Behaviour[SizableGroup] {
     override val click: Option[BehaviourAction[SizableGroup]]  = None
     override val move: Option[BehaviourAction[SizableGroup]]   = None
     override val down: Option[BehaviourAction[SizableGroup]]   = None
@@ -174,6 +175,23 @@ object SizableGroup {
     )
   }
 
+  def scrollableTextBox(position: Point,
+                        sizing: Sizing,
+                        text: String,
+                        margin: Box,
+                        fontLooks: Looks): SizableGroup = {
+    SizableGroup
+      .horizontal(
+        sizing,
+        margin,
+        Vector(MultilineText(Point.zero, text, sizing.size.x - margin.xSum, fontLooks)),
+        Layout.left,
+        zOrder = 2,
+        position
+      )
+      .copy(behaviour = SizableGroup.ScrollBehaviour)
+  }
+
 }
 
 /**
@@ -218,6 +236,7 @@ class SizableGroup(elements: ElementList,
     )
   }
 
+  //TODO make better sizable text box, that is resizable, and sizable without having to care about scrollbars
   private val preOffset: Point = _offset.max(Point.zero)
   private val processed        = processElementList(elements, preOffset)
 

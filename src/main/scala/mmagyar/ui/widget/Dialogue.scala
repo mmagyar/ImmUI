@@ -57,21 +57,14 @@ class Dialogue private (updateReason: UpdateReason,
           Button(Point.zero, x.text, id = ShapeyId(x.id), isActive = currentSelection.contains(x)))
 
         val textSize = Point(size.x - style.scrollBar.x, 10) //margin.ySum+1)
-
-        val textItself =
-          MultilineText(Point.zero, text, textSize.x - margin.xSum +100 , style.fontLooks)
-        println("Textitself", textItself.size)
+        
         val multiText =
-          SizableGroup
-            .horizontal(
-              Sizing(textSize, Point(textSize.x, 1), grow = Grow.Affinity),
-              margin,
-              Vector(textItself),
-              Layout.left,
-              zOrder = 2,
-              id = ShapeyId("Test_1")
-            )
-            .copy(behaviour = SizableGroup.DefaultBehaviour)
+          SizableGroup.scrollableTextBox(
+            Point.zero,
+            Sizing(textSize, Point(textSize.x, 1), grow = Grow.Affinity),
+            text,
+            margin,
+            style.fontLooks)
 
         val wrapText = ScrollbarGroup(multiText)
 
