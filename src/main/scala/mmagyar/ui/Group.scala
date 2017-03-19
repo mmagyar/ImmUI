@@ -1,7 +1,7 @@
 package mmagyar.ui
 
 import mmagyar.layout._
-import mmagyar.ui.interaction.{BehaviourBasic, Tracker}
+import mmagyar.ui.interaction._
 import mmagyar.util.{BoundingBox, Box, Degree, Point}
 
 object Group {
@@ -80,6 +80,25 @@ final case class Group(elementList: ElementList,
 
 object SizableGroup {
 
+  case class ScrollWheelBehaviour(divider: Double = 8) extends BehaviourAction[SizableGroup] {
+    override def action(in: SizableGroup, tracker: Tracker): SizableGroup =
+      in.copy(offset = in.offset + (tracker.scroll / divider))
+  }
+
+  case object ScrollDragBehaviour extends BehaviourAction[SizableGroup] {
+    override def action(in: SizableGroup, tracker: Tracker): SizableGroup =
+      in.copy(offset = in.offset + (tracker.lastMove - tracker.currentPosition))
+  }
+
+  case object DefaultBehaviour extends Behaviour[SizableGroup] {
+    override val click: Option[BehaviourAction[SizableGroup]]  = None
+    override val move: Option[BehaviourAction[SizableGroup]]   = None
+    override val down: Option[BehaviourAction[SizableGroup]]   = None
+    override val up: Option[BehaviourAction[SizableGroup]]     = None
+    override def drag: Option[BehaviourAction[SizableGroup]]   = Some(ScrollDragBehaviour)
+    override def scroll: Option[BehaviourAction[SizableGroup]] = Some(ScrollWheelBehaviour())
+  }
+
   val defaultLayout: Layout = Layout(
     wrap = Wrap.Simple(
       Align.SpaceAround,
@@ -106,20 +125,23 @@ object SizableGroup {
                  elements: Vector[Shapey],
                  layout: Layout = defaultLayout,
                  zOrder: Int = 1,
-                 position: Point = Point.zero): SizableGroup =
+                 position: Point = Point.zero,
+                 id: ShapeyId = ShapeyId()): SizableGroup =
     new SizableGroup(
       ElementList(elements, Horizontal(layout, BoundWidthAndHeight(sizing.size))),
       position,
       sizing,
       zOrder,
-      margin = margin)
+      margin = margin,
+      id = id)
 
   def selfSizedHorizontal(maxTotalWidth: Double,
                           elements: Vector[Shapey],
                           margin: Box = Box.zero,
                           layout: Layout = defaultLayout,
                           zOrder: Int = 1,
-                          position: Point = Point.zero): SizableGroup = {
+                          position: Point = Point.zero,
+                          id: ShapeyId = ShapeyId()): SizableGroup = {
     val bound = BoundWidth(maxTotalWidth - margin.xSum)
     //TODO revise this
     val elementHeight = Group(
@@ -131,7 +153,8 @@ object SizableGroup {
       position,
       Sizing(Point(maxTotalWidth, elementHeight)),
       zOrder,
-      margin = margin)
+      margin = margin,
+      id = id)
   }
 
   def selfSizedVertical(maxTotalHeight: Double,
@@ -174,7 +197,7 @@ class SizableGroup(elements: ElementList,
                    val margin: Box = Box.zero,
                    //Setting an offset can violate the margin
                    _offset: Point = Point.zero,
-                   val behaviour: BehaviourBasic[SizableGroup] = BehaviourBasic())
+                   val behaviour: Behaviour[SizableGroup] = BehaviourBasic())
     extends GenericGroup[SizableGroup]
     with PositionableShapey
     with SizableShapey {
@@ -199,30 +222,29 @@ class SizableGroup(elements: ElementList,
   private val processed        = processElementList(elements, preOffset)
 
   private val childrenSize = processed.elements
-    .foldLeft(BoundingBox.zero)((p, c) =>
-      BoundingBox(Point.zero, p.size max c.boundingBox.addSize(c.boundingBox.position).size))
+    .foldLeft(BoundingBox.zero)(
+      (p, c) =>
+        BoundingBox(
+          Point.zero,
+          p.size max c.boundingBox
+            .addSize(c.boundingBox.position - margin.topLeft - preOffset.invert)
+            .size))
     .size
 
-  //Should we add the bottomRight margin to scroll? it would mean that the full margin would be scrollable
-  private val diff = childrenSize - size // - margin.bottomRight)
+  private val diff = (childrenSize + margin.pointSum) - size
   val offset: Point =
-    Point(
-      if (diff.x > 0) preOffset.x else if (diff.x + preOffset.x > 0) diff.x + preOffset.x else 0,
-      if (diff.y > 0) preOffset.y else if (diff.y + preOffset.y > 0) diff.y + preOffset.y else 0)
+    preOffset.union((x, ps) => {
+      val df = ps._1(diff); if (x > df && df > 0) df else if (x < 0 || df <= 0) 0 else x
+    })
 
-  lazy val totalScrollSize: Point = childrenSize + margin.pointSum + offset
+  lazy val totalScrollSize: Point = childrenSize + margin.pointSum
 
   /**
     * The percentage of the scroll, ranges from 0-1
     */
-  lazy val scrollPercent: Point = offset / (diff + offset)
+  lazy val scrollPercent: Point = diff.union((x, ps) => if (x <= 0) 0 else ps._1(offset) / x)
 
-//  lazy val totalScrollSize: Point = (diff + offset) + margin.pointSum match {
-//    case a if a.x < size.x || a.y < size.x =>
-//      a.union((x, ps) => if (x < ps._1(size)) ps._1(size) else x)
-//    case a => a
-//  }
-  //todo add method `canOffset:(Boolean,Boolean)`
+  val canOffset: (Boolean, Boolean) = (diff.x > 0, diff.y > 0)
 
   override val elementList: ElementList =
     if (offset != preOffset) processElementList(processed, offset) else processed
@@ -245,7 +267,7 @@ class SizableGroup(elements: ElementList,
            id: ShapeyId = id,
            margin: Box = margin,
            offset: Point = offset,
-           behaviour: BehaviourBasic[SizableGroup] = behaviour): SizableGroup =
+           behaviour: Behaviour[SizableGroup] = behaviour): SizableGroup =
     new SizableGroup(elementList, position, sizing, zOrder, id, margin, offset, behaviour)
 
   //TODO rendered with 0 size on X?

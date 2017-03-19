@@ -13,11 +13,11 @@ case class Style(
     fontBgColor: Color = Color.transparent,
     buttonStrokeColor: Color = Color.blue,
     buttonBgColor: Color = Color.aqua,
-    defaultGroupMargin: Box = Box(Point(10, 6)),
+    defaultGroupMargin: Box = Box(Point(10, 4)),
     defaultButtonTextMargin: Box = Box(Point(4, 2)),
     buttonMargin: Box = Box(Point(4, 2)),
     strokeWidth: Double = 2,
-  scrollBar:Point = Point(16,16),
+  scrollBar:Point = Point(8,8),
   scrollBarColor: Color = Color.aqua,
   scrollBarBgColor: Color = Color.blue
 ) {

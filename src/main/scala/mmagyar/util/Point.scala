@@ -20,6 +20,7 @@ object Point {
 }
 
 case class Point(x: Double, y: Double) {
+  def isNaN: Boolean = x.isNaN || y.isNaN
 
   def subX(amount: Double): Point = this.copy(x = this.x - amount)
   def subY(amount: Double): Point = this.copy(y = this.y - amount)

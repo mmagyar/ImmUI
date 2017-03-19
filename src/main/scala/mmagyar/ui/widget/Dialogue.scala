@@ -56,42 +56,38 @@ class Dialogue private (updateReason: UpdateReason,
         val buttons = options.map(x =>
           Button(Point.zero, x.text, id = ShapeyId(x.id), isActive = currentSelection.contains(x)))
 
-        val textSize = Point(size.x - style.scrollBar.x, 32)//margin.ySum+1)
+        val textSize = Point(size.x - style.scrollBar.x, 10) //margin.ySum+1)
 
+        val textItself =
+          MultilineText(Point.zero, text, textSize.x - margin.xSum +100 , style.fontLooks)
+        println("Textitself", textItself.size)
         val multiText =
           SizableGroup
             .horizontal(
               Sizing(textSize, Point(textSize.x, 1), grow = Grow.Affinity),
               margin,
-              Vector(MultilineText(Point.zero, text, textSize.x - margin.xSum+100, style.fontLooks)),
+              Vector(textItself),
               Layout.left,
-              zOrder = 2
+              zOrder = 2,
+              id = ShapeyId("Test_1")
             )
-            .copy(behaviour = BehaviourBasic[SizableGroup](
-              scroll = Some(InjectedBehaviourAction((el, track) =>{
+            .copy(behaviour = SizableGroup.DefaultBehaviour)
 
-//              println("SCROLL")
-                el.copy(offset = el.offset + (track.scroll / 8))})),
-              drag = Some(InjectedBehaviourAction((el, track) =>
-                el.copy(offset = el.offset + (track.lastMove - track.currentPosition))))
-            ))
+        val wrapText = ScrollbarGroup(multiText)
 
-        val wrapText =new ScrollbarGroup(Point.zero ,multiText)
-        println(wrapText)
         val buttonsGr: SizableGroup =
-          SizableGroup.selfSizedHorizontal(size.x, buttons, margin, Layout.centeredDown)
+          SizableGroup.selfSizedHorizontal(
+            size.x,
+            buttons,
+            margin,
+            Layout.centeredDown,
+            id = ShapeyId("test_2"))
         val innards =
-          ElementList(Vertical(Layout.centered, BoundWidthAndHeight(size)),
-            wrapText
-
-            ,
-
-            buttonsGr)
+          ElementList(Vertical(Layout.centered, BoundWidthAndHeight(size)), wrapText, buttonsGr)
 
         val list = ElementList(
           Rect(Sizing(size), looks = style.groupLooks, zOrder = -2),
           new SizableGroup(innards, Point.zero, Sizing(size)))
-println(list)
         list
       case Position => elementList
       case Content | Behaviour =>

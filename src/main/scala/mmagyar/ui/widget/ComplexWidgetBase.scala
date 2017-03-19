@@ -1,5 +1,6 @@
 package mmagyar.ui.widget
 
+import com.sun.javafx.webkit.theme.RenderThemeImpl.Widget
 import mmagyar.ui._
 
 /** Magyar Máté 2017, all rights reserved */
@@ -22,12 +23,15 @@ object UpdateReason {
 
 }
 
-abstract class ComplexWidgetBase[T <: ComplexWidgetBase[T]](
-  _elementList:ElementList,
-  final val updateReason: UpdateReason)
+trait WidgetWithChildrenBase[T <: WidgetWithChildrenBase[T]]
     extends PositionableShapey
     with GroupableWithBehaveableChildren[T]
     with Behaveable[T] { this: T =>
+}
+
+abstract class ComplexWidgetBase[T <: ComplexWidgetBase[T]](_elementList: ElementList,
+                                                            final val updateReason: UpdateReason)
+    extends WidgetWithChildrenBase[T] { this: T =>
 
   /**
     * This method needs to manage the element list.
@@ -46,9 +50,7 @@ abstract class ComplexWidgetBase[T <: ComplexWidgetBase[T]](
     *
     * @return
     */
-
-
-  val elementList:ElementList = updateElementList(_elementList, updateReason)
+  val elementList: ElementList = updateElementList(_elementList, updateReason)
 
 //  override def mapElements(map: (Shapey) => Shapey): Dialogue =
 //    copy(elementList = elementList.copy(elements.map(map)))

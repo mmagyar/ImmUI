@@ -46,24 +46,6 @@ trait Behaviour[T <: Shapey] {
   def drag: Option[BehaviourAction[T]]
   def scroll: Option[BehaviourAction[T]]
 
-  def combine(element: Behaviour[T]): Behaviour[T] = {
-    element.copy(
-      element.click.map(x => click.map(_.combine(x)).getOrElse(x)),
-      element.move.map(x => move.map(_.combine(x)).getOrElse(x)),
-      element.down.map(x => down.map(_.combine(x)).getOrElse(x)),
-      element.up.map(x => up.map(_.combine(x)).getOrElse(x)),
-      element.drag.map(x => drag.map(_.combine(x)).getOrElse(x)),
-      element.scroll.map(x => scroll.map(_.combine(x)).getOrElse(x))
-    )
-  }
-
-  def copy(click: Option[BehaviourAction[T]] = click,
-           move: Option[BehaviourAction[T]] = move,
-           down: Option[BehaviourAction[T]] = down,
-           up: Option[BehaviourAction[T]] = up,
-           drag: Option[BehaviourAction[T]] = drag,
-           scroll: Option[BehaviourAction[T]] = scroll): Behaviour[T]
-
   val clickEllipseSize = 10
   def canBehave(tracker: Tracker): Boolean =
     (tracker.state match {
@@ -88,11 +70,11 @@ trait Behaviour[T <: Shapey] {
     }
     if (tracker.scroll != Point.zero) {
       pointerAction.map(x => scroll.map(y => y.combine(x))).getOrElse(scroll)
-    }
-    else pointerAction
+    } else pointerAction
   }
 
 }
+
 
 case class BehaviourBasic[T <: Shapey](click: Option[BehaviourAction[T]] = None,
                                        move: Option[BehaviourAction[T]] = None,
@@ -101,11 +83,15 @@ case class BehaviourBasic[T <: Shapey](click: Option[BehaviourAction[T]] = None,
                                        drag: Option[BehaviourAction[T]] = None,
                                        scroll: Option[BehaviourAction[T]] = None)
     extends Behaviour[T] {
-  override def copy(click: Option[BehaviourAction[T]],
-                    move: Option[BehaviourAction[T]],
-                    down: Option[BehaviourAction[T]],
-                    up: Option[BehaviourAction[T]],
-                    drag: Option[BehaviourAction[T]],
-                    scroll: Option[BehaviourAction[T]]): BehaviourBasic[T] =
-    BehaviourBasic(click, move, down, up, drag,scroll)
+
+  def combine(element: Behaviour[T]): Behaviour[T] = {
+    BehaviourBasic(
+      element.click.map(x => Some(click.map(_.combine(x)).getOrElse(x))).getOrElse(click),
+      element.move.map(x => Some(move.map(_.combine(x)).getOrElse(x))).getOrElse(move),
+      element.down.map(x => Some(down.map(_.combine(x)).getOrElse(x))).getOrElse(down),
+      element.up.map(x => Some(up.map(_.combine(x)).getOrElse(x))).getOrElse(up),
+      element.drag.map(x => Some(drag.map(_.combine(x)).getOrElse(x))).getOrElse(drag),
+      element.scroll.map(x => Some(scroll.map(_.combine(x)).getOrElse(x))).getOrElse(scroll)
+    )
+  }
 }
