@@ -83,7 +83,7 @@ object SizableGroup {
 
   case class ScrollWheelBehaviour(divider: Double = 8) extends BehaviourAction[SizableGroup] {
     override def action(in: SizableGroup, tracker: Tracker): SizableGroup =
-      in.copy(offset = in.offset + (tracker.scroll / divider))
+      in.copy(offset = in.offset - (tracker.scroll / divider))
   }
 
   case object ScrollDragBehaviour extends BehaviourAction[SizableGroup] {

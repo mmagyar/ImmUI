@@ -24,7 +24,7 @@ object ScrollbarGroup {
   case class ScrollWheelBehaviour(divider: Double = 8) extends BehaviourAction[ScrollbarGroup] {
     override def action(in: ScrollbarGroup, tracker: Tracker): ScrollbarGroup =
       if (tracker.overElements.exists(x => x.id == in.scrollBarYId || x.id == in.scrollBarXId))
-        in.offset(in.offset + (tracker.scroll / divider))
+        in.offset(in.offset - (tracker.scroll / divider))
       else in
   }
 
