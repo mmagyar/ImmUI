@@ -11,9 +11,10 @@ import scala.annotation.tailrec
   * This group of traits and classes is responsible for the order, organization of elements
   *
   * @todo gosh, this really need tests
+  * @todo better handling Vertical and Horizontal layout when elements can not fit
   */
 sealed trait Organize {
-  def layout: Layout
+//  def layout: Layout
 
   def organize[T <: Positionable[T] with Material](elements: Vector[T],
                                                    offset: Point = Point.zero,
@@ -358,7 +359,6 @@ object Relative {
 }
 case class Relative(position: Point) extends Organize {
 
-  val layout: Layout             = Layout()
   val size: LayoutSizeConstraint = Unbound()
 
   override def organize[T <: Positionable[T] with Material](
@@ -370,25 +370,42 @@ case class Relative(position: Point) extends Organize {
 //  def position(point: Point): Relative = this.copy(position = point)
 }
 
+sealed trait UnionLayoutSetting
+case object StretchToConstraint extends UnionLayoutSetting
+case object StretchToLargest    extends UnionLayoutSetting
+
 /**
   * Union layout, sets every sub components position to zero,
   * and resize all resizable elements to the size of the largest element.
   * @note might want to make this sizable
   *       (although the handling of over sized elements leave a lot of questions
   */
-case class Union() extends Organize {
-
-  val layout: Layout             = Layout()
-  val size: LayoutSizeConstraint = Unbound()
+case class Union(size: LayoutSizeConstraint = Unbound(),
+                 stretchType: UnionLayoutSetting = StretchToConstraint)
+    extends Organize {
 
   override def organize[T <: Positionable[T] with Material](
       elements: Vector[T],
       offset: Point = Point.zero,
       organizeToBounds: Boolean = false): Vector[T] = {
+
     val largest = elements.foldLeft(Point.zero)((p, c) => p.max(c.size))
+
+    val newSize = stretchType match {
+      case StretchToConstraint =>
+        size match {
+          case Unbound()                           => largest
+          case BoundWidth(constraint)              => Point(constraint, largest.y)
+          case BoundHeight(constraint)             => Point(largest.x, constraint)
+          case BoundWidthAndHeight(constraintSize) => constraintSize
+        }
+      case StretchToLargest => largest
+    }
+
     elements.map {
-      case a: Sizable[T @unchecked] => a.size(largest).position(Point.zero + offset)
-      case a                        => a.position(Point.zero + offset)
+      case a: Sizable[T @unchecked] =>
+        a.size(newSize.min(a.sizing.maxSize).max(a.sizing.minSize)).position(Point.zero + offset)
+      case a => a.position(Point.zero + offset)
     }
   }
 

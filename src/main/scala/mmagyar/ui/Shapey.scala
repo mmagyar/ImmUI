@@ -165,21 +165,44 @@ final case class Rect(sizing: Sizing,
 
 //TODO we might want to remove "HIDDEN" attribute
 
+object MultilineText {
+  def apply(position: Point,
+            text: String,
+            looks: Looks = Looks(Color.transparent, Color.grey),
+            maxLineWidth: Double = 64,
+            dynamicSize: Boolean = true,
+            zOrder: Double = 1,
+            id: ShapeyId = ShapeyId.apply(),
+            font: Font = Text.defaultFont): MultilineText =
+    new MultilineText(
+      position,
+      text,
+      maxLineWidth,
+      maxLineWidth,
+      looks,
+      dynamicSize,
+      zOrder,
+      id,
+      font)
+}
 final case class MultilineText(
     position: Point,
     text: String,
-    maxLineWidth: Double,
-    looks: Looks = Looks(Color.transparent, Color.grey),
-    zOrder: Double = 1,
-    id: ShapeyId = ShapeyId.apply(),
-    font: Font = Text.defaultFont
+    maxLineWidthBase: Double,
+    maxLineWidthCurrent: Double,
+    looks: Looks,
+    dynamicSize: Boolean,
+    zOrder: Double,
+    id: ShapeyId,
+    font: Font
 ) extends Groupable[MultilineText]
-    with PositionableShapey {
+    with PositionableShapey
+    with SizableShapey {
 
   private case class LinesMetric(sizeX: Int, sizeY: Int, maxX: Int, posY: Int, text: String)
 
-  val textLines: Vector[String] = font.sliceToMaxLineWidth(text, maxLineWidth)
-  private val linePositions: Vector[LinesMetric] =
+  private lazy val textLines: Vector[String] = font.sliceToMaxLineWidth(text, maxLineWidthCurrent)
+  private lazy val linePositions: Vector[LinesMetric] =
     textLines.foldLeft(Vector[LinesMetric]())((p, c) => {
       val currentSize = font.getSizeForString(c)
       p :+ p.lastOption
@@ -194,14 +217,14 @@ final case class MultilineText(
         .getOrElse(LinesMetric(currentSize._1, currentSize._2, currentSize._1, 0, c))
     })
 
-  val size: Point =
+  private lazy val textSize: Point =
     linePositions.lastOption
       .map(x => Point(x.maxX, x.posY + font.getSizeForString(x.text)._2))
       .getOrElse(Point.zero)
 
   override def position(point: Point): MultilineText = copy(position = point)
 
-  val lineElements: Vector[Shapey] = linePositions.map(
+  private lazy val lineElements: Vector[Shapey] = linePositions.map(
     x =>
       Text(
         Point(0, x.posY),
@@ -212,10 +235,21 @@ final case class MultilineText(
         font,
         ShapeyId()))
 
-  override val elementList: ElementList = ElementList(lineElements, Relative.zero)
+  override lazy val elementList: ElementList = ElementList(lineElements, Relative.zero)
 
   override lazy val customToString: String = s"text: $text"
 
+  override lazy val sizing: Sizing =
+    Sizing(
+      Point(maxLineWidthBase, textSize.y),
+      textSize,
+      Point(6, textSize.y),
+      Point.large.copy(y = textSize.y),
+      Grow(dynamicSize),
+      Shrink(dynamicSize))
+
+  override def sizing(sizing: Sizing): SizableShapey =
+    copy(maxLineWidthBase = sizing.baseSize.x, maxLineWidthCurrent = sizing.size.x)
 }
 
 object Text {

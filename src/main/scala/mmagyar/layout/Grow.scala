@@ -7,4 +7,5 @@ object Grow {
   final case object No       extends Grow
   final case object Affinity extends Grow
   def apply(): Grow = Affinity
+  def apply(boolean: Boolean):Grow = if(boolean) Affinity else No
 }

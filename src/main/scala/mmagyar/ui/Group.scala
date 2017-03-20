@@ -179,17 +179,23 @@ object SizableGroup {
                         sizing: Sizing,
                         text: String,
                         margin: Box,
-                        fontLooks: Looks): SizableGroup = {
-    SizableGroup
-      .horizontal(
-        sizing,
-        margin,
-        Vector(MultilineText(Point.zero, text, sizing.size.x - margin.xSum, fontLooks)),
-        Layout.left,
-        zOrder = 2,
-        position
-      )
-      .copy(behaviour = SizableGroup.ScrollBehaviour)
+                        fontLooks: Looks,
+                        zOrder: Double = 1,
+                        id: ShapeyId = ShapeyId()): SizableGroup = {
+    val sg = new SizableGroup(
+      ElementList(
+        Union(LayoutSizeConstraint.fromSize(sizing.size)),
+        MultilineText(Point.zero, text, fontLooks)),
+      position,
+      sizing,
+      zOrder,
+      id,
+      margin,
+      behaviour = SizableGroup.ScrollBehaviour
+    )
+
+    println(sg)
+    sg
   }
 
 }
@@ -226,10 +232,11 @@ class SizableGroup(elements: ElementList,
       organize = elements.organize match {
         case a: Horizontal => a.copy(size = BoundWidthAndHeight(sizing.size - margin.pointSum))
         case a: Vertical   => a.copy(size = BoundWidthAndHeight(sizing.size - margin.pointSum))
-        case a =>
-          System.err.println(
-            "Sizable group needs a Bounded size organizer, defaulting to horizontal layout")
-          Horizontal(a.layout, BoundWidthAndHeight(sizing.size))
+        case a: Union      => a.copy(size = BoundWidthAndHeight(sizing.size - margin.pointSum))
+        case a             => a
+//          System.err.println(
+//            "Sizable group needs a Bounded size organizer, defaulting to horizontal layout")
+//          Horizontal(Layout.left, BoundWidthAndHeight(sizing.size))
       },
       organizeToBounds = true,
       offset = margin.topLeft + offset.invert
