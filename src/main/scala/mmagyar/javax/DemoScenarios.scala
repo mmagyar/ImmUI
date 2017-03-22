@@ -118,15 +118,22 @@ object DemoScenarios {
       )
   )
 
+  val simple: Group = Group(
+//    Rect(Sizing(5, 5)),
+//    Rect(Sizing(10, 10), Point(10, 10)),
+//    Rect(Sizing(15, 15), Point(3, 3), Looks(Color.red),3),
+
+    SizableGroup(Point(0,0),Point(10,30),elements = Vector(Rect(Sizing(30,30)),Text(Point(40,40),"HELLO"))))
   val mainDemo: Group = Group(
     Dialogue(
       "ohh hawdy, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
-      Point(30,30),
+      Point(30, 30),
       Sizing(Point(240, 110)),
       Vector(
         DialogueOption("OK"),
         DialogueOption("CANCEL"),
-        DialogueOption("MAYBE"), DialogueOption("NOT ENOUGH")
+        DialogueOption("MAYBE"),
+        DialogueOption("NOT ENOUGH")
       ),
       4
     )(Style()))

@@ -28,5 +28,5 @@ case class Style(
   lazy val buttonLooksActive: Looks =
     Looks(buttonBgColor.lighten(100), buttonStrokeColor, strokeWidth)
 
-  lazy val groupLooks: Looks = Looks(background, stroke, strokeWidth)
+  lazy val groupLooks: Looks = Looks(Color.fuchsia, stroke, strokeWidth)
 }

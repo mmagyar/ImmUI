@@ -50,9 +50,26 @@ class JavaFxTesting extends Application {
 
   private var document: Document = Document(root = DemoScenarios.mainDemo)
 
+  def testBufferDraw(): Vector[Vector[Color]] = {
+    val td = Document(root = DemoScenarios.simple)
+//    val td =document// Document(root = DemoScenarios.simple)
+    val br = new BufferDraw(1)
+    val res = br.getBuffer(td)
+
+
+//    res.foreach(println)
+
+//    println(DemoScenarios.simple)
+    println("RESULT SIZE", res.size , res.headOption.map(_.size).getOrElse(0), "Document size", td.root.size)
+
+
+
+    res
+  }
+
   var actions = new PointerAction()
   def start(stage: Stage) {
-    val root = new Pane
+        val root = new Pane
 
     root.getChildren.add(canvas)
     val scene = new Scene(root)
@@ -137,12 +154,19 @@ class JavaFxTesting extends Application {
 
   def update(): Unit = {
 
+buffDraw()
+
+    //    println(document.root)
+  }
+
+  def pixDraw():Unit = {
+
     val start = Timing()
 
-//    import scala.concurrent.ExecutionContext.Implicits.global
+    //    import scala.concurrent.ExecutionContext.Implicits.global
 
     def crt(parts: Int) = { //: Seq[Future[(Int, Int, Array[Array[Color]])]] = {
-      val div = width / parts.toDouble
+    val div = width / parts.toDouble
       (0 until parts)
         .map(x => ((div * x).toInt, (div * (x + 1)).toInt))
         .map(x => {
@@ -168,7 +192,7 @@ class JavaFxTesting extends Application {
 
     val sorted = result.sortWith((x, y) => x._1 < y._1)
 
-//    val draw = Timing()
+    //    val draw = Timing()
 
     sorted.foreach((tile) => {
 
@@ -191,10 +215,34 @@ class JavaFxTesting extends Application {
 
     })
 
-//    draw.print("draw time")
+    //    draw.print("draw time")
     start.print("frame time")
 
-//    println(document.root)
+  }
+
+  def buffDraw():Unit = {
+    val start = Timing()
+
+    val buf = testBufferDraw()
+
+
+    var x      = 0
+    var y      = 0
+    val offset = 0
+    val w      = buf.size
+
+
+    while (x < w) {
+      val yArr = buf(x - offset)
+      while (y < yArr.size) {
+        val clr = yArr(y)
+        pw.setColor(x, y, new FxColor(clr.red / 255.0, clr.green / 255.0, clr.blue / 255.0, 1))
+        y += 1
+      }
+      x += 1
+      y = 0
+    }
+start.print("Buffer render")
   }
 
   def benchmark(): Unit = {

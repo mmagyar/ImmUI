@@ -12,6 +12,9 @@
  
  This means that this UI library can be used anywhere where you can run scala; JVM, JS, Native
  
+ ####Nothing is tied to the concept of pixels
+ The widget graph can be rendered and any resolution without artifacts, or even rendered into non-raster formats, such as SVG or HTML. This also makes it possible, and easy to interface with existing UI libraries
+ 
  ####Modularity
  The widgets and graphical primitives are in no way tied to any renderer or input method.
  Both the renderer and the input handler are totally separate concepts.
@@ -23,8 +26,6 @@
  All widgets and graphical elements are fully immutable.
  
  This makes it possible, and easy to copy,save or restore state, and to process the graph on multiple threads. It also makes it easy to create meaningful diffs of changes, making it easy to optimize rendering and storing changes.
- 
- 
  
  ####Simple effect graph
  There are no events, every object can act on itself, and consequently all the elements below, but never above. A button should never be able to reach it's parent in any direct or indirect (global events) way. The proper solution is that a parent group should observe it's children.
@@ -39,3 +40,9 @@
 ####Laziness
  Most calculated properties of elements should be lazy, since we don't always need all of the properties throughout the processing of object.
  
+ 
+ ####No state management
+ The library is completely stateless, every mutation must be handled outside of the library.
+ 
+ ####No globals
+ You can have as many widget graphs as you need. It is also to effortless to combine them at any time.
