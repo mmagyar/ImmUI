@@ -50,7 +50,7 @@ case class Color(red: Int, green: Int, blue: Int, opacity: Double = 1) {
 
   val toRgba: String            = s"rgba(${this.red}, ${this.green}, ${this.blue}, ${this.opacity})"
   val toRgb: String             = s"rgb(${this.red}, ${this.green}, ${this.blue})"
-  override val toString: String = if(opacity == 1) toRgb else toRgba
+  override val toString: String = if (opacity == 1) toRgb else toRgba
 
   def lighten(amount: Int): Color =
     Color((red + amount).min(255), (green + amount).min(255), (blue + amount).min(255), opacity)
@@ -67,6 +67,17 @@ case class Color(red: Int, green: Int, blue: Int, opacity: Double = 1) {
     i = i << 8
     i = i | (opacity * 0xFF).toInt
     i
+  }
+
+  def alphaComposition(src: Color): Color = {
+
+    val outAlpha = (src.opacity + opacity * (1 - src.opacity)).min(1)
+
+    def blend(srcC: Int, dstC: Int) =
+      ((srcC * src.opacity + dstC * opacity * (1 - src.opacity)) / outAlpha).toInt
+
+    Color(blend(src.red, red), blend(src.green, green), blend(src.blue, blue), outAlpha)
+
   }
 }
 

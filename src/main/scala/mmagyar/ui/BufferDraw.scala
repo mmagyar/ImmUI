@@ -4,7 +4,9 @@ import mmagyar.util.{Color, Point, PointTransform, Rotation}
 
 /** Magyar Máté 2017, all rights reserved */
 class BufferDraw(var scale: Double) {
-
+//TODO transform
+  //TODO border
+  //TOOD bitmap
   def getBuffer(document: Document): Vector[Vector[Color]] = {
 
     val root = document.root
@@ -17,9 +19,8 @@ class BufferDraw(var scale: Double) {
            rotate: Vector[PointTransform] = Vector.empty,
            totalSize: Point): Vector[Vector[Color]] = {
 
-    //TODO do blending of colors
 
-    val defCol = Color(34, 32, 30)
+    val defCol = Color.transparent//Color(34, 32, 30)
 
     elements.reverse
       .map(getBuffer(_, rotate))
@@ -28,9 +29,9 @@ class BufferDraw(var scale: Double) {
 
         val offX   = c._1.x.toInt
         val offY   = c._1.y.toInt
-        val intrst = c._2.size == 240
+//        val intrst = c._2.size == 240
 
-        if (intrst) println(c._1, c._2.size, c._2.head.size)
+//        if (intrst) println(c._1, c._2.size, c._2.head.size)
         val w   = c._2.size
         var x   = 0
         var y   = 0
@@ -42,10 +43,15 @@ class BufferDraw(var scale: Double) {
           var resY = res(x + offX)
           while (y < h && (y + offY) < resY.size) {
             if (y + offY > 0) {
-              val clr  = yArr(y)
-              val crnt = resY(y + offY)
+              val clr = yArr(y)
               if (clr != Color.transparent)
-                resY = resY.updated(y + offY, clr)
+                resY = resY.updated(
+                  y + offY,
+                  if (clr.opacity == 1) clr
+                  else {
+                    resY(y + offY)
+                      .alphaComposition(clr)
+                  })
             }
             y += 1
           }
@@ -77,7 +83,7 @@ class BufferDraw(var scale: Double) {
       case drawable: Drawable =>
         drawable match {
           case Rect(sizing, position, looks, zOrder, id) =>
-            println(position, sizing, looks)
+//            println(position, sizing, looks)
             (position, Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(looks.fill))
           case Text(position, label, sizing, looks, zOrder, font, id) =>
 //            var bgFont = Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(looks.fill)

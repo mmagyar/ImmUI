@@ -10,7 +10,7 @@ import mmagyar.util.{Bitmap, Color, Degree, Point}
 /** Magyar Máté 2017, all rights reserved */
 object DemoScenarios {
 
-  val bmp = BitmapShapey(
+  lazy val bmp = BitmapShapey(
     Point.zero,
     Sizing(Point(128, 128)),
     //      Bitmap.testStripes(10, 60, Color.red, Color.green),
@@ -19,7 +19,7 @@ object DemoScenarios {
     Align2d(horizontal = Align.Center, vertical = Align.Right)
   )
 
-  val g2: Group =
+  lazy val g2: Group =
     Group(
       Relative(Point(200, 10)),
       Group(
@@ -37,7 +37,8 @@ object DemoScenarios {
       ).copy(position = Point.zero, rotation = Degree(45)),
       bmp.copy(zOrder = 1.2)
     ).copy(position = Point.zero, rotation = Degree(-12), zOrder = 2)
-  val group: Group = Group(
+
+  lazy val group: Group = Group(
     Relative(Point(0, 10)),
     g2,
     Group(
@@ -68,7 +69,7 @@ object DemoScenarios {
         looks = Looks(Color.green, Color.silver, 10))
     )
 
-  val simpleGroup2: Group = Group(
+  lazy val simpleGroup2: Group = Group(
     Relative(),
     Group
       .horizontal(
@@ -87,7 +88,7 @@ object DemoScenarios {
   private val doubleThis =
     Rect(Sizing(30, 60), looks = Looks(Color.white, Color.blue, 2), id = ShapeyId("DOUBLE VISION"))
 
-  val doublePresence: Group = Group(
+  lazy val doublePresence: Group = Group(
     Relative(),
     doubleThis,
 //    Text(Point(100,100),"OHHZ NO",looks = Looks(Color.red, Color.blue,3),5),
@@ -118,13 +119,22 @@ object DemoScenarios {
       )
   )
 
-  val simple: Group = Group(
-//    Rect(Sizing(5, 5)),
-//    Rect(Sizing(10, 10), Point(10, 10)),
-//    Rect(Sizing(15, 15), Point(3, 3), Looks(Color.red),3),
+  lazy val simple: Group = Group(
+    Rect(Sizing(5, 5)),
+    Rect(Sizing(10, 10), Point(10, 10)),
+    Rect(Sizing(15, 15), Point(3, 3), Looks(Color(255, 0, 0, 0.5)), 3),
+    Rect(Sizing(15, 15), Point(13, 4), Looks(Color(0, 255, 0, 0.5)), 3),
+    SizableGroup(
+      Point(20, 20),
+      Point(160, 80),
+      elements = Vector(
+        Rect(Sizing(Point(80, 30), maxSize = Point(150, 70), grow = Grow.No)),
+        Text(Point(40, 40), "HELLO")))
+  )
 
-    SizableGroup(Point(0,0),Point(10,30),elements = Vector(Rect(Sizing(30,30)),Text(Point(40,40),"HELLO"))))
-  val mainDemo: Group = Group(
+  lazy val mainDemo: Group = Group(
+    Relative(),
+    Rect(Sizing(150, 150), Point(4, 4)),
     Dialogue(
       "ohh hawdy, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
       Point(30, 30),
@@ -136,5 +146,6 @@ object DemoScenarios {
         DialogueOption("NOT ENOUGH")
       ),
       4
-    )(Style()))
+    )(Style())
+  )
 }

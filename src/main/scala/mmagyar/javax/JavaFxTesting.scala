@@ -3,7 +3,6 @@ package mmagyar.javax
 import java.awt.{Color => AwtColor}
 import java.util.concurrent.Executors
 import javafx.application.Application
-import javafx.event.EventHandler
 import javafx.scene.Scene
 import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.input.{KeyEvent, MouseEvent, ScrollEvent}
@@ -11,7 +10,6 @@ import javafx.scene.layout.Pane
 import javafx.scene.paint.{Color => FxColor}
 import javafx.stage.Stage
 
-import mmagyar.layout._
 import mmagyar.ui._
 import mmagyar.ui.interaction.{PointerAction, PointerState}
 import mmagyar.util._
@@ -26,50 +24,48 @@ object JavaFxTesting {
 }
 
 class JavaFxTesting extends Application {
-  val width: Int      = 320
-  val height: Int     = 240
-  val multiplier: Int = 2
-//  val width : Int = 1280/2
-//  val height: Int = 720/2
-//  val canvas = new Canvas(width, height)
+  val width: Int      = 640
+  val height: Int     = 480
+  val multiplier: Int = 1
+  //  val width : Int = 1280/2
+  //  val height: Int = 720/2
+  //  val canvas = new Canvas(width, height)
 
   val canvas = new Canvas(width * multiplier, height * multiplier)
   canvas.setWidth(width * multiplier)
   canvas.setHeight(height * multiplier)
-  canvas.setScaleX(multiplier)
-  canvas.setScaleY(multiplier)
-  canvas.setTranslateX(width)
-  canvas.setTranslateY(height)
+//  canvas.setScaleX(multiplier)
+//  canvas.setScaleY(multiplier)
+//  canvas.setTranslateX(width)
+//  canvas.setTranslateY(height)
 
   // Get the graphics context of the canvas
   val gc: GraphicsContext = canvas.getGraphicsContext2D
 
-//  private val iw        = new ImageView()
-//  private val imageView = new WritableImage(800, 400)
-//  private val imageBf   = imageView.getPixelWriter
+  //  private val iw        = new ImageView()
+  //  private val imageView = new WritableImage(800, 400)
+  //  private val imageBf   = imageView.getPixelWriter
 
-  private var document: Document = Document(root = DemoScenarios.mainDemo)
+    private var document: Document = Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(2,2)))
+//  private var document: Document = Document(root = DemoScenarios.simple)
+  val br                         = new BufferDraw(1)
 
   def testBufferDraw(): Vector[Vector[Color]] = {
-    val td = Document(root = DemoScenarios.simple)
-//    val td =document// Document(root = DemoScenarios.simple)
-    val br = new BufferDraw(1)
+    val td  = document
     val res = br.getBuffer(td)
 
+    //    res.foreach(println)
 
-//    res.foreach(println)
-
-//    println(DemoScenarios.simple)
-    println("RESULT SIZE", res.size , res.headOption.map(_.size).getOrElse(0), "Document size", td.root.size)
-
-
+    //    println(DemoScenarios.simple)
+    //    println("RESULT SIZE", res.size , res.headOption.map(_.size).getOrElse(0), "Document size", td.root.size)
 
     res
   }
 
   var actions = new PointerAction()
+
   def start(stage: Stage) {
-        val root = new Pane
+    val root = new Pane
 
     root.getChildren.add(canvas)
     val scene = new Scene(root)
@@ -85,7 +81,7 @@ class JavaFxTesting extends Application {
           case b        => b
         })
         document(document.copy(root = root))
-        println(document.root)
+      //        println(document.root)
       case a => println("UNKNOWN KEY:" + a)
     }
 
@@ -129,10 +125,10 @@ class JavaFxTesting extends Application {
     stage.setScene(scene)
     stage.setTitle("ImmuGUI")
     stage.setY(0)
-    stage.setX(2890)
-//    stage.setX(1620)
+    //    stage.setX(2890)
+    //    stage.setX(1620)
     stage.show()
-//    stage.setResizable(false)
+    //    stage.setResizable(false)
     update()
   }
 
@@ -154,19 +150,19 @@ class JavaFxTesting extends Application {
 
   def update(): Unit = {
 
-buffDraw()
+    buffDraw()
 
     //    println(document.root)
   }
 
-  def pixDraw():Unit = {
+  def pixDraw(): Unit = {
 
     val start = Timing()
 
     //    import scala.concurrent.ExecutionContext.Implicits.global
 
     def crt(parts: Int) = { //: Seq[Future[(Int, Int, Array[Array[Color]])]] = {
-    val div = width / parts.toDouble
+      val div = width / parts.toDouble
       (0 until parts)
         .map(x => ((div * x).toInt, (div * (x + 1)).toInt))
         .map(x => {
@@ -177,10 +173,12 @@ buffDraw()
             while (xx < x._2) {
               val vcr2 = new Array[Color](height)
               while (y < height) {
-                vcr2(y) = refD.getPixel(document, Point(xx, y)); y += 1
+                vcr2(y) = refD.getPixel(document, Point(xx, y))
+                y += 1
               }
               vcr1(xx - x._1) = vcr2
-              xx += 1; y = 0
+              xx += 1
+              y = 0
             }
             (x._1.toInt, x._2.toInt, vcr1)
           }
@@ -220,17 +218,15 @@ buffDraw()
 
   }
 
-  def buffDraw():Unit = {
+  def buffDraw(): Unit = {
     val start = Timing()
 
     val buf = testBufferDraw()
-
 
     var x      = 0
     var y      = 0
     val offset = 0
     val w      = buf.size
-
 
     while (x < w) {
       val yArr = buf(x - offset)
@@ -242,7 +238,7 @@ buffDraw()
       x += 1
       y = 0
     }
-start.print("Buffer render")
+    start.print("Buffer render")
   }
 
   def benchmark(): Unit = {

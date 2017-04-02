@@ -194,7 +194,6 @@ object SizableGroup {
       behaviour = SizableGroup.ScrollBehaviour
     )
 
-    println(sg)
     sg
   }
 

@@ -52,7 +52,7 @@ case class Button(position: Point,
       el.toggle
     })))
 
-  override def behave(tracker: Tracker): Button =
-    behaviour.behave(tracker).map(x => x.action(this, tracker)).getOrElse(this)
+//  override def behave(tracker: Tracker): Button =
+//    behaviour.behave(tracker).map(x => x.action(this, tracker)).getOrElse(this)
 
 }

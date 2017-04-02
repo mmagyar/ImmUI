@@ -50,8 +50,14 @@ object Organize {
         val sizedEl: T = initPos match {
           case a: Sizable[T @unchecked] =>
             val maxSize = ps._2(lineSize).min(ps._2(a.sizing.maxSize))
-            val result  = alignContent.align(maxSize, sizeSec, sizeChangeable = true)
-            a.size(ps._2Set(a.size, result.size))
+
+            val result      = alignContent.align(maxSize, sizeSec, sizeChangeable = true)
+            val result2     = result.size.max(ps._2(a.sizing.minSize))
+            val currentSize = ps._2(a.size)
+            if ((result2 > currentSize && a.sizing.grow == Grow.Affinity) ||
+                (result2 < currentSize && a.sizing.shrink == Shrink.Affinity))
+              a.size(ps._2Set(a.size, result2))
+            else a.size(a.size)
           case a => a
         }
 
@@ -96,7 +102,8 @@ object Organize {
         val growableSpace = remainingWidth - nonGrowable
 
         //If we have 0 (or less) space, we don't need to do anything
-        if (growableSpace - currentSpace > 0) {
+        //TODO test is this predicate provides the correct results always
+        if (growableSpace - currentSpace > 0 && currentSpace > 0) {
           //TODO no growing will happen, if the growables are 0 in size
           val multiplier = if (currentSpace <= 0) 1 else growableSpace / currentSpace
           elements.foldLeft((false, Vector[T]()))((prev, current) => {
@@ -152,6 +159,7 @@ object Organize {
         val shrinkableSpace = remainingWidth - nonShrinkable
 
         //If we have 0 (or more) space, we don't need to do anything
+        //TODO this might not terminate in some cases
         if (shrinkableSpace - currentSpace < 0) {
           val multiplier = if (currentSpace == 0) 1 else shrinkableSpace / currentSpace
           elements.foldLeft((false, Vector[T]()))((prev, current) => {
