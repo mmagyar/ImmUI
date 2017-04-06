@@ -19,39 +19,45 @@ class BufferDraw(var scale: Double) {
            rotate: Vector[PointTransform] = Vector.empty,
            totalSize: Point): Vector[Vector[Color]] = {
 
-
-    val defCol = Color.transparent//Color(34, 32, 30)
+    val defCol = Color.transparent //Color(34, 32, 30)
 
     elements.reverse
       .map(getBuffer(_, rotate))
       .foldLeft(Vector.fill(totalSize.x.toInt, totalSize.y.toInt)(defCol))((p, c) => {
 //        println("PROCCING", c._1, c._2.size, c._2.headOption.map(_.size).getOrElse(0))
 
-        val offX   = c._1.x.toInt
-        val offY   = c._1.y.toInt
-//        val intrst = c._2.size == 240
+        val offX = c._1.x.toInt
+        val offY = c._1.y.toInt
 
-//        if (intrst) println(c._1, c._2.size, c._2.head.size)
         val w   = c._2.size
         var x   = 0
         var y   = 0
         var res = p
-        //TODO secondary bounds check should not be neccessery
+        //TODO secondary bounds check should not be necessary
         while (x < w && (x + offX) < res.size && (x + offX) >= 0) {
           val yArr = c._2(x)
           val h    = yArr.size
           var resY = res(x + offX)
           while (y < h && (y + offY) < resY.size) {
-            if (y + offY > 0) {
+
+            if (y + offY >= 0) {
+
+
               val clr = yArr(y)
-              if (clr != Color.transparent)
+
+              if(c._1 == Point(30,30)){
+//              println(x,y)
+              if(x == 1 && (y==0 || y== 1 || y ==2)){
+                println(x,y, clr)
+              }
+            }
+
+              if (clr.visible)
                 resY = resY.updated(
                   y + offY,
                   if (clr.opacity == 1) clr
-                  else {
-                    resY(y + offY)
-                      .alphaComposition(clr)
-                  })
+                  else resY(y + offY).alphaComposition(clr)
+                )
             }
             y += 1
           }
@@ -83,8 +89,13 @@ class BufferDraw(var scale: Double) {
       case drawable: Drawable =>
         drawable match {
           case Rect(sizing, position, looks, zOrder, id) =>
-//            println(position, sizing, looks)
-            (position, Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(looks.fill))
+            val pixels = new ColorMap(
+              sizing.size.x.toInt,
+              sizing.size.y.toInt,
+              looks.fill,
+              looks.stroke,
+              looks.strokeLineWidth.toInt)
+            (position, pixels.pixels)
           case Text(position, label, sizing, looks, zOrder, font, id) =>
 //            var bgFont = Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(looks.fill)
             var bgFont = Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(looks.fill)

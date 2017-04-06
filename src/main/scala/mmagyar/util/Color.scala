@@ -48,6 +48,9 @@ class ColorByte(val c: Int) extends AnyVal {
 
 case class Color(red: Int, green: Int, blue: Int, opacity: Double = 1) {
 
+  def fullyTransparent: Boolean = opacity == 0
+  def visible: Boolean          = opacity > 0
+
   val toRgba: String            = s"rgba(${this.red}, ${this.green}, ${this.blue}, ${this.opacity})"
   val toRgb: String             = s"rgb(${this.red}, ${this.green}, ${this.blue})"
   override val toString: String = if (opacity == 1) toRgb else toRgba
@@ -79,6 +82,7 @@ case class Color(red: Int, green: Int, blue: Int, opacity: Double = 1) {
     Color(blend(src.red, red), blend(src.green, green), blend(src.blue, blue), outAlpha)
 
   }
+  def opacity(value: Double): Color = copy(opacity = value)
 }
 
 object NamedColor {
