@@ -47,7 +47,7 @@ class JavaFxTesting extends Application {
   //  private val imageBf   = imageView.getPixelWriter
 
 //    private var document: Document = Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(2,2)))
-  private var document: Document = Document(root = DemoScenarios.simple, transform = Transform(scale = Point(2,2)))
+  private var document: Document = Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(2,2)))
   val br                         = new BufferDraw()
 
   def testBufferDraw(): Vector[Vector[Color]] = {
@@ -222,6 +222,7 @@ class JavaFxTesting extends Application {
     val start = Timing()
 
     val buf = testBufferDraw()
+    start.print("Buffer frame")
 
     var x      = 0
     var y      = 0

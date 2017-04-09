@@ -83,7 +83,7 @@ class PointerAction(
                  drawableOnly: Boolean = false): Vector[Shapey] =
     sense(
       Vector(document.root),
-      Vector(PointTransform(document.transform.offset)),
+      Vector(PointTransform(document.transform.offset,scale = document.transform.scale)),
       pointArg,
       drawableOnly)
 
@@ -93,7 +93,7 @@ class PointerAction(
             drawableOnly: Boolean,
             addEmptyGroup: Boolean = true): Vector[Shapey] = {
 
-    val currentPoint = rotate.foldLeft(point)((p, c) => c.transform(p)).truncate()
+    val currentPoint = rotate.foldLeft(point)((p, c) => c.transformReverse(p)).truncate()
     (elements collect {
       case a: Groupable[_] if a.boundingBox.inside(currentPoint, -1) =>
         sense(

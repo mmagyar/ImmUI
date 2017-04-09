@@ -23,14 +23,21 @@ class BufferDraw() {
 
     val scale = rotate.foldLeft(Point.one)((p, c) => p * c.scale).truncate()
 
+//    val hd = rotate.head
+//    val tail = rotate.tail
+//    val transforms = hd.copy(scale = Point.one) +: tail
+
+//    val currentTransforms = transforms.reverse.foldLeft(Point.zero)((p, c) => c.transform(p)).truncate()
+//    val elementScale = hd.scale
+
     val scaled = totalSize * scale
     elements.reverse
       .map(getBuffer(_, rotate))
       .foldLeft(Vector.fill(scaled.x.toInt, scaled.y.toInt)(defCol))((p, c) => {
-//        println("PROCCING", c._1, c._2.size, c._2.headOption.map(_.size).getOrElse(0))
 
-        val offX = c._1.x.toInt
-        val offY = c._1.y.toInt
+        val cp   = c._1 * scale
+        val offX = cp.x.toInt
+        val offY = cp.y.toInt
 
         val w   = c._2.size
         var x   = 0
@@ -44,16 +51,7 @@ class BufferDraw() {
           while (y < h && (y + offY) < resY.size) {
 
             if (y + offY >= 0) {
-
               val clr = yArr(y)
-
-              if (c._1 == Point(30, 30)) {
-//              println(x,y)
-                if (x == 1 && (y == 0 || y == 1 || y == 2)) {
-                  println(x, y, clr)
-                }
-              }
-
               if (clr.visible)
                 resY = resY.updated(
                   y + offY,
@@ -72,8 +70,8 @@ class BufferDraw() {
   }
 
   def getBuffer(x: Shapey, rotate: Vector[PointTransform]): (Point, Vector[Vector[Color]]) = {
-//    val currentPoint = rotate.foldLeft(point)((p, c) => c.transform(p)).truncate()
-    val scale = rotate.foldLeft(Point.one)((p, c) => p * c.scale).truncate()
+    val currentPoint = rotate.foldLeft(Point.one)((p, c) => c.transformReverse(p)).truncate()
+    val scale        = rotate.foldLeft(Point.one)((p, c) => p * c.scale).truncate()
     x match {
       case a: Groupable[_] =>
         val res = draw(
@@ -93,13 +91,13 @@ class BufferDraw() {
         drawable match {
           case Rect(sizing, position, looks, zOrder, id) =>
             val scaled = sizing.size * scale
-            val pixels = new ColorMap(
+            val pixels = new ColorBorderMap(
               scaled.x.toInt,
               scaled.y.toInt,
               looks.fill,
               looks.stroke,
               looks.strokeLineWidth.toInt)
-            (position * scale, pixels.pixels)
+            (position, pixels.pixels)
           case Text(position, label, sizing, looks, zOrder, font, id) =>
 //            var bgFont = Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(looks.fill)
             var bgFont = Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(looks.fill)
@@ -132,8 +130,8 @@ class BufferDraw() {
               case _ =>
                 throw new Error("Only bitmap fonts are supported by the reference drawer")
             }
+            (position, ColorMap.scale(scale, bgFont))
 
-            (position * scale, bgFont)
           case BitmapShapey(position, sizing, bitmap, bitmapFill, align, zOrder, id) =>
             (position, Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(Color.fuchsia))
 
@@ -148,45 +146,6 @@ class BufferDraw() {
 //      case _: RotatableShapey    =>
 //      case _: LabelableShapey    =>
     }
-//    x match {
-//      case a: Groupable[_]  =>
-//
-//      case a: BitmapSWhapey =>
-//        val pxPoint = a.alignedPosition(currentPoint)
-//        val pix     = a.bitmap.pixels
-//        if (pxPoint.x < pix.size && pxPoint.x >= 0) {
-//          val row = pix(pxPoint.x.toInt)
-//          if (pxPoint.y < row.size && pxPoint.y >= 0) row(pxPoint.y.toInt).toColor
-//          else Color.transparent
-//        } else Color.transparent
-//      case a: Text=>
-//        a.font match {
-//          case b: FontBitmap =>
-//            val chars = b.organize(a.label)
-//            val cp    = (currentPoint - a.position).toInt
-//            chars
-//              .find(x => x._1._1 + x._2.size._1 > cp._1)
-//              .map(x => {
-//                val (xx, yy) = ((cp._1 - x._1._1).abs, (cp._2 - x._1._2).abs)
-//                val fnt = x._2
-//                if (fnt.pixels.size > yy) {
-//                  val row = fnt.pixels(yy)
-//                  if (row.size > xx && row(xx)) a.stroke
-//                  else a.fill
-//                } else a.fill
-//              }).getOrElse(a.fill)
-//          case _ =>
-//            throw new Error("Only bitmap fonts are supported by the reference drawer")
-//        }
-//      case a: Strokable[_] =>
-//        val stroke = a.stroke
-//
-//        if (stroke == Color.transparent) a match {
-//          case b: Fillable[_] => b.fill; case _ => Color.transparent
-//        } else stroke
-//      case a: Fillable[_] =>
-//        a.fill
-//      case _ => Color.transparent
-//    }
+
   }
 }

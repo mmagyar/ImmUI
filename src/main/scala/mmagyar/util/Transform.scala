@@ -36,10 +36,16 @@ case class PointTransform(offset: Point = Point.zero,
   def degree(rot: Degree): PointTransform = copy(rotation = rotation.copy(degree = rot))
   def origin(rot: Point): PointTransform  = copy(rotation = rotation.copy(origin = rot))
 
-  def transform(point: Point): Point = {
+  def transformReverse(point: Point): Point = {
 //    (point - offset).rotate(rotation).scale(scale)
     (point.rotate(rotation) - offset) / scale
   }
+
+  def transform(point: Point): Point = {
+    (point + offset).scale(scale).rotate(rotation)
+    //(point.scale(scale)+ offset).rotate(rotation)
+  }
+
 
   def info: String = s"(offset: $offset, rotation: $rotation, scale: $scale)"
 

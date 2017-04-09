@@ -1,9 +1,40 @@
 package mmagyar.ui
 
-import mmagyar.util.Color
+import mmagyar.util.{Color, Point}
 
 /** Created by Magyar Máté on 2017-04-05, All rights reserved. */
-class ColorMap(val x: Int,
+
+
+object ColorMap{
+  type ColorMap = Vector[Vector[Color]]
+  def scale(scale: Point,colorMap:ColorMap):Vector[Vector[Color]] = {
+    var x= 0
+    var y =0
+    val finalWidth = (colorMap.size * scale.x).toInt
+    val finalHeight = (colorMap.headOption.getOrElse(Vector.empty).size * scale.y).toInt
+
+    var result:Vector[Vector[Color]] = Vector(Vector())
+    while(x < finalWidth){
+      var line:Vector[Color] = Vector()
+      val originalX = (x  / scale.x).toInt
+      val originalLine = colorMap(originalX)
+      while(y < finalHeight){
+        val originalY = (y  / scale.y).toInt
+
+        line = line :+ originalLine(originalY)
+        y+= 1
+      }
+      result = result :+ line
+      x+= 1
+      y = 0
+    }
+    result
+  }
+}
+
+
+
+class ColorBorderMap(val x: Int,
                val y: Int,
                default: Color = Color.transparent,
                strokeColor: Color = Color.transparent,

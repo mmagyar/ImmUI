@@ -44,7 +44,7 @@ class ReferenceDraw(var scale: Double = 1) {
   }
 
   def getColor(x: Shapey, point: Point, rotate: Vector[PointTransform]): Color = {
-    val currentPoint = rotate.foldLeft(point)((p, c) => c.transform(p)).truncate()
+    val currentPoint = rotate.foldLeft(point)((p, c) => c.transformReverse(p)).truncate()
     x match {
 //      case a: ScrollbarGroup if a.boundingBox.onEdge(currentPoint, Point(1, 1), 0) =>
 //        Color.aqua
