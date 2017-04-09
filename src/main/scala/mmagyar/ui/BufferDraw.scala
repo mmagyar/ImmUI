@@ -3,16 +3,16 @@ package mmagyar.ui
 import mmagyar.util.{Color, Point, PointTransform, Rotation}
 
 /** Magyar Máté 2017, all rights reserved */
-class BufferDraw(var scale: Double) {
+class BufferDraw() {
 //TODO transform
   //TODO border
   //TOOD bitmap
   def getBuffer(document: Document): Vector[Vector[Color]] = {
 
-    val root = document.root
-    scale = document.transform.scale.x
+    val root  = document.root
+    val scale = document.transform.scale
 
-    draw(Vector(root), Vector(PointTransform(document.transform.offset)), root.size)
+    draw(Vector(root), Vector(PointTransform(document.transform.offset, scale = scale)), root.size)
   }
 
   def draw(elements: Vector[Shapey],
@@ -21,9 +21,12 @@ class BufferDraw(var scale: Double) {
 
     val defCol = Color.transparent //Color(34, 32, 30)
 
+    val scale = rotate.foldLeft(Point.one)((p, c) => p * c.scale).truncate()
+
+    val scaled = totalSize * scale
     elements.reverse
       .map(getBuffer(_, rotate))
-      .foldLeft(Vector.fill(totalSize.x.toInt, totalSize.y.toInt)(defCol))((p, c) => {
+      .foldLeft(Vector.fill(scaled.x.toInt, scaled.y.toInt)(defCol))((p, c) => {
 //        println("PROCCING", c._1, c._2.size, c._2.headOption.map(_.size).getOrElse(0))
 
         val offX = c._1.x.toInt
@@ -42,15 +45,14 @@ class BufferDraw(var scale: Double) {
 
             if (y + offY >= 0) {
 
-
               val clr = yArr(y)
 
-              if(c._1 == Point(30,30)){
+              if (c._1 == Point(30, 30)) {
 //              println(x,y)
-              if(x == 1 && (y==0 || y== 1 || y ==2)){
-                println(x,y, clr)
+                if (x == 1 && (y == 0 || y == 1 || y == 2)) {
+                  println(x, y, clr)
+                }
               }
-            }
 
               if (clr.visible)
                 resY = resY.updated(
@@ -71,6 +73,7 @@ class BufferDraw(var scale: Double) {
 
   def getBuffer(x: Shapey, rotate: Vector[PointTransform]): (Point, Vector[Vector[Color]]) = {
 //    val currentPoint = rotate.foldLeft(point)((p, c) => c.transform(p)).truncate()
+    val scale = rotate.foldLeft(Point.one)((p, c) => p * c.scale).truncate()
     x match {
       case a: Groupable[_] =>
         val res = draw(
@@ -89,13 +92,14 @@ class BufferDraw(var scale: Double) {
       case drawable: Drawable =>
         drawable match {
           case Rect(sizing, position, looks, zOrder, id) =>
+            val scaled = sizing.size * scale
             val pixels = new ColorMap(
-              sizing.size.x.toInt,
-              sizing.size.y.toInt,
+              scaled.x.toInt,
+              scaled.y.toInt,
               looks.fill,
               looks.stroke,
               looks.strokeLineWidth.toInt)
-            (position, pixels.pixels)
+            (position * scale, pixels.pixels)
           case Text(position, label, sizing, looks, zOrder, font, id) =>
 //            var bgFont = Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(looks.fill)
             var bgFont = Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(looks.fill)
@@ -129,7 +133,7 @@ class BufferDraw(var scale: Double) {
                 throw new Error("Only bitmap fonts are supported by the reference drawer")
             }
 
-            (position, bgFont)
+            (position * scale, bgFont)
           case BitmapShapey(position, sizing, bitmap, bitmapFill, align, zOrder, id) =>
             (position, Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(Color.fuchsia))
 

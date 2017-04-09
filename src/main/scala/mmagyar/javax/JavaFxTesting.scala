@@ -46,9 +46,9 @@ class JavaFxTesting extends Application {
   //  private val imageView = new WritableImage(800, 400)
   //  private val imageBf   = imageView.getPixelWriter
 
-    private var document: Document = Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(2,2)))
-//  private var document: Document = Document(root = DemoScenarios.simple)
-  val br                         = new BufferDraw(1)
+//    private var document: Document = Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(2,2)))
+  private var document: Document = Document(root = DemoScenarios.simple, transform = Transform(scale = Point(2,2)))
+  val br                         = new BufferDraw()
 
   def testBufferDraw(): Vector[Vector[Color]] = {
     val td  = document

@@ -122,7 +122,7 @@ object DemoScenarios {
   lazy val simple: Group = Group(
     Rect(Sizing(5, 5)),
     Rect(Sizing(10, 10), Point(10, 10)),
-    Rect(Sizing(15, 15), Point(3, 3), Looks(Color(255, 0, 0, 0.5)), 3),
+    Group(Rect(Sizing(15, 15), Point(3, 3), Looks(Color(255, 0, 0, 0.5)), 3)).scale(1),
     Rect(Sizing(15, 15), Point(13, 4), Looks(Color(0, 255, 0, 0.5)), 3),
     SizableGroup(
       Point(20, 20),

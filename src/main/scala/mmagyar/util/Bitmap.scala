@@ -2,6 +2,7 @@ package mmagyar.util
 
 /** Magyar Máté 2017, all rights reserved */
 object Bitmap {
+
   def apply(x: Int, y: Int): Bitmap = new Bitmap(Vector.fill(x, y)(ColorByte.empty))
   def testStripes(x: Int,
                   y: Int,
@@ -65,6 +66,8 @@ object Bitmap {
 
     new Bitmap(pixels)
   }
+
+  def scale(double: Double):Vector[Vector[Color]]= {???}
 }
 case class Bitmap(pixels: Vector[Vector[ColorByte]]) {
   val size: (Int, Int) = (pixels.size, pixels.headOption.getOrElse(Vector.empty).size)
@@ -86,3 +89,4 @@ case class Bitmap(pixels: Vector[Vector[ColorByte]]) {
 
   override def toString: String = s"Bitmap:$size"
 }
+
