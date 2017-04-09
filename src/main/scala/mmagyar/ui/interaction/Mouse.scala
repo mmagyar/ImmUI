@@ -87,6 +87,13 @@ case class Tracker(switch: Boolean,
 
   }
 
+  def scale(point: Point): Tracker =
+    copy(
+      currentPosition = currentPosition.scale(point),
+      downPos = downPos.scale(point),
+      lastMove = lastMove.scale(point),
+      upPos = upPos.scale(point))
+
 }
 
 case class PointerState(

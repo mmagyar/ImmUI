@@ -1,13 +1,15 @@
 package mmagyar.ui
 
-import mmagyar.util.{Color, Point, PointTransform, Rotation}
+import mmagyar.util._
+
+import scala.collection.mutable
 
 /** Magyar Máté 2017, all rights reserved */
 class BufferDraw() {
 //TODO transform
   //TODO border
   //TOOD bitmap
-  def getBuffer(document: Document): Vector[Vector[Color]] = {
+  def getBuffer(document: Document): Vector[Vector[ColorByte]] = {
 
     val root  = document.root
     val scale = document.transform.scale
@@ -17,59 +19,50 @@ class BufferDraw() {
 
   def draw(elements: Vector[Shapey],
            rotate: Vector[PointTransform] = Vector.empty,
-           totalSize: Point): Vector[Vector[Color]] = {
-
-    val defCol = Color.transparent //Color(34, 32, 30)
+           totalSize: Point): Vector[Vector[ColorByte]] = {
 
     val scale = rotate.foldLeft(Point.one)((p, c) => p * c.scale).truncate()
 
-//    val hd = rotate.head
-//    val tail = rotate.tail
-//    val transforms = hd.copy(scale = Point.one) +: tail
-
-//    val currentTransforms = transforms.reverse.foldLeft(Point.zero)((p, c) => c.transform(p)).truncate()
-//    val elementScale = hd.scale
-
     val scaled = totalSize * scale
+    val xSize  = scaled.x.toInt
+    val ySize  = scaled.y.toInt
+    val res    = Array.fill[ColorByte](xSize, ySize)(ColorByte(Color.transparent))
+
     elements.reverse
       .map(getBuffer(_, rotate))
-      .foldLeft(Vector.fill(scaled.x.toInt, scaled.y.toInt)(defCol))((p, c) => {
+      .foreach((c) => {
 
         val cp   = c._1 * scale
         val offX = cp.x.toInt
         val offY = cp.y.toInt
 
-        val w   = c._2.size
-        var x   = 0
-        var y   = 0
-        var res = p
+        val w = c._2.size
+        var x = 0
+        var y = 0
         //TODO secondary bounds check should not be necessary
-        while (x < w && (x + offX) < res.size && (x + offX) >= 0) {
+        while (x < w && (x + offX) < xSize && (x + offX) >= 0) {
           val yArr = c._2(x)
           val h    = yArr.size
-          var resY = res(x + offX)
-          while (y < h && (y + offY) < resY.size) {
-
+          val resY = res(x + offX)
+          while (y < h && (y + offY) < ySize) {
             if (y + offY >= 0) {
               val clr = yArr(y)
-              if (clr.visible)
-                resY = resY.updated(
+              if (clr.alpha != 0)
+                resY.update(
                   y + offY,
-                  if (clr.opacity == 1) clr
-                  else resY(y + offY).alphaComposition(clr)
-                )
+                  if (clr.alpha == 255) clr
+                  else resY(y + offY).alphaComposition(clr))
             }
             y += 1
           }
-          res = res.updated(x + offX, resY)
           x += 1
           y = 0
         }
-        res
       })
+    res.map(_.toVector).toVector
   }
 
-  def getBuffer(x: Shapey, rotate: Vector[PointTransform]): (Point, Vector[Vector[Color]]) = {
+  def getBuffer(x: Shapey, rotate: Vector[PointTransform]): (Point, Vector[Vector[ColorByte]]) = {
     val currentPoint = rotate.foldLeft(Point.one)((p, c) => c.transformReverse(p)).truncate()
     val scale        = rotate.foldLeft(Point.one)((p, c) => p * c.scale).truncate()
     x match {
@@ -97,10 +90,12 @@ class BufferDraw() {
               looks.fill,
               looks.stroke,
               looks.strokeLineWidth.toInt)
-            (position, pixels.pixels)
+            (position, pixels.pixelsByte)
           case Text(position, label, sizing, looks, zOrder, font, id) =>
 //            var bgFont = Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(looks.fill)
-            var bgFont = Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(looks.fill)
+            val fill   = ColorByte(looks.fill)
+            val stroke = ColorByte(looks.stroke)
+            var bgFont = Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(fill)
             font match {
               case b: FontBitmap =>
                 val chars = b.organize(label)
@@ -117,8 +112,7 @@ class BufferDraw() {
 
                     var resY = bgFont(x + offX)
                     while (y < c._2.size._2 && (y + offY) < resY.size) { //} && (y + offY) >= 0) {
-                      resY =
-                        resY.updated(y + offY, if (c._2.pixels(y)(x)) looks.stroke else looks.fill)
+                      resY = resY.updated(y + offY, if (c._2.pixels(y)(x)) stroke else fill)
                       y += 1
                     }
                     bgFont = bgFont.updated(x + offX, resY)
@@ -130,10 +124,12 @@ class BufferDraw() {
               case _ =>
                 throw new Error("Only bitmap fonts are supported by the reference drawer")
             }
-            (position, ColorMap.scale(scale, bgFont))
+            (position, ColorMap.nearestScale(scale, bgFont))
 
           case BitmapShapey(position, sizing, bitmap, bitmapFill, align, zOrder, id) =>
-            (position, Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(Color.fuchsia))
+            (
+              position,
+              Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(ColorByte(Color.fuchsia)))
 
         }
       case _ =>

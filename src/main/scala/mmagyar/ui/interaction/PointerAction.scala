@@ -67,13 +67,16 @@ class PointerAction(
         * Or should it also fire the current elements as well
         */
       val behavables =
-        (if (tracker.state == State.Drag)  tracker.downElements
+        (if (tracker.state == State.Drag) tracker.downElements
          else actionElements).collect {
           case a: Behaveable[_] if a.behaviour.canBehave(tracker) => a
         }
-
+//TODO proper scaling , this only takes into account the document scale, not the actual group scale
       group.copy(root = behavables.foldLeft(group.root)((p, c) =>
-        p.change(_.id == c.id, { case a: Behaveable[_] => a.behave(tracker); case a => a })))
+        p.change(_.id == c.id, {
+          case a: Behaveable[_] => a.behave(tracker.scale(Point.one / group.transform.scale));
+          case a                => a
+        })))
     } else group
 
   }
@@ -83,7 +86,7 @@ class PointerAction(
                  drawableOnly: Boolean = false): Vector[Shapey] =
     sense(
       Vector(document.root),
-      Vector(PointTransform(document.transform.offset,scale = document.transform.scale)),
+      Vector(PointTransform(document.transform.offset, scale = document.transform.scale)),
       pointArg,
       drawableOnly)
 

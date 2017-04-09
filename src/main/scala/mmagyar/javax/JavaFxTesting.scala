@@ -1,6 +1,5 @@
 package mmagyar.javax
 
-import java.awt.{Color => AwtColor}
 import java.util.concurrent.Executors
 import javafx.application.Application
 import javafx.scene.Scene
@@ -50,7 +49,7 @@ class JavaFxTesting extends Application {
   private var document: Document = Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(2,2)))
   val br                         = new BufferDraw()
 
-  def testBufferDraw(): Vector[Vector[Color]] = {
+  def testBufferDraw(): Vector[Vector[ColorByte]] = {
     val td  = document
     val res = br.getBuffer(td)
 
