@@ -283,6 +283,13 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
     !(this.position.x > box.position.x + box.size.x || this.position.x + this.size.x < box.position.x ||
       this.position.y > box.position.y + box.size.y || this.position.y + this.size.y < box.position.y)
 
+  def intersection(box:BoundingBox):BoundingBox = {
+    BoundingBox.getBBox(List(
+      box.position.max(position),
+      box.bottomRight.min(bottomRight)
+    ))
+  }
+
   def rotate(degrees: Degree): (Point, Point, Point, Point) = {
     val halfSizePoint = position + (size / 2)
     (

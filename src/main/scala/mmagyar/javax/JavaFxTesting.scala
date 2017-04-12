@@ -45,20 +45,22 @@ class JavaFxTesting extends Application {
   //  private val imageView = new WritableImage(800, 400)
   //  private val imageBf   = imageView.getPixelWriter
 
-//    private var document: Document = Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(2,2)))
-  private var document: Document = Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(2,2)))
-  val br                         = new BufferDraw()
+  private var document: Document =
+    Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(2, 2)))
+//  private var document: Document =
+//    Document(root = DemoScenarios.testA, transform = Transform(scale = Point(2, 2)))
+  val br = new BufferDraw()
 
-  def testBufferDraw(): Vector[Vector[ColorByte]] = {
+  def testBufferDraw(): Array[Array[ColorByte]] = {
     val td  = document
-    val res = br.getBuffer(td)
+    val res = br.updateBuffer(td)
 
     //    res.foreach(println)
 
     //    println(DemoScenarios.simple)
     //    println("RESULT SIZE", res.size , res.headOption.map(_.size).getOrElse(0), "Document size", td.root.size)
 
-    res
+    br.buffer
   }
 
   var actions = new PointerAction()
@@ -217,20 +219,21 @@ class JavaFxTesting extends Application {
 
   }
 
-  def buffDraw(): Unit = {
+  def buffDraw(printToScreen: Boolean = true): Unit = {
     val start = Timing()
 
     val buf = testBufferDraw()
     start.print("Buffer frame")
 
+    if (!printToScreen) return
     var x      = 0
     var y      = 0
     val offset = 0
-    val w      = buf.size
+    val w      = buf.length
 
     while (x < w) {
       val yArr = buf(x - offset)
-      while (y < yArr.size) {
+      while (y < yArr.length) {
         val clr = yArr(y)
         pw.setColor(x, y, new FxColor(clr.red / 255.0, clr.green / 255.0, clr.blue / 255.0, 1))
         y += 1
@@ -249,14 +252,14 @@ class JavaFxTesting extends Application {
     //warmup
     warmUp()
     val time = Timing()
-    mark.foreach(x => update())
+    mark.foreach(x => buffDraw(false))
     time.print("Total time", frames)
   }
 
   def warmUp(): Unit = {
-    update()
-    update()
-    update()
-    update()
+    buffDraw(false)
+    buffDraw(false)
+    buffDraw(false)
+    buffDraw(false)
   }
 }

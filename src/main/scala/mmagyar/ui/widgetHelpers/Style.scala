@@ -9,7 +9,7 @@ import mmagyar.util.{Box, Color, Point}
 case class Style(
     background: Color = Color.grey,
     stroke: Color = Color.green,
-    fontColor: Color = Color.black,
+    fontColor: Color = Color.black,//.lighten(30),
     fontBgColor: Color = Color.transparent,
     buttonStrokeColor: Color = Color.blue,
     buttonBgColor: Color = Color.aqua,

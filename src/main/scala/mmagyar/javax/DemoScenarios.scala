@@ -91,13 +91,13 @@ object DemoScenarios {
   lazy val doublePresence: Group = Group(
     Relative(),
     doubleThis,
-//    Text(Point(100,100),"OHHZ NO",looks = Looks(Color.red, Color.blue,3),5),
-//    new Dialogue(
-//      "ohh hawdy, this text overlaps",
-//      Point.zero,
-//      Point(100, 100),
-//      Vector(DialogueOption("OK"), DialogueOption("CANCEL")),
-//      4)(Style()),
+    //    Text(Point(100,100),"OHHZ NO",looks = Looks(Color.red, Color.blue,3),5),
+    //    new Dialogue(
+    //      "ohh hawdy, this text overlaps",
+    //      Point.zero,
+    //      Point(100, 100),
+    //      Vector(DialogueOption("OK"), DialogueOption("CANCEL")),
+    //      4)(Style()),
     Group
       .horizontal(
         Point.zero,
@@ -122,19 +122,26 @@ object DemoScenarios {
   lazy val simple: Group = Group(
     Rect(Sizing(5, 5)),
     Rect(Sizing(10, 10), Point(10, 10)),
-    Group(Horizontal(),Rect(Sizing(15, 15), Point(3, 3), Looks(Color(255, 0, 0, 0.5)), 3),Rect(Sizing(15, 15), Point(3, 3), Looks(Color(0, 0, 255, 0.5)), 3)).scale(2).position(Point(2,2         ))
-,    Rect(Sizing(15, 15), Point(13, 4), Looks(Color(0, 255, 0, 0.5)), 3),
+    Group(
+      Horizontal(),
+      Rect(Sizing(15, 15), Point(3, 3), Looks(Color(255, 0, 0, 0.5)), 3),
+      Rect(Sizing(15, 15), Point(3, 3), Looks(Color(0, 0, 255, 0.5)), 3))
+      .scale(2)
+      .position(Point(20, 20)),
+    Rect(Sizing(15, 15), Point(13, 4), Looks(Color(0, 255, 0, 0.5)), 3),
     SizableGroup(
       Point(20, 20),
       Point(160, 80),
+      layout = Layout(Wrap.No(), Fill.No, Align.Left),
       elements = Vector(
         Rect(Sizing(Point(80, 30), maxSize = Point(150, 70), grow = Grow.No)),
-        Text(Point(40, 40), "HELLO")))
+        Text(Point(40, 40), "HELLO"))
+    )
   )
 
   lazy val mainDemo: Group = Group(
     Relative(),
-    Rect(Sizing(150, 150), Point(4, 4)),
+    Rect(Sizing(150, 150), Point(4, 4),zOrder = -8),
     Dialogue(
       "ohh hawdy, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
       Point(30, 30),
@@ -147,5 +154,39 @@ object DemoScenarios {
       ),
       4
     )(Style())
+  )
+
+  lazy val dialogue: Group = Group(
+    Relative(),
+    Dialogue(
+      "text",
+      Point(30, 30),
+      Sizing(Point(240, 110)),
+      Vector(
+//        DialogueOption("OK")
+      ),
+      4
+    )(Style())
+  )
+
+  lazy val testA: Group = Group(
+        Rect(Sizing(5, 5)),
+        Rect(Sizing(10, 10), Point(10, 10),zOrder = 20),
+    Group(
+      Relative(),
+      Rect(Sizing(15, 15), Point(3, 3), Looks(Color(255, 0, 0)), 3),
+//      Rect(Sizing(15, 15), Point(3, 3), Looks(Color(0, 0, 255, 0.5)), 3),
+      Rect(Sizing(15, 15), Point(13, 4), Looks(Color(0, 255, 0, 0.5)), 4),
+      SizableGroup(
+        Point(20, 20),
+        Point(160, 80),
+        layout = Layout(Wrap.No(), Fill.No, Align.Left),
+        elements = Vector(
+          Rect(Sizing(Point(80, 30), maxSize = Point(150, 70), grow = Grow.No)),
+          Text(Point(40, 40), "HELLO")
+          )
+      )
+    ).scale(2)
+     .position(Point(10, 10))
   )
 }

@@ -47,6 +47,12 @@ case class PointTransform(offset: Point = Point.zero,
   }
 
 
+  def transformUI(point: Point): Point = {
+    (point * scale + offset).rotate(rotation)
+    //(point.scale(scale)+ offset).rotate(rotation)
+  }
+
+
   def info: String = s"(offset: $offset, rotation: $rotation, scale: $scale)"
 
   override def toString: String = info
