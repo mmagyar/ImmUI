@@ -1,11 +1,20 @@
 package mmagyar.util
 
+import scala.language.implicitConversions
+
 /** Magyar Máté 2016, all rights reserved */
 object Point {
   val zero: Point     = Point(0, 0)
   val one: Point      = Point(1, 1)
   val large: Point    = Point(Double.MaxValue / 4, Double.MaxValue / 4)
   val infinity: Point = Point(Double.PositiveInfinity, Double.PositiveInfinity)
+
+  /** I don't know about you, but i don't want to always write Point(x,x),
+    *  as (x,x) is just as meaningful and much more easier on the eyes.*/
+  implicit def intTupleToPoint(x: (Int, Int)): Point          = Point(x._1, x._2)
+  implicit def longTupleToPoint(x: (Long, Long)): Point       = Point(x._1, x._2)
+  implicit def floatTupleToPoint(x: (Float, Float)): Point    = Point(x._1, x._2)
+  implicit def doubleTupleToPoint(x: (Double, Double)): Point = Point(x._1, x._2)
 
   /**
     *
@@ -283,11 +292,12 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
     !(this.position.x > box.position.x + box.size.x || this.position.x + this.size.x < box.position.x ||
       this.position.y > box.position.y + box.size.y || this.position.y + this.size.y < box.position.y)
 
-  def intersection(box:BoundingBox):BoundingBox = {
-    BoundingBox.getBBox(List(
-      box.position.max(position),
-      box.bottomRight.min(bottomRight)
-    ))
+  def intersection(box: BoundingBox): BoundingBox = {
+    BoundingBox.getBBox(
+      List(
+        box.position.max(position),
+        box.bottomRight.min(bottomRight)
+      ))
   }
 
   def rotate(degrees: Degree): (Point, Point, Point, Point) = {

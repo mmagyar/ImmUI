@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import mmagyar.layout.Align.{Center, Right}
 import mmagyar.layout._
-import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, Tracker}
+import mmagyar.ui.interaction.{Behaviour, Tracker}
 import mmagyar.util._
 import mmagyar.util.font.bdf.FontManager
 
@@ -71,7 +71,7 @@ sealed trait Shapey extends Material {
           a.elementList.elements
             .map(x => x.elementsPrint(nest))
             .foldLeft("")((p, c) => p + (if (p.nonEmpty) "\n" else "") + c) + ")"
-      case a => ""
+      case _ => ""
     }
   }
 
@@ -311,6 +311,26 @@ case object StretchBoth extends BitmapFill
 
 case object Clip extends BitmapFill
 
+object BitmapShapey {
+
+  def align(mod: Double = 1, originalSize: Double, targetSize: Double, align: Align): Double =
+    align match {
+      case Right  => targetSize - (originalSize * mod)
+      case Center => (targetSize - (originalSize * mod)) / 2.0
+      case _      => 0
+    }
+
+//  def vertical(mod: Double = 1,
+//               originalSize: Double,
+//               targetSize: Double,
+//               verticalAlign: Align): Double =
+//    verticalAlign match {
+//      case Right  => (targetSize - (originalSize / mod)) * mod
+//      case Center => ((targetSize - (originalSize / mod)) / 2.0) * mod
+//      case _      => 0
+//    }
+
+}
 //TODO alternative constructor that sets the element to the bitmap size / aspect ratio
 final case class BitmapShapey(
     position: Point,
@@ -333,33 +353,29 @@ final case class BitmapShapey(
     //    val pxPointRaw = (this.position.transform(transform).round - point)
     //        .abs() * (Point.one / transform.scale)
 
-    def horizontal(mod: Double = 1): Double = align.horizontal match {
-      case Right  => (size.x - (bitmap.size._1 / mod)) * mod
-      case Center => ((size.x - (bitmap.size._1 / mod)) / 2.0) * mod
-      case _      => 0
-    }
-
-    def vertical(mod: Double = 1): Double = align.vertical match {
-      case Right  => (size.y - (bitmap.size._2 / mod)) * mod
-      case Center => ((size.y - (bitmap.size._2 / mod)) / 2.0) * mod
-      case _      => 0
-    }
-
     bitmapFill match {
       case StretchToFillHorizontal =>
         val mod = bitmap.size._1 / size.x
-        (pxPointRaw * mod).subY(vertical(mod))
+        (pxPointRaw * mod).subY(BitmapShapey.align(mod, bitmap.size._2, size.y, align.vertical))
       case StretchToFillVertical =>
         val mod = bitmap.size._2 / size.y
-        (pxPointRaw * mod).subX(horizontal(mod))
+        (pxPointRaw * mod).subX(BitmapShapey.align(mod, bitmap.size._1, size.x, align.horizontal))
       case StretchCover =>
         val mod = Point(bitmap.size) / size
-        if (mod.x < mod.y) (pxPointRaw * mod.x).subY(vertical(mod.x))
-        else (pxPointRaw * mod.y).subX(horizontal(mod.y))
+        if (mod.x < mod.y)
+          (pxPointRaw * mod.x)
+            .subY(BitmapShapey.align(mod.x, bitmap.size._2, size.y, align.vertical))
+        else
+          (pxPointRaw * mod.y)
+            .subX(BitmapShapey.align(mod.y, bitmap.size._1, size.x, align.horizontal))
       case StretchContain =>
         val mod = Point(bitmap.size) / size
-        if (mod.x > mod.y) (pxPointRaw * mod.x).subY(vertical(mod.x))
-        else (pxPointRaw * mod.y).subX(horizontal(mod.y))
+        if (mod.x > mod.y)
+          (pxPointRaw * mod.x)
+            .subY(BitmapShapey.align(mod.x, bitmap.size._2, size.y, align.vertical))
+        else
+          (pxPointRaw * mod.y)
+            .subX(BitmapShapey.align(mod.y, bitmap.size._1, size.x, align.horizontal))
       case StretchBoth => pxPointRaw * (Point(bitmap.size) / size)
       case Clip =>
         pxPointRaw.sub(

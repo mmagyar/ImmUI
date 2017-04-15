@@ -1,5 +1,6 @@
 package mmagyar.ui
 
+import mmagyar.layout.Align.{Center, Right}
 import mmagyar.util._
 
 import scala.collection.mutable
@@ -121,6 +122,7 @@ class BufferDraw() {
     }
   }
 
+//TODO optimize by eliminating the intermediate buffers
   def getBuffer(x: Shapey,
                 rotate: Vector[PointTransform],
                 constraint: BoundingBox): (Point, Vector[Vector[ColorByte]], BoundingBox) = {
@@ -186,12 +188,56 @@ class BufferDraw() {
               case _ =>
                 throw new Error("Only bitmap fonts are supported by the reference drawer")
             }
-            (position, ColorMap.nearestScale(scale, bgFont), constraint)
+            (position, ColorMap.nearestScale(scale, bgFont, ColorByte.empty), constraint)
 
           case BitmapShapey(position, sizing, bitmap, bitmapFill, align, zOrder, id) =>
+            val size = sizing.size
+
+            val mod: Point = bitmapFill match {
+              case StretchToFillHorizontal => val mod = size.x / bitmap.size._1; Point(mod, mod)
+              case StretchToFillVertical   => val mod = size.y / bitmap.size._2; Point(mod, mod)
+              case StretchCover =>
+                val mod = size / bitmap.size
+                if (mod.x > mod.y)  Point(mod.x, mod.x) else Point(mod.y, mod.y)
+              case StretchContain =>
+                val mod = size / bitmap.size
+                if (mod.x < mod.y) Point(mod.x, mod.x) else Point(mod.y, mod.y)
+              case StretchBoth => size / Point(bitmap.size)
+              case Clip        => Point.one
+            }
+
+            val offset = bitmapFill match {
+              case StretchToFillHorizontal =>
+                Point(0, BitmapShapey.align(mod.x, bitmap.size._2, size.y, align.vertical))
+              case StretchToFillVertical =>
+                Point(BitmapShapey.align(mod.y, bitmap.size._1, size.x, align.horizontal), 0)
+              case StretchCover =>
+                val mod = size / bitmap.size
+                if (mod.x > mod.y)
+                  Point(0, BitmapShapey.align(mod.x, bitmap.size._2, size.y, align.vertical))
+                else
+                  Point(BitmapShapey.align(mod.y, bitmap.size._1, size.x, align.horizontal), 0)
+              case StretchContain =>
+                val mod = size / bitmap.size
+                if (mod.x < mod.y)
+                  Point(0, BitmapShapey.align(mod.x, bitmap.size._2, size.y, align.vertical))
+                else
+                  Point(BitmapShapey.align(mod.y, bitmap.size._1, size.x, align.horizontal), 0)
+              case StretchBoth => Point.zero
+              case Clip =>
+                Point(
+                  BitmapShapey.align(mod.x, bitmap.size._1, size.x, align.horizontal),
+                  BitmapShapey.align(mod.y, bitmap.size._1, size.y, align.vertical))
+            }
+            println("OFFSET", offset,"MOD",mod,"SCALE", scale)
             (
               position,
-              Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(ColorByte(Color.fuchsia)),
+              ColorMap.nearestScale(
+                scale * mod,
+                bitmap.pixels,
+                ColorByte.empty,
+                size * scale,
+                offset * scale),
               constraint)
 
         }

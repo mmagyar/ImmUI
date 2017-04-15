@@ -6,8 +6,8 @@ object Bitmap {
   def apply(x: Int, y: Int): Bitmap = new Bitmap(Vector.fill(x, y)(ColorByte.empty))
   def testStripes(x: Int,
                   y: Int,
-                  colorA: Color,
-                  colorB: Color,
+                  colorA: Color = Color.green,
+                  colorB: Color = Color.maroon,
                   colorC: Color = Color.white): Bitmap = {
     var odd   = false
     var even  = false

@@ -2,30 +2,47 @@ package mmagyar.ui
 
 import mmagyar.util.{Color, ColorByte, Point}
 
+import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
+
 /** Created by Magyar Máté on 2017-04-05, All rights reserved. */
 object ColorMap {
-  def nearestScale[T](scale: Point, colorMap: Vector[Vector[T]]): Vector[Vector[T]] = {
-    var x           = 0
-    var y           = 0
-    val finalWidth  = (colorMap.size * scale.x).toInt
-    val finalHeight = (colorMap.headOption.getOrElse(Vector.empty).size * scale.y).toInt
+  def nearestScale[T](scale: Point,
+                      colorMap: Vector[Vector[T]],
+                      default: T,
+                      maxFinalSize: Point = Point.zero,
+                      offset: Point = Point.zero): Vector[Vector[T]] = {
+    var x = 0
+    var y = 0
+    val stretchedSize =
+//      Point(colorMap.size * scale.x, colorMap.headOption.getOrElse(Vector.empty).size * scale.y)
+      Point(colorMap.size * scale.x, colorMap.headOption.getOrElse(Vector.empty).size * scale.y) + offset
+    val size        = if (maxFinalSize != Point.zero) maxFinalSize.min(stretchedSize) else stretchedSize
+    val finalWidth  = size.x.toInt
+    val finalHeight = size.y.toInt
 
-    var result: Vector[Vector[T]] = Vector(Vector())
+    val aTest = mutable.ArrayBuffer[mutable.ArrayBuffer[T]]()
+
     while (x < finalWidth) {
-      var line: Vector[T] = Vector()
-      val originalX       = (x / scale.x).toInt
-      val originalLine    = colorMap(originalX)
-      while (y < finalHeight) {
-        val originalY = (y / scale.y).toInt
+      val originalX = ((x - offset.x) / scale.x).toInt
 
-        line = line :+ originalLine(originalY)
-        y += 1
+      val arrayLine = ArrayBuffer[T]()
+      aTest += arrayLine
+      if (colorMap.isDefinedAt(originalX)) {
+        val originalLine = colorMap(originalX)
+        while (y < finalHeight) {
+          val originalY = ((y - offset.y) / scale.y).toInt
+
+          arrayLine += originalLine.lift(originalY).getOrElse(default)
+          y += 1
+        }
+      } else {
+        while (y < finalHeight) { arrayLine += default; y += 1 }
       }
-      result = result :+ line
       x += 1
       y = 0
     }
-    result
+    aTest.map(x => x.toVector).toVector
   }
 }
 
