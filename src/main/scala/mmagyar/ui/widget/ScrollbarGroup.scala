@@ -7,6 +7,9 @@ import mmagyar.ui._
 import mmagyar.util.{Point, TriState}
 
 /** Magyar Máté 2017, all rights reserved */
+/**
+  * TODO handle the rotation of the element while scrolling, both dragging and the scroll bar
+  */
 object ScrollbarGroup {
   val defaultScrollbars: (TriState, TriState) = (TriState.Auto, TriState.Auto)
 

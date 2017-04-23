@@ -121,8 +121,13 @@ case class Point(x: Double, y: Double) {
     else this
   }
 
-  //Truncates it to the precision of Int.MaxValue
-  def truncate(factor: Long = Int.MaxValue.toLong): Point = {
+
+  /**
+    * Truncates it to specified decimal values, defaults to 6
+    * WARNING: do not set factor to a too high value because that can result in loosing precision
+    * (blame floating point number for that)
+    */
+  def truncate(factor: Long = 6): Point = {
     Point((x * factor).round / factor, (y * factor).round / factor)
   }
 

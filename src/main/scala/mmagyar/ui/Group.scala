@@ -2,7 +2,6 @@ package mmagyar.ui
 
 import mmagyar.layout._
 import mmagyar.ui.interaction._
-import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{BoundingBox, Box, Degree, Point}
 
 object Group {
@@ -42,7 +41,7 @@ object Group {
 final case class Group(elementList: ElementList,
                        position: Point,
                        rotation: Degree = Degree(0),
-                       scale: Double = 1,
+                       scale: Point = Point.one,
                        zOrder: Double = 1,
                        id: ShapeyId = ShapeyId(),
                        behaviour: BehaviourBasic[Group] = BehaviourBasic())
@@ -59,16 +58,18 @@ final case class Group(elementList: ElementList,
   //This is required for the reference drawer, might need to find a better solution in the future
   val rotationPositionCorrection: Point = boundingBoxProto.position * scale
 
-  val unRotatedBbox :BoundingBox = preRotationBbox.position(position).size(preRotationBbox.size*scale)
+  val unRotatedBbox: BoundingBox =
+    preRotationBbox.position(position).size(preRotationBbox.size * scale)
   override val boundingBox: BoundingBox =
     boundingBoxProto.position(position).size(boundingBoxProto.size * scale)
 
   override val size: Point = boundingBox.size
 //  override val position: Point = boundingBox.position
 
-  override def rotation(degree: Degree): Group = copy( rotation = degree)
+  override def rotation(degree: Degree): Group = copy(rotation = degree)
 
-  def scale(value: Double): Group = copy( scale = value)
+  def scale(value: Point): Group  = copy(scale = value)
+  def scale(value: Double): Group = copy(scale = Point(value, value))
 
   override def setElements(elementList: ElementList): Group = copy(elementList)
 

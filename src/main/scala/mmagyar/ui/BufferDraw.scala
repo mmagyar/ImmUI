@@ -43,19 +43,13 @@ class BufferDraw() {
       }
     } else
       wholeBuffer = Array.fill[ColorByte](xSize, ySize)(ColorByte(Color.transparent))
-    draw(
-      Vector(root),
-      Vector(PointTransform(document.transform.offset, scale = scale)),
-      root.size,
-      BoundingBox(size = scaled),
-      elBuf)
+    draw(Vector(root), Vector(document.transform), root.size, BoundingBox(size = scaled), elBuf)
 
     drawBuffer(elBuf, wholeBuffer)
 
     wholeBuffer
   }
 
-  var ii = false
   def drawBuffer(buffersToBlit: ArrayBuffer[DrawInstruction],
                  targetBuffer: Array[Array[ColorByte]]): Unit = {
     buffersToBlit.reverse.foreach(x => blendToBuffer(x.position, x.pixels, x.bounds, targetBuffer))
@@ -101,16 +95,15 @@ class BufferDraw() {
 
   //TODO use Transform instead of PointTrasform, since 1, it's not a point, 2, rotation handled separately
   def draw(elements: Vector[Shapey],
-           rotate: Vector[PointTransform] = Vector.empty,
+           rotate: Vector[Transform] = Vector.empty,
            totalSize: Point,
            outerConstraint: BoundingBox,
            buffersToBlit: ArrayBuffer[DrawInstruction]): BoundingBox = {
 
-    val scale = rotate.foldLeft(Point.one)((p, c) => p * c.scale).truncate()
+    val scale = rotate.foldLeft(Point.one)((p, c) => p * c.scale)
 
     val offset = rotate
-      .foldLeft(Point.zero)((p, c) => c.transformUI(p))
-      .truncate()
+      .foldLeft(Point.zero)((p, c) => c.transformUi(p))
     val scaled = totalSize * scale
 
     val constraint = outerConstraint.intersection(BoundingBox(offset, scaled))
@@ -142,12 +135,11 @@ class BufferDraw() {
 
   //TODO optimize by eliminating the intermediate buffers
   //TODO alternative optimization, every Buffer should be created in a future, to utilise multiple core
-  //FIXME non integer scaling looks off
   def getBuffer(x: Shapey,
-                rotate: Vector[PointTransform],
+                rotate: Vector[Transform],
                 constraint: BoundingBox,
                 sourceBuffers: ArrayBuffer[DrawInstruction]): DrawInstruction = {
-    val scale = rotate.foldLeft(Point.one)((p, c) => p * c.scale).truncate()
+    val scale = rotate.foldLeft(Point.one)((p, c) =>  c.scale * p)
 
     x match {
       case a: Group if a.rotation.value != 0 =>
@@ -157,7 +149,7 @@ class BufferDraw() {
 
         draw(
           a.elements,
-          Vector(PointTransform(scale = scale * Point(a.scale, a.scale))),
+          Vector(Transform(scale = scale * a.scale)),
           a.unRotatedBbox.size,
           innerConstraint,
           intermediateBuffers)
@@ -165,24 +157,16 @@ class BufferDraw() {
         val finalBuffer = Array.fill[ColorByte](scaledSize.x.toInt, scaledSize.y.toInt)(
           ColorByte(Color.transparent))
 
-        ii = true
         drawBuffer(intermediateBuffers, finalBuffer)
-        ii = false
         val rotated = ColorMap.rotate(a.rotation, finalBuffer)
-
         DrawInstruction(a.position, constraint, rotated)
 
       case a: Groupable[_] =>
         val res = draw(
           a.elements,
           a match {
-            case b: Group =>
-              PointTransform(
-                b.position - b.rotationPositionCorrection.floor,
-                //Rotation(b.rotation, b.position + (b.size / 2)),
-                scale = Point(b.scale, b.scale)) +: rotate
-            case b =>
-              PointTransform(b.position) +: rotate
+            case b: Group => Transform(b.position, scale = b.scale) +: rotate
+            case b        => Transform(b.position) +: rotate
           },
           a.size,
           constraint,

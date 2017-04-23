@@ -13,6 +13,7 @@ case class Transform(offset: Point = Point.zero, scale: Point = Point.one) {
   def transform(point: Point): Point = {
     (point + offset).scale(scale)
   }
+  def transformUi(point: Point): Point = point * scale + offset
 
   def transform(boundingBox: BoundingBox): BoundingBox =
     BoundingBox(boundingBox.position.transform(this), boundingBox.size.scale(scale))
@@ -37,26 +38,12 @@ case class PointTransform(offset: Point = Point.zero,
   def origin(rot: Point): PointTransform  = copy(rotation = rotation.copy(origin = rot))
 
   def transformReverse(point: Point): Point = {
-//    (point - (offset.rotate(rotation))) / scale //.scale(scale)
     (point.rotate(rotation) - offset) / scale
   }
 
   def transform(point: Point): Point = {
     (point + offset).scale(scale).rotate(rotation)
-    //(point.scale(scale)+ offset).rotate(rotation)
   }
-
-
-  def transformUI(point: Point): Point = {
-
-    (point * scale + offset).rotate(rotation)
-//    point.rotate(rotation) * scale + offset
-
-
-
-    //(point.scale(scale)+ offset).rotate(rotation)
-  }
-
 
   def info: String = s"(offset: $offset, rotation: $rotation, scale: $scale)"
 

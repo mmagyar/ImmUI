@@ -57,8 +57,6 @@ class PointerAction(
     if (tracker != lastTracker || tracker.scroll != Point.zero) {
       val actionElements = getElement(group, tracker.currentPosition)
 
-      if (tracker.state == State.Release)
-        println("ELEMENTS", actionElements.map(_.shapey.id))
       tracker =
         if (tracker.state == State.Press)
           tracker.copy(downElements = actionElements, overElements = actionElements)
@@ -103,7 +101,7 @@ class PointerAction(
             drawableOnly: Boolean,
             addEmptyGroup: Boolean = true): Vector[PointedElement] = {
 
-    val currentPoint = rotate.foldLeft(point)((p, c) => c.transformReverse(p)).truncate()
+    val currentPoint = rotate.foldLeft(point)((p, c) => c.transformReverse(p))
 
     (elements collect {
       case a: Groupable[_] if a.boundingBox.inside(currentPoint, -1) =>
@@ -114,7 +112,7 @@ class PointerAction(
               rotate :+ PointTransform(
                 b.position - b.rotationPositionCorrection,
                 Rotation(Degree(b.rotation.value), b.position + (b.size / 2.0)),
-                Point(b.scale, b.scale))
+                b.scale)
             case b => rotate :+ PointTransform(b.position)
           },
           point,
@@ -129,3 +127,4 @@ class PointerAction(
     }).flatten
   }
 }
+
