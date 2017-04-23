@@ -48,7 +48,7 @@ class JavaFxTesting extends Application {
   //  private val imageBf   = imageView.getPixelWriter
 
   private var document: Document =
-    Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(2, 2)))
+    Document(root = DemoScenarios.interactionDev, transform = Transform(scale = Point(2, 2)))
 //  private var document: Document =
 //    Document(root = DemoScenarios.rotationDemo, transform = Transform(scale = Point(2, 2)))
   val br = new BufferDraw()
@@ -163,7 +163,7 @@ class JavaFxTesting extends Application {
   def update(): Unit = {
 
     buffDraw()
-
+//pixDraw()
     //    println(document.root)
   }
 

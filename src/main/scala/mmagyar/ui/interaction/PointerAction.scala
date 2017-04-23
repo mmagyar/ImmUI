@@ -1,7 +1,7 @@
 package mmagyar.ui.interaction
 
 import mmagyar.ui._
-import mmagyar.util.{Point, PointTransform, Rotation}
+import mmagyar.util.{Degree, Point, PointTransform, Rotation}
 
 /** Magyar Máté 2016, all rights reserved */
 /**
@@ -56,7 +56,8 @@ class PointerAction(
 
     if (tracker != lastTracker || tracker.scroll != Point.zero) {
       val actionElements = getElement(group, tracker.currentPosition)
-
+      if (tracker.state == State.Release)
+        println("ELEMENTS", actionElements.map(_.id))
       tracker =
         if (tracker.state == State.Press)
           tracker.copy(downElements = actionElements, overElements = actionElements)
@@ -74,8 +75,10 @@ class PointerAction(
 //TODO proper scaling , this only takes into account the document scale, not the actual group scale
       group.copy(root = behavables.foldLeft(group.root)((p, c) =>
         p.change(_.id == c.id, {
-          case a: Behaveable[_] => a.behave(tracker.scale(Point.one / group.transform.scale));
-          case a                => a
+          case a: Behaveable[_] =>
+//            println("HAi")
+            a.behave(tracker.scale(Point.one / group.transform.scale));
+          case a => a
         })))
     } else group
 
@@ -97,6 +100,7 @@ class PointerAction(
             addEmptyGroup: Boolean = true): Vector[Shapey] = {
 
     val currentPoint = rotate.foldLeft(point)((p, c) => c.transformReverse(p)).truncate()
+
     (elements collect {
       case a: Groupable[_] if a.boundingBox.inside(currentPoint, -1) =>
         sense(
@@ -105,7 +109,7 @@ class PointerAction(
             case b: Group =>
               rotate :+ PointTransform(
                 b.position - b.rotationPositionCorrection,
-                Rotation(b.rotation, b.position + (b.size / 2.0)),
+                Rotation(Degree(b.rotation.value), b.position + (b.size / 2.0)),
                 Point(b.scale, b.scale))
             case b => rotate :+ PointTransform(b.position)
           },

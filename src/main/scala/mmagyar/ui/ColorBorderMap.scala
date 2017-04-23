@@ -115,8 +115,9 @@ object ColorMap {
 
         val xx   = (x + shift.x) - midX
         val yy   = (y + shift.y) - midY
-        val rotX = ((xx * c + yy * s) + midX).round.toInt
-        val rotY = ((yy * c - xx * s) + midY).round.toInt
+        val rotX = ((xx * c - yy * s) + midX).round.toInt
+        val rotY = ((xx * s + yy * c) + midY).round.toInt
+//        val rotY = ((yy * c - xx * s) + midY).round.toInt
         if (rotX >= 0 && rotX < orgX && rotY >= 0 && rotY < orgY) {
           line(y) = colorMap(rotX)(rotY)
         } else line(y) = default

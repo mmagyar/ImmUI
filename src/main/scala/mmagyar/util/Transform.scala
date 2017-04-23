@@ -37,7 +37,7 @@ case class PointTransform(offset: Point = Point.zero,
   def origin(rot: Point): PointTransform  = copy(rotation = rotation.copy(origin = rot))
 
   def transformReverse(point: Point): Point = {
-//    (point - offset).rotate(rotation).scale(scale)
+//    (point - (offset.rotate(rotation))) / scale //.scale(scale)
     (point.rotate(rotation) - offset) / scale
   }
 

@@ -151,7 +151,7 @@ object DemoScenarios {
     Group(
       Dialogue(
         "ohh hawdy, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
-Point.zero,
+        Point.zero,
         Sizing(Point(240, 110)),
         Vector(
           DialogueOption("OK"),
@@ -159,7 +159,7 @@ Point.zero,
           DialogueOption("MAYBE"),
           DialogueOption("NOT ENOUGH")
         )
-      )(Style())).copy(id = ShapeyId("HEEY"),position =  Point(30, 30),zOrder = 4)
+      )(Style())).copy(id = ShapeyId("HEEY"), position = Point(30, 30), zOrder = 4)
   )
 
   lazy val dialogue: Group = Group(
@@ -210,6 +210,38 @@ Point.zero,
       .position(Point(20, 20))
       .rotation(new Degree(90))
       .copy(zOrder = 22, id = ShapeyId("HEEY"))
+  )
+
+  lazy val interactionDev: Group = Group(
+    Relative(),
+//    Rect(Sizing(5, 5)),
+//    Rect(Sizing(90, 90), zOrder = -2, looks = Looks(Color(0, 0, 0))),
+//    Rect(Sizing(10, 10), Point(10, 10)),
+    Group(
+      Relative(),
+      Rect(Sizing(50, 50), Point.zero, Looks(Color(255, 0, 0)), 3).copy(
+        id = ShapeyId("TOP RECT")),
+      Group(Rect(Sizing(25, 25), looks = Looks(Color(0, 255, 0)), zOrder = 4).copy(id =
+        ShapeyId("INSIDE RECT")))
+        .copy(
+          zOrder = 4,
+          behaviour = BehaviourBasic(click = Some(InjectedBehaviourAction((x, y) => {
+            println("Hellow", y.currentPosition)
+
+            x
+          }))),
+//          position = Point(12.5, 12.5),
+//          rotation = Degree(45),
+          id = ShapeyId("NESTED GROUP")
+        )
+    )
+//      Rect(Sizing(5, 5), Point.zero, Looks(Color(0, 0, 255, 0.5)), 3))
+      .position(Point(10, 10))
+      .rotation(new Degree(45))
+      .copy(behaviour = BehaviourBasic(click = Some(InjectedBehaviourAction((x, y) => {
+        println("HAII", y.currentPosition)
+        x
+      }))), zOrder = 22, id = ShapeyId("ROTATED GROUP")) //behaviour = InjectedBehaviourAction())
   )
 
 }
