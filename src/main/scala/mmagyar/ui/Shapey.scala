@@ -122,9 +122,9 @@ trait GroupableWithBehaveableChildren[A <: Groupable[A]] extends Groupable[A] { 
     * Change method is neccessery, since this is the way behaviour can act on it's children
     */
   def change[K <: Shapey](where: (Shapey) => Boolean,
-                          change: (Shapey) => K,
+                          change: PartialFunction[Shapey, K],
                           recursive: Boolean = true): A = mapElements {
-    case a if where(a)                                      => change(a)
+    case a if where(a) && change.isDefinedAt(a)             => change(a)
     case a: GroupableWithBehaveableChildren[_] if recursive => a.change(where, change, recursive)
     case a                                                  => a
   }

@@ -26,6 +26,8 @@ class JavaFxTesting extends Application {
   val width: Int      = 640
   val height: Int     = 480
   val multiplier: Int = 1
+
+  var writeRenderTime: Boolean = false
   //  val width : Int = 1280/2
   //  val height: Int = 720/2
   //  val canvas = new Canvas(width, height)
@@ -48,7 +50,7 @@ class JavaFxTesting extends Application {
   private var document: Document =
     Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(2, 2)))
 //  private var document: Document =
-//    Document(root = DemoScenarios.testA, transform = Transform(scale = Point(2, 2)))
+//    Document(root = DemoScenarios.rotationDemo, transform = Transform(scale = Point(2, 2)))
   val br = new BufferDraw()
 
   def testBufferDraw(): Array[Array[ColorByte]] = {
@@ -60,7 +62,7 @@ class JavaFxTesting extends Application {
     //    println(DemoScenarios.simple)
     //    println("RESULT SIZE", res.size , res.headOption.map(_.size).getOrElse(0), "Document size", td.root.size)
 
-    br.buffer
+    br.wholeBuffer
   }
 
   var actions = new PointerAction()
@@ -76,13 +78,22 @@ class JavaFxTesting extends Application {
       case a: KeyEvent if a.getText == "b" =>
         benchmark()
 
-      case a: KeyEvent if a.getText == "r" =>
+      case a: KeyEvent if a.getText == "i" =>
+        writeRenderTime = !writeRenderTime
+
+      case a: KeyEvent if a.getText == "rzx" =>
         val root = document.root.change(_.id('AHOY), {
           case b: Group => b.copy(position = Point.zero, rotation = Degree(b.rotation.value + 5))
           case b        => b
         })
         document(document.copy(root = root))
       //        println(document.root)
+      case a: KeyEvent if a.getText.toLowerCase() == "t" =>
+        val root = document.root.change(_.id("HEEY"), {
+          case xx: Group => xx.rotation(Degree(xx.rotation.value + (if (a.isShiftDown) -3 else 3)))
+//          case a=> a
+        })
+        document(document.copy(root = root))
       case a => println("UNKNOWN KEY:" + a)
     }
 
@@ -223,7 +234,8 @@ class JavaFxTesting extends Application {
     val start = Timing()
 
     val buf = testBufferDraw()
-    start.print("Buffer frame")
+    if (writeRenderTime)
+      start.print("Buffer frame")
 
     if (!printToScreen) return
     var x      = 0
@@ -241,7 +253,8 @@ class JavaFxTesting extends Application {
       x += 1
       y = 0
     }
-    start.print("Buffer render")
+    if (writeRenderTime)
+      start.print("Buffer render")
   }
 
   def benchmark(): Unit = {

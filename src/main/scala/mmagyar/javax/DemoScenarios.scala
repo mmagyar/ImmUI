@@ -146,20 +146,20 @@ object DemoScenarios {
       (5, 20),
       Sizing(25, 100),
       Bitmap.fourColor(10, 90),
-      Clip,
-      Align2d(Align.Center, Align.Left)),
-    Dialogue(
-      "ohh hawdy, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
-      Point(30, 30),
-      Sizing(Point(240, 110)),
-      Vector(
-        DialogueOption("OK"),
-        DialogueOption("CANCEL"),
-        DialogueOption("MAYBE"),
-        DialogueOption("NOT ENOUGH")
-      ),
-      4
-    )(Style())
+      StretchBoth,
+      Align2d(Align.Right, Align.Right)),
+    Group(
+      Dialogue(
+        "ohh hawdy, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
+Point.zero,
+        Sizing(Point(240, 110)),
+        Vector(
+          DialogueOption("OK"),
+          DialogueOption("CANCEL"),
+          DialogueOption("MAYBE"),
+          DialogueOption("NOT ENOUGH")
+        )
+      )(Style())).copy(id = ShapeyId("HEEY"),position =  Point(30, 30),zOrder = 4)
   )
 
   lazy val dialogue: Group = Group(
@@ -195,4 +195,21 @@ object DemoScenarios {
     ).scale(2)
       .position(Point(10, 10))
   )
+
+  lazy val rotationDemo: Group = Group(
+    Relative(),
+    Rect(Sizing(5, 5)),
+    Rect(Sizing(90, 90), zOrder = -2, looks = Looks(Color(0, 0, 0))),
+    Rect(Sizing(10, 10), Point(10, 10)),
+    Group(
+      Horizontal(),
+      Rect(Sizing(5, 5), Point(3, 3), Looks(Color(255, 0, 0, 0.5)), 3),
+      Rect(Sizing(5, 5), Point.zero, Looks(Color(0, 0, 255, 0.5)), 3))
+      .scale(4)
+      .position(Point(0, 0))
+      .position(Point(20, 20))
+      .rotation(new Degree(90))
+      .copy(zOrder = 22, id = ShapeyId("HEEY"))
+  )
+
 }

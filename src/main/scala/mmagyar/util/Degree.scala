@@ -3,7 +3,9 @@ package mmagyar.util
 /** Created by Magyar Máté on 2017-01-31, All rights reserved. */
 object Degree { def apply(value: Double): Degree = new Degree(value) }
 
-class Degree(val value: Double) extends AnyVal
+class Degree(val value: Double) extends AnyVal{
+  override def toString: String = s"$value deg"
+}
 
 object Rotation{
   val zero:Rotation = Rotation (Degree(0), Point.zero)

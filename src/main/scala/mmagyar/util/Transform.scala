@@ -48,7 +48,12 @@ case class PointTransform(offset: Point = Point.zero,
 
 
   def transformUI(point: Point): Point = {
+
     (point * scale + offset).rotate(rotation)
+//    point.rotate(rotation) * scale + offset
+
+
+
     //(point.scale(scale)+ offset).rotate(rotation)
   }
 

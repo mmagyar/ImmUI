@@ -32,7 +32,6 @@ object Group {
   *
   * This group is special because it can be rotated and scaled.
   * Because of these parameters, it's size can not be direct set.
-  * todo position of group, should not come from elements
   * @param elementList ElementList
   * @param rotation    Degree
   * @param scale       Double
@@ -51,25 +50,27 @@ final case class Group(elementList: ElementList,
     with RotatableShapey
     with PositionableShapey {
 
-  private val boundingBoxProto: BoundingBox = this.elements
+  val preRotationBbox: BoundingBox = this.elements
     .foldLeft(BoundingBox.zero)((p, c) =>
       BoundingBox(Point.zero, p.size max c.boundingBox.addSize(c.boundingBox.position).size))
-    .rotatedBBox(rotation)
+
+  private val boundingBoxProto: BoundingBox = preRotationBbox.rotatedBBox(rotation)
 
   //This is required for the reference drawer, might need to find a better solution in the future
   val rotationPositionCorrection: Point = boundingBoxProto.position * scale
 
+  val unRotatedBbox :BoundingBox = preRotationBbox.position(position).size(preRotationBbox.size*scale)
   override val boundingBox: BoundingBox =
     boundingBoxProto.position(position).size(boundingBoxProto.size * scale)
 
   override val size: Point = boundingBox.size
 //  override val position: Point = boundingBox.position
 
-  override def rotation(degree: Degree): Group = copy(position = Point.zero, rotation = degree)
+  override def rotation(degree: Degree): Group = copy( rotation = degree)
 
-  def scale(value: Double): Group = copy(position = Point.zero, scale = value)
+  def scale(value: Double): Group = copy( scale = value)
 
-  override def setElements(elementList: ElementList): Group = copy(elementList, Point.zero)
+  override def setElements(elementList: ElementList): Group = copy(elementList)
 
   override def position(point: Point): Group = copy(position = point)
 //    setElements(elementList = elementList.copy(organize = elementList.organize.position(point)))
