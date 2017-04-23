@@ -99,8 +99,8 @@ class Dialogue private (updateReason: UpdateReason,
   override val behaviour: Behaviour[Dialogue] =
     BehaviourBasic(Some(InjectedBehaviourAction((el, t) => {
       val clickedOption = t.downElements
-        .find(x => options.exists(y => x.id(y.id)))
-        .flatMap(x => options.find(y => x.id(y.id)))
+        .find(x => options.exists(y => x.shapey.id(y.id)))
+        .flatMap(x => options.find(y => x.shapey.id(y.id)))
       clickedOption.map(el.select).getOrElse(el)
     })))
 

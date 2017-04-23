@@ -1,7 +1,7 @@
 package mmagyar.ui.interaction
 
 import mmagyar.ui.Shapey
-import mmagyar.util.Point
+import mmagyar.util.{Point, PointTransform}
 
 /** Magyar Máté 2017, all rights reserved */
 object State {
@@ -37,13 +37,15 @@ sealed trait State
 //                  state: State = State.Idle)
 //    extends Action
 
+case class PointedElement(transformations: Vector[PointTransform], shapey: Shapey)
+
 case class Tracker(switch: Boolean,
                    currentPosition: Point,
                    state: State = State.Idle,
                    downPos: Point,
                    lastMove: Point,
-                   downElements: Vector[Shapey] = Vector.empty,
-                   overElements: Vector[Shapey] = Vector.empty,
+                   downElements: Vector[PointedElement] = Vector.empty,
+                   overElements: Vector[PointedElement] = Vector.empty,
                    upPos: Point = Point.zero,
                    scroll: Point = Point.zero) {
   def processPointer(pointerState: PointerState, scroll: Point): Tracker = {

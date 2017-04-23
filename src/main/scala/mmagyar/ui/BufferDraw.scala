@@ -142,6 +142,7 @@ class BufferDraw() {
 
   //TODO optimize by eliminating the intermediate buffers
   //TODO alternative optimization, every Buffer should be created in a future, to utilise multiple core
+  //FIXME non integer scaling looks off
   def getBuffer(x: Shapey,
                 rotate: Vector[PointTransform],
                 constraint: BoundingBox,

@@ -17,7 +17,7 @@ import mmagyar.util.{Degree, Point, PointTransform, Rotation}
   *
   * Regardless of that option, a hit will only be registered,
   * if a drawable element has been clicked.
-  * This is neccessery since most group types does not have a real size,
+  * This is necessary since most group types does not have a real size,
   * only a bounding box based on it's elements.
   *
   * In the future i clickable group may be added,
@@ -56,8 +56,9 @@ class PointerAction(
 
     if (tracker != lastTracker || tracker.scroll != Point.zero) {
       val actionElements = getElement(group, tracker.currentPosition)
+
       if (tracker.state == State.Release)
-        println("ELEMENTS", actionElements.map(_.id))
+        println("ELEMENTS", actionElements.map(_.shapey.id))
       tracker =
         if (tracker.state == State.Press)
           tracker.copy(downElements = actionElements, overElements = actionElements)
@@ -67,26 +68,29 @@ class PointerAction(
         * When dragging, also fire the event the origin elements
         * Or should it also fire the current elements as well
         */
-      val behavables =
+      val behaveables =
         (if (tracker.state == State.Drag) tracker.downElements
          else actionElements).collect {
-          case a: Behaveable[_] if a.behaviour.canBehave(tracker) => a
+          case PointedElement(a, b: Behaveable[_]) if b.behaviour.canBehave(tracker) =>
+            PointedElement(a, b)
         }
-//TODO proper scaling , this only takes into account the document scale, not the actual group scale
-      group.copy(root = behavables.foldLeft(group.root)((p, c) =>
-        p.change(_.id == c.id, {
-          case a: Behaveable[_] =>
-//            println("HAi")
-            a.behave(tracker.scale(Point.one / group.transform.scale));
-          case a => a
-        })))
+      group.copy(
+        root = behaveables.foldLeft(group.root)((p, c) =>
+          p.change(
+            _.id == c.shapey.id, {
+              case a: Behaveable[_] =>
+                val scale2 = c.transformations.foldLeft(Point.one)((p, c) => p * c.scale)
+                a.behave(tracker.scale(Point.one / scale2));
+              case a => a
+            }
+        )))
     } else group
 
   }
 
   def getElement(document: Document,
                  pointArg: Point,
-                 drawableOnly: Boolean = false): Vector[Shapey] =
+                 drawableOnly: Boolean = false): Vector[PointedElement] =
     sense(
       Vector(document.root),
       Vector(PointTransform(document.transform.offset, scale = document.transform.scale)),
@@ -97,7 +101,7 @@ class PointerAction(
             rotate: Vector[PointTransform] = Vector.empty,
             point: Point,
             drawableOnly: Boolean,
-            addEmptyGroup: Boolean = true): Vector[Shapey] = {
+            addEmptyGroup: Boolean = true): Vector[PointedElement] = {
 
     val currentPoint = rotate.foldLeft(point)((p, c) => c.transformReverse(p)).truncate()
 
@@ -118,10 +122,10 @@ class PointerAction(
           addEmptyGroup
         ) match {
           case c if drawableOnly || (c.isEmpty && !addEmptyGroup) => c
-          case c                                                  => c :+ a
+          case c                                                  => c :+ PointedElement(rotate, a)
 
         }
-      case a: Shapey if a.boundingBox.inside(currentPoint) => Vector(a)
+      case a: Shapey if a.boundingBox.inside(currentPoint) => Vector(PointedElement(rotate, a))
     }).flatten
   }
 }

@@ -159,7 +159,7 @@ object DemoScenarios {
           DialogueOption("MAYBE"),
           DialogueOption("NOT ENOUGH")
         )
-      )(Style())).copy(id = ShapeyId("HEEY"), position = Point(30, 30), zOrder = 4)
+      )(Style())).copy(id = ShapeyId("HEEY"), position = Point(30, 30), zOrder = 4,scale = 2)
   )
 
   lazy val dialogue: Group = Group(
@@ -219,8 +219,7 @@ object DemoScenarios {
 //    Rect(Sizing(10, 10), Point(10, 10)),
     Group(
       Relative(),
-      Rect(Sizing(50, 50), Point.zero, Looks(Color(255, 0, 0)), 3).copy(
-        id = ShapeyId("TOP RECT")),
+      Rect(Sizing(50, 50), Point.zero, Looks(Color(255, 0, 0)), 3).copy(id = ShapeyId("TOP RECT")),
       Group(Rect(Sizing(25, 25), looks = Looks(Color(0, 255, 0)), zOrder = 4).copy(id =
         ShapeyId("INSIDE RECT")))
         .copy(

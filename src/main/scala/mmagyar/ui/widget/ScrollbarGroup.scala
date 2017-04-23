@@ -12,8 +12,8 @@ object ScrollbarGroup {
 
   case object ScrollDragBehaviour extends BehaviourAction[ScrollbarGroup] {
     override def action(in: ScrollbarGroup, tracker: Tracker): ScrollbarGroup = {
-      val knobX  = tracker.downElements.exists(_.id == in.knobXId)
-      val knobY  = tracker.downElements.exists(_.id == in.knobYId)
+      val knobX  = tracker.downElements.exists(_.shapey.id == in.knobXId)
+      val knobY  = tracker.downElements.exists(_.shapey.id == in.knobYId)
       val drag   = tracker.lastMove - tracker.currentPosition
       val exp    = drag * (in.cChild.totalScrollSize / in.cChild.size)
       val offset = Point(if (knobX) exp.x else 0, if (knobY) exp.y else 0)
@@ -23,7 +23,7 @@ object ScrollbarGroup {
 
   case class ScrollWheelBehaviour(divider: Double = 8) extends BehaviourAction[ScrollbarGroup] {
     override def action(in: ScrollbarGroup, tracker: Tracker): ScrollbarGroup =
-      if (tracker.overElements.exists(x => x.id == in.scrollBarYId || x.id == in.scrollBarXId))
+      if (tracker.overElements.exists(x => x.shapey.id == in.scrollBarYId || x.shapey.id == in.scrollBarXId))
         in.offset(in.offset - (tracker.scroll / divider))
       else in
   }
