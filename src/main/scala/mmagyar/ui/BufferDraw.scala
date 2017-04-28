@@ -15,12 +15,14 @@ class BufferDraw() {
   var wholeBuffer: Array[Array[ColorByte]] =
     Array.fill[ColorByte](1, 1)(ColorByte(Color.transparent))
 
-  def updateBuffer(document: Document): Array[Array[ColorByte]] = {
+  def updateBuffer(document: Document,
+                   maxSize: Point = Point.large,
+                   minSize: Point = Point.zero): Array[Array[ColorByte]] = {
 
     val root  = document.root
     val scale = document.transform.scale
 
-    val scaled                              = root.size * scale
+    val scaled                              = (root.size * scale).min(maxSize).max(minSize)
     val xSize                               = scaled.x.toInt
     val ySize                               = scaled.y.toInt
     val elBuf: ArrayBuffer[DrawInstruction] = ArrayBuffer[DrawInstruction]()
@@ -134,6 +136,7 @@ class BufferDraw() {
 
   //TODO optimize by eliminating the intermediate buffers
   //TODO alternative optimization, every Buffer should be created in a future, to utilise multiple core
+  //TODO might be a good idea to check if the group is even in view (for groups with constraint size 0 there is no need to render anything)
   def getBuffer(x: Shapey,
                 rotate: Vector[Transform],
                 constraint: BoundingBox,
@@ -141,6 +144,9 @@ class BufferDraw() {
     val scale = rotate.foldLeft(Point.one)((p, c) => c.scale * p)
 
     x match {
+      case _ if constraint.size == Point.zero =>
+        DrawInstruction(Point.zero, constraint, Array.empty)
+
       case a: Group if a.rotation.value != 0 =>
         val scaledSize          = scale * a.unRotatedBbox.size
         val intermediateBuffers = ArrayBuffer[DrawInstruction]()

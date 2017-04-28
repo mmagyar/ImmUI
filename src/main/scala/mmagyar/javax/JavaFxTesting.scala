@@ -13,8 +13,6 @@ import mmagyar.ui._
 import mmagyar.ui.interaction.{PointerAction, PointerState}
 import mmagyar.util._
 
-
-
 object JavaFxTesting {
   def main(args: Array[String]) {
     Application.launch(classOf[JavaFxTesting], args: _*)
@@ -22,8 +20,9 @@ object JavaFxTesting {
 }
 
 class JavaFxTesting extends Application {
-  val width: Int      = 640
-  val height: Int     = 480
+  val size: Point     = Point(640, 480)
+  val width: Int      = size.x.toInt
+  val height: Int     = size.y.toInt
   val multiplier: Int = 1
 
   var writeRenderTime: Boolean = false
@@ -42,8 +41,6 @@ class JavaFxTesting extends Application {
   // Get the graphics context of the canvas
   val gc: GraphicsContext = canvas.getGraphicsContext2D
 
-
-
   private var document: Document =
     Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(1, 1)))
 //  private var document: Document =
@@ -55,7 +52,7 @@ class JavaFxTesting extends Application {
     val timing = Timing()
     val td     = document
 
-    val resultBitmap = bufferDraw.updateBuffer(td)
+    val resultBitmap = bufferDraw.updateBuffer(td, size, size)
 
     if (writeRenderTime)
       timing.print("Render UI")
@@ -88,12 +85,10 @@ class JavaFxTesting extends Application {
         document(document.copy(root = root))
       //        println(document.root)
       case a: KeyEvent if a.getText.toLowerCase() == "t" =>
-        val time = Timing()
         val root = document.root.change(_.id("HEEY"), {
           case xx: Group => xx.rotation(Degree(xx.rotation.value + (if (a.isShiftDown) -3 else 3)))
 //          case a=> a
         })
-        time.print("Change parameter")
         document(document.copy(root = root))
       case a => println("UNKNOWN KEY:" + a)
     }
@@ -102,7 +97,6 @@ class JavaFxTesting extends Application {
 
     scene.setOnMouseMoved({
       case a: MouseEvent =>
-
         document(
           actions.act(
             PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = false),
