@@ -26,16 +26,13 @@ object ScrollbarGroup {
 
   case class ScrollWheelBehaviour(divider: Double = 8) extends BehaviourAction[ScrollbarGroup] {
     override def action(in: ScrollbarGroup, tracker: Tracker): ScrollbarGroup =
-      if (tracker.overElements.exists(x => x.shapey.id == in.scrollBarYId || x.shapey.id == in.scrollBarXId))
+      if (tracker.overElements.exists(
+            x => x.shapey.id == in.scrollBarYId || x.shapey.id == in.scrollBarXId))
         in.offset(in.offset - (tracker.scroll / divider))
       else in
   }
 
-  case object DefaultBehaviour extends Behaviour[ScrollbarGroup] {
-    override val click: Option[BehaviourAction[ScrollbarGroup]]  = None
-    override val move: Option[BehaviourAction[ScrollbarGroup]]   = None
-    override val down: Option[BehaviourAction[ScrollbarGroup]]   = None
-    override val up: Option[BehaviourAction[ScrollbarGroup]]     = None
+  case object DefaultBehaviour extends EmptyBehaviour[ScrollbarGroup] {
     override def drag: Option[BehaviourAction[ScrollbarGroup]]   = Some(ScrollDragBehaviour)
     override def scroll: Option[BehaviourAction[ScrollbarGroup]] = Some(ScrollWheelBehaviour())
   }

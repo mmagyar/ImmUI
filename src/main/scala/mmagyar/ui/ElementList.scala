@@ -57,23 +57,30 @@ class ElementList(_elements: Vector[Shapey],
     case a if !a.isInstanceOf[PositionableShapey] => a
   }
 
-  def map(fn: (Shapey) => Shapey): ElementList = copy(elements.map(fn))
-
   val elements: Vector[Shapey] =
     (organize
       .organize[PositionableShapey](positionable, offsetElements, organizeToBounds) ++ static)
       .sortWith(_.zOrder > _.zOrder)
 
-  def copy(elements: Vector[Shapey] = _elements,
-    organize: Organize = organize,
-    organizeToBounds: Boolean = organizeToBounds): ElementList =
-    new ElementList(elements, organize, organizeToBounds, offsetElements)
+  def map(fn: (Shapey) => Shapey): ElementList = elements.map(fn) match {
+    case a if a == elements => this
+    case a                  => copy(a)
+  }
 
-  def copy(elements: Vector[Shapey] ,
-           organize: Organize ,
-           organizeToBounds: Boolean ,
+  def copy(elements: Vector[Shapey] = _elements,
+           organize: Organize = organize,
+           organizeToBounds: Boolean = organizeToBounds): ElementList =
+    if (elements == this.elements && organize == this.organize && organizeToBounds == this.organizeToBounds)
+      this
+    else new ElementList(elements, organize, organizeToBounds, offsetElements)
+
+  def copy(elements: Vector[Shapey],
+           organize: Organize,
+           organizeToBounds: Boolean,
            offset: Point): ElementList =
-    new ElementList(elements, organize, organizeToBounds, offset)
+    if (elements == this.elements && organize == this.organize && organizeToBounds == this.organizeToBounds && offset == this.offsetElements)
+      this
+    else new ElementList(elements, organize, organizeToBounds, offset)
 
   def asOrganizeToBounds: ElementList =
     if (organizeToBounds) this else new ElementList(elements, organize, true, offsetElements)

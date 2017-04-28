@@ -20,13 +20,27 @@ case class InjectedBehaviourAction[T <: Shapey](act: (T, Tracker) => T)
 
 object BehaviourBasic {
 
+  def empty[T <: mmagyar.ui.Shapey]: BehaviourBasic[T] = BehaviourBasic[T]()
+
   def diag[T <: Shapey]: BehaviourBasic[T] = BehaviourBasic[T](
-    Some(InjectedBehaviourAction[T]((in, track) => { println("Click", in, track); in })),
-    Some(InjectedBehaviourAction[T]((in, track) => { println("move", in, track); in })),
-    Some(InjectedBehaviourAction[T]((in, track) => { println("down", in, track); in })),
-    Some(InjectedBehaviourAction[T]((in, track) => { println("up", in, track); in })),
-    Some(InjectedBehaviourAction[T]((in, track) => { println("drag", in, track); in })),
-    Some(InjectedBehaviourAction[T]((in, track) => { println("scroll", in, track); in }))
+    Some(InjectedBehaviourAction[T]((in, track) => {
+      println("Click", in, track); in
+    })),
+    Some(InjectedBehaviourAction[T]((in, track) => {
+      println("move", in, track); in
+    })),
+    Some(InjectedBehaviourAction[T]((in, track) => {
+      println("down", in, track); in
+    })),
+    Some(InjectedBehaviourAction[T]((in, track) => {
+      println("up", in, track); in
+    })),
+    Some(InjectedBehaviourAction[T]((in, track) => {
+      println("drag", in, track); in
+    })),
+    Some(InjectedBehaviourAction[T]((in, track) => {
+      println("scroll", in, track); in
+    }))
   )
 }
 
@@ -35,19 +49,26 @@ object BehaviourBasic {
   * This method is chosen, since then
   * behaviour can be injected to any similar objects,
   * and reused multiple times and combined
+  *
   * @tparam T Behaviour's type
   */
-trait Behaviour[T <: Shapey] {
-//  trait Behaviour[T <: Shapey, A <: Behaviour[T, A]] { this: A =>
+sealed trait Behaviour[T <: Shapey] {
+  //  trait Behaviour[T <: Shapey, A <: Behaviour[T, A]] { this: A =>
   def click: Option[BehaviourAction[T]]
+
   def move: Option[BehaviourAction[T]]
+
   def down: Option[BehaviourAction[T]]
+
   def up: Option[BehaviourAction[T]]
+
   def drag: Option[BehaviourAction[T]]
+
   def scroll: Option[BehaviourAction[T]]
 
   val clickEllipseSize = 10
-  def canBehave(tracker: Tracker): Boolean =
+
+  final def canBehave(tracker: Tracker): Boolean =
     (tracker.state match {
       case Press => down.isDefined
       case Release if tracker.currentPosition.len(tracker.downPos).abs < 10 =>
@@ -58,7 +79,7 @@ trait Behaviour[T <: Shapey] {
       case Idle    => false
     }) || (tracker.scroll != Point.zero && this.scroll.isDefined)
 
-  def behave(tracker: Tracker): Option[BehaviourAction[T]] = {
+  final def behave(tracker: Tracker): Option[BehaviourAction[T]] = {
     val pointerAction = tracker.state match {
       case Press => down
       case Release if tracker.currentPosition.len(tracker.downPos).abs < 10 =>
@@ -73,10 +94,33 @@ trait Behaviour[T <: Shapey] {
     } else pointerAction
   }
 
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case a: Behaviour[_] =>
+      click == a.click && move == a.move && down == a.down &&
+        up == a.up && drag == a.drag && scroll == a.scroll &&
+        clickEllipseSize == a.clickEllipseSize
+    case _ => false
+  }
+
 }
 
+class EmptyBehaviour[T <: Shapey] extends Behaviour[T] {
+  override def click: Option[BehaviourAction[T]] = None
 
-case class BehaviourBasic[T <: Shapey](click: Option[BehaviourAction[T]] = None,
+  override def move: Option[BehaviourAction[T]] = None
+
+  override def down: Option[BehaviourAction[T]] = None
+
+  override def up: Option[BehaviourAction[T]] = None
+
+  override def drag: Option[BehaviourAction[T]] = None
+
+  override def scroll: Option[BehaviourAction[T]] = None
+
+
+}
+
+final case class BehaviourBasic[T <: Shapey](click: Option[BehaviourAction[T]] = None,
                                        move: Option[BehaviourAction[T]] = None,
                                        down: Option[BehaviourAction[T]] = None,
                                        up: Option[BehaviourAction[T]] = None,
@@ -94,4 +138,6 @@ case class BehaviourBasic[T <: Shapey](click: Option[BehaviourAction[T]] = None,
       element.scroll.map(x => Some(scroll.map(_.combine(x)).getOrElse(x))).getOrElse(scroll)
     )
   }
+
+
 }

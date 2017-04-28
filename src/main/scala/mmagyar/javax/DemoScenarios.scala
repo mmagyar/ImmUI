@@ -243,4 +243,5 @@ object DemoScenarios {
       }))), zOrder = 22, id = ShapeyId("ROTATED GROUP")) //behaviour = InjectedBehaviourAction())
   )
 
+  lazy val negative : Group = Group(Relative(), Rect(Sizing(40,40),Point(-1,-1)))
 }

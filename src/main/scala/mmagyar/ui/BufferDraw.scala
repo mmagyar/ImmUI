@@ -62,38 +62,37 @@ class BufferDraw() {
                     targetBuffer: Array[Array[ColorByte]]): Unit = {
     val cp = offset
 
-    val offX = cp.x.toInt
-    val offY = cp.y.toInt
+    val offX   = cp.x.toInt
+    val offY   = cp.y.toInt
+    val yReset = if (offY < 0) offY.abs else 0
 
-    val w = source.length
-    var x = 0
-    var y = 0
+//    val w      = source.length
+
+    var x = if (offX < 0) offX.abs else 0
+    var y = yReset
 
     val xSize = targetBuffer.length
     val ySize = targetBuffer.headOption.map(_.length).getOrElse(0)
 
-    //TODO secondary bounds check should not be necessary, also having value higher then 0 could be precalculated
-    while (x < w && (x + offX) < xSize && (x + offX) >= 0) {
-      val yArr = source(x)
-      val h    = yArr.length
-      val resY = targetBuffer(x + offX)
-      while (y < h && (y + offY) < ySize) {
-        if (y + offY >= 0) {
-          val clr = yArr(y)
-          if (clr.alpha != 0 && constrain.inside(Point(x + offX, y + offY)))
-            resY.update(
-              y + offY,
-              if (clr.alpha == 255) clr
-              else resY(y + offY).alphaComposition(clr))
-        }
+    val w = if (source.length + offX > xSize) xSize - offX else source.length
+    while (x < w) {
+      val yArr    = source(x)
+      val h       = if (yArr.length + offY > ySize) ySize - offY else yArr.length
+      val resultY = targetBuffer(x + offX)
+      while (y < h) {
+        val clr = yArr(y)
+        if (clr.alpha != 0 && constrain.inside(Point(x + offX, y + offY)))
+          resultY.update(
+            y + offY,
+            if (clr.alpha == 255) clr
+            else resultY(y + offY).alphaComposition(clr))
         y += 1
       }
       x += 1
-      y = 0
+      y = yReset
     }
   }
 
-  //TODO use Transform instead of PointTrasform, since 1, it's not a point, 2, rotation handled separately
   def draw(elements: Vector[Shapey],
            rotate: Vector[Transform] = Vector.empty,
            totalSize: Point,
@@ -139,7 +138,7 @@ class BufferDraw() {
                 rotate: Vector[Transform],
                 constraint: BoundingBox,
                 sourceBuffers: ArrayBuffer[DrawInstruction]): DrawInstruction = {
-    val scale = rotate.foldLeft(Point.one)((p, c) =>  c.scale * p)
+    val scale = rotate.foldLeft(Point.one)((p, c) => c.scale * p)
 
     x match {
       case a: Group if a.rotation.value != 0 =>
@@ -175,7 +174,7 @@ class BufferDraw() {
         DrawInstruction(a.position, res, Array.empty)
       case drawable: Drawable =>
         drawable match {
-          case Rect(sizing, position, looks, zOrder, id) =>
+          case Rect(sizing, position, looks, _, _) =>
             val scaled = sizing.size * scale
             val pixels = new ColorBorderMap(
               scaled.x.toInt,
@@ -184,8 +183,7 @@ class BufferDraw() {
               looks.stroke,
               looks.strokeLineWidth.toInt)
             DrawInstruction(position, constraint, pixels.pixelsArrayByte)
-          case Text(position, label, sizing, looks, zOrder, font, id) =>
-            //            var bgFont = Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(looks.fill)
+          case Text(position, label, sizing, looks, _, font, _) =>
             val fill   = ColorByte(looks.fill)
             val stroke = ColorByte(looks.stroke)
 
@@ -193,7 +191,6 @@ class BufferDraw() {
             font match {
               case b: FontBitmap =>
                 val chars = b.organize(label)
-                val cp    = position.toInt
                 chars.foreach(c => {
 
                   val offX = c._1._1
@@ -223,7 +220,7 @@ class BufferDraw() {
               constraint,
               ColorMap.nearestScaleArray(scale, bgFont, ColorByte.empty))
 
-          case BitmapShapey(position, sizing, bitmap, bitmapFill, align, zOrder, id) =>
+          case BitmapShapey(position, sizing, bitmap, bitmapFill, align, _, _) =>
             val size = sizing.size
 
             val mod: Point = bitmapFill match {

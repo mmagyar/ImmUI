@@ -26,7 +26,7 @@ object Dialogue {
   }
 }
 class Dialogue private (updateReason: UpdateReason,
-                        text: String,
+                        val text: String,
                         val position: Point,
                         val sizing: Sizing,
                         val options: Vector[DialogueOption],
@@ -53,11 +53,17 @@ class Dialogue private (updateReason: UpdateReason,
         val size        = sizing.size
         val margin: Box = style.defaultGroupMargin
 
-        val buttons = options.map(x =>
-          Button(Point.zero, x.text, id = ShapeyId(x.id), isActive = currentSelection.contains(x)))
+        val buttons = options.map(
+          x =>
+            Button(
+              Point.zero,
+              x.text,
+              id = ShapeyId(x.id),
+              isActive = currentSelection.contains(x),
+              behaviour = BehaviourBasic.empty))
 
         val textSize = Point(size.x - style.scrollBar.x, 10) //margin.ySum+1)
-        
+
         val multiText =
           SizableGroup.scrollableTextBox(
             Point.zero,
@@ -105,15 +111,18 @@ class Dialogue private (updateReason: UpdateReason,
     })))
 
   override def position(point: Point): Dialogue =
-    copyInternal(UpdateReason.Position, position = point)
+    if (point == position) this
+    else copyInternal(UpdateReason.Position, position = point)
 
   def select(dialogueOption: DialogueOption): Dialogue = {
-    if (options.contains(dialogueOption))
+    if (options.contains(dialogueOption) && !currentSelection.contains(dialogueOption))
       copyInternal(UpdateReason.Content, currentSelection = Some(dialogueOption))
     else this
   }
-  override def mapElements(map: (Shapey) => Shapey): Dialogue =
-    copyInternal(UpdateReason.Content, elementList = elementList.map(map))
+  override def mapElements(map: (Shapey) => Shapey): Dialogue = elementList.map(map) match {
+    case a if a == elementList => this
+    case mappedElements =>copyInternal(UpdateReason.Content, elementListNew = mappedElements)
+  }
 
   def copy(text: String = text,
            position: Point = position,
@@ -133,20 +142,35 @@ class Dialogue private (updateReason: UpdateReason,
       zOrder: Double = zOrder,
       id: ShapeyId = id,
       currentSelection: Option[DialogueOption] = currentSelection,
-      elementList: ElementList = elementList
-  ): Dialogue =
-    new Dialogue(
-      updateReason,
-      text,
-      position,
-      sizing,
-      options,
-      zOrder,
-      id,
-      currentSelection,
-      elementList)
+      elementListNew: ElementList = elementList
+  ): Dialogue = {
+    if (text == this.text && position == this.position &&
+        sizing == this.sizing && options == this.options &&
+        id == this.id && currentSelection == this.currentSelection
+        && elementListNew == this.elementList)
+      this
+    else
+      new Dialogue(
+        updateReason,
+        text,
+        position,
+        sizing,
+        options,
+        zOrder,
+        id,
+        currentSelection,
+        elementListNew)
 
+  }
   override def sizing(sizing: Sizing): SizableShapey =
     copyInternal(UpdateReason.Size, sizing = sizing)
 
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case a: Dialogue =>
+      a.text == this.text && a.position == this.position &&
+        a.sizing == this.sizing && a.options == this.options &&
+        a.id == this.id && a.currentSelection == this.currentSelection &&
+        a.elementList == this.elementList
+    case _ => false
+  }
 }

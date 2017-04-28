@@ -87,7 +87,7 @@ sealed trait Shapey extends Material {
       }})" +
       elementsString(nest + 1)
 
-  lazy val customToString: String = ""
+  def customToString: String = ""
 
   lazy val stringName: String = getClass.getName.split('.').lastOption.getOrElse("Shapey")
 
@@ -222,7 +222,7 @@ final case class MultilineText(
       .map(x => Point(x.maxX, x.posY + font.getSizeForString(x.text)._2))
       .getOrElse(Point.zero)
 
-  override def position(point: Point): MultilineText = copy(position = point)
+  override def position(point: Point): MultilineText = if(position == point) this else copy(position = point)
 
   private lazy val lineElements: Vector[Shapey] = linePositions.map(
     x =>
@@ -248,8 +248,11 @@ final case class MultilineText(
       Grow(dynamicSize),
       Shrink(dynamicSize))
 
+  //TODO that +40 is only for testing
   override def sizing(sizing: Sizing): SizableShapey =
-    copy(maxLineWidthBase = sizing.baseSize.x, maxLineWidthCurrent = sizing.size.x)
+  if (sizing == this.sizing) this
+  else copy(maxLineWidthBase = sizing.baseSize.x, maxLineWidthCurrent = sizing.size.x + 40)
+
 }
 
 object Text {

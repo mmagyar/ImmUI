@@ -66,26 +66,31 @@ final case class Group(elementList: ElementList,
   override val size: Point = boundingBox.size
 //  override val position: Point = boundingBox.position
 
-  override def rotation(degree: Degree): Group = copy(rotation = degree)
+  override def rotation(degree: Degree): Group =
+    if (rotation == degree) this else copy(rotation = degree)
 
-  def scale(value: Point): Group  = copy(scale = value)
-  def scale(value: Double): Group = copy(scale = Point(value, value))
+  def scale(value: Point): Group = if (scale == value) this else copy(scale = value)
+  def scale(value: Double): Group =
+    if (scale.bothEqual(value)) this else copy(scale = Point(value, value))
 
-  override def setElements(elementList: ElementList): Group = copy(elementList)
+  override def setElements(elementList: ElementList): Group =
+    if (elementList == this.elementList) this else copy(elementList)
 
-  override def position(point: Point): Group = copy(position = point)
-//    setElements(elementList = elementList.copy(organize = elementList.organize.position(point)))
+  override def position(point: Point): Group =
+    if (position == point) this else copy(position = point)
 
   override lazy val customToString: String = s"rotation: ${rotation.value}"
-  override def mapElements(map: (Shapey) => Shapey): Group =
-    setElements(elementList.copy(elements = elementList.elements.map(map)))
+
+  override def mapElements(map: (Shapey) => Shapey): Group = setElements(elementList.map(map))
+
 }
 
 object SizableGroup {
 
   case class ScrollWheelBehaviour(divider: Double = 8) extends BehaviourAction[SizableGroup] {
-    override def action(in: SizableGroup, tracker: Tracker): SizableGroup =
-      in.copy(offset = in.offset - (tracker.scroll / divider))
+    override def action(in: SizableGroup, tracker: Tracker): SizableGroup ={
+      println("OFFSET",in.offset - (tracker.scroll / divider))
+      in.copy(offset = in.offset - (tracker.scroll / divider))}
   }
 
   case object ScrollDragBehaviour extends BehaviourAction[SizableGroup] {
@@ -93,11 +98,7 @@ object SizableGroup {
       in.copy(offset = in.offset + (tracker.lastMove - tracker.currentPosition))
   }
 
-  case object ScrollBehaviour extends Behaviour[SizableGroup] {
-    override val click: Option[BehaviourAction[SizableGroup]]  = None
-    override val move: Option[BehaviourAction[SizableGroup]]   = None
-    override val down: Option[BehaviourAction[SizableGroup]]   = None
-    override val up: Option[BehaviourAction[SizableGroup]]     = None
+  case object ScrollBehaviour extends EmptyBehaviour[SizableGroup] {
     override def drag: Option[BehaviourAction[SizableGroup]]   = Some(ScrollDragBehaviour)
     override def scroll: Option[BehaviourAction[SizableGroup]] = Some(ScrollWheelBehaviour())
   }
@@ -276,10 +277,11 @@ class SizableGroup(elements: ElementList,
   override val elementList: ElementList =
     if (offset != preOffset) processElementList(processed, offset) else processed
 
-  override def setElements(elementList: ElementList): SizableGroup = copy(elementList)
+  override def setElements(elementList: ElementList): SizableGroup =
+    if (elementList == this.elementList) this else copy(elementList)
 
   override def mapElements(map: (Shapey) => Shapey): SizableGroup =
-    setElements(elementList.copy(elements = elementList.elements.map(map)))
+    setElements(elementList.map(map))
 
   override def sizing(sizing: Sizing): SizableGroup =
     if (sizing == this.sizing) this else copy(sizing = sizing)

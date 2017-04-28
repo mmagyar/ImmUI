@@ -74,6 +74,8 @@ case class Point(x: Double, y: Double) {
   def ceil: Point   = Point(x.ceil, y.ceil)
   def floor: Point  = Point(x.floor, y.floor)
 
+  def bothEqual(value:Double) : Boolean  = x == value && y == value
+
   def aspectMatchWidth(newWidth: Double): Point = Point(newWidth, this.y * (newWidth / this.x))
 
   def aspectMatchHeight(newHeight: Double): Point = Point(this.x * (newHeight / this.y), newHeight)

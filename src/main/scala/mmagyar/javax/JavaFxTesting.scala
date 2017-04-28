@@ -1,21 +1,19 @@
 package mmagyar.javax
 
-import java.util.concurrent.Executors
+import javafx.animation.AnimationTimer
 import javafx.application.Application
 import javafx.scene.Scene
 import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.image.PixelFormat
 import javafx.scene.input.{KeyEvent, MouseEvent, ScrollEvent}
 import javafx.scene.layout.Pane
-import javafx.scene.paint.{Color => FxColor}
 import javafx.stage.Stage
 
 import mmagyar.ui._
 import mmagyar.ui.interaction.{PointerAction, PointerState}
 import mmagyar.util._
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
+
 
 object JavaFxTesting {
   def main(args: Array[String]) {
@@ -44,33 +42,28 @@ class JavaFxTesting extends Application {
   // Get the graphics context of the canvas
   val gc: GraphicsContext = canvas.getGraphicsContext2D
 
-  //  private val iw        = new ImageView()
-  //  private val imageView = new WritableImage(800, 400)
-  //  private val imageBf   = imageView.getPixelWriter
 
-  import java.awt.image.BufferedImage
-  import java.awt.image.DataBufferInt
-
-  val img                = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
-  val pixels: Array[Int] = img.getRaster.getDataBuffer.asInstanceOf[DataBufferInt].getData
 
   private var document: Document =
     Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(1, 1)))
 //  private var document: Document =
-//    Document(root = DemoScenarios.rotationDemo, transform = Transform(scale = Point(2, 2)))
-  val br = new BufferDraw()
+//    Document(root = DemoScenarios.negative, transform = Transform(scale = Point(2, 2)))
+  val bufferDraw = new BufferDraw()
 
+  var lastDoc: Document = document
   def testBufferDraw(): Array[Array[ColorByte]] = {
-    val timing =  Timing()
-    val td  = document
-    val res = br.updateBuffer(td)
+    val timing = Timing()
+    val td     = document
+
+    val resultBitmap = bufferDraw.updateBuffer(td)
 
     if (writeRenderTime)
       timing.print("Render UI")
-    br.wholeBuffer
+    bufferDraw.wholeBuffer
   }
 
-  var actions = new PointerAction()
+  var needsUpdate: Boolean = true
+  var actions              = new PointerAction()
 
   def start(stage: Stage) {
     val root = new Pane
@@ -80,7 +73,7 @@ class JavaFxTesting extends Application {
     val scene = new Scene(root)
     scene.setOnKeyPressed {
       case a: KeyEvent if a.getText == " " =>
-        update()
+        needsUpdate = true
       case a: KeyEvent if a.getText == "b" =>
         benchmark()
 
@@ -95,10 +88,12 @@ class JavaFxTesting extends Application {
         document(document.copy(root = root))
       //        println(document.root)
       case a: KeyEvent if a.getText.toLowerCase() == "t" =>
+        val time = Timing()
         val root = document.root.change(_.id("HEEY"), {
           case xx: Group => xx.rotation(Degree(xx.rotation.value + (if (a.isShiftDown) -3 else 3)))
 //          case a=> a
         })
+        time.print("Change parameter")
         document(document.copy(root = root))
       case a => println("UNKNOWN KEY:" + a)
     }
@@ -107,6 +102,7 @@ class JavaFxTesting extends Application {
 
     scene.setOnMouseMoved({
       case a: MouseEvent =>
+
         document(
           actions.act(
             PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = false),
@@ -147,7 +143,15 @@ class JavaFxTesting extends Application {
     //    stage.setX(1620)
     stage.show()
     //    stage.setResizable(false)
-    update()
+
+    val at = new AnimationTimer() {
+      override def handle(now: Long): Unit = {
+        if (needsUpdate) update()
+        needsUpdate = false
+      }
+    }
+
+    at.start()
   }
 
   def document(document: Document): Unit = {
@@ -155,7 +159,7 @@ class JavaFxTesting extends Application {
     if (document != this.document) {
       this.document = document
 
-      update()
+      needsUpdate = true
     }
   }
 
@@ -163,78 +167,10 @@ class JavaFxTesting extends Application {
 
   private val pw = gc.getPixelWriter
 
-  private implicit val ec: ExecutionContextExecutor =
-    ExecutionContext.fromExecutor(Executors.newFixedThreadPool(16))
+//  private implicit val ec: ExecutionContextExecutor =
+//    ExecutionContext.fromExecutor(Executors.newFixedThreadPool(16))
 
-  def update(): Unit = {
-
-    buffDraw(source = testBufferDraw())
-//pixDraw()
-    //    println(document.root)
-  }
-
-  def pixDraw(): Unit = {
-
-    val start = Timing()
-
-    //    import scala.concurrent.ExecutionContext.Implicits.global
-
-    def crt(parts: Int) = { //: Seq[Future[(Int, Int, Array[Array[Color]])]] = {
-      val div = width / parts.toDouble
-      (0 until parts)
-        .map(x => ((div * x).toInt, (div * (x + 1)).toInt))
-        .map(x => {
-          Future {
-            val vcr1 = new Array[Array[Color]](div.ceil.toInt)
-            var xx   = x._1
-            var y    = 0
-            while (xx < x._2) {
-              val vcr2 = new Array[Color](height)
-              while (y < height) {
-                vcr2(y) = refD.getPixel(document, Point(xx, y))
-                y += 1
-              }
-              vcr1(xx - x._1) = vcr2
-              xx += 1
-              y = 0
-            }
-            (x._1.toInt, x._2.toInt, vcr1)
-          }
-        })
-    }
-
-    val res    = Future.sequence(crt(16))
-    val result = Await.result(res, Duration.Inf)
-
-    val sorted = result.sortWith((x, y) => x._1 < y._1)
-
-    //    val draw = Timing()
-
-    sorted.foreach((tile) => {
-
-      var x      = tile._1
-      var y      = 0
-      val offset = tile._1
-      val w      = tile._2
-      val arr    = tile._3
-
-      while (x < w) {
-        val yArr = arr(x - offset)
-        while (y < height) {
-          val clr = yArr(y)
-          pw.setColor(x, y, new FxColor(clr.red / 255.0, clr.green / 255.0, clr.blue / 255.0, 1))
-          y += 1
-        }
-        x += 1
-        y = 0
-      }
-
-    })
-
-    //    draw.print("draw time")
-    start.print("frame time")
-
-  }
+  def update(): Unit = buffDraw(source = testBufferDraw())
 
   def buffDraw(source: Array[Array[ColorByte]], printToScreen: Boolean = true): Unit = {
     val start = Timing()
@@ -287,9 +223,9 @@ class JavaFxTesting extends Application {
   }
 
   def warmUp(): Unit = {
-    buffDraw(testBufferDraw(), false)
-    buffDraw(testBufferDraw(), false)
-    buffDraw(testBufferDraw(), false)
-    buffDraw(testBufferDraw(), false)
+    buffDraw(testBufferDraw(), printToScreen = false)
+    buffDraw(testBufferDraw(), printToScreen = false)
+    buffDraw(testBufferDraw(), printToScreen = false)
+    buffDraw(testBufferDraw(), printToScreen = false)
   }
 }
