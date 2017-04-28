@@ -77,8 +77,8 @@ class PointerAction(
           p.change(
             _.id == c.shapey.id, {
               case a: Behaveable[_] =>
-                val scale2 = c.transformations.foldLeft(Point.one)((p, c) => p * c.scale)
-                a.behave(tracker.scale(Point.one / scale2));
+                a.behave(tracker.transform(c.transformations.foldLeft(_)((p, c) =>
+                  c.transformReverse(p))))
               case a => a
             }
         )))
@@ -127,4 +127,3 @@ class PointerAction(
     }).flatten
   }
 }
-

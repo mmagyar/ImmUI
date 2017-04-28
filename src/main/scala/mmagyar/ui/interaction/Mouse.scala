@@ -96,6 +96,18 @@ case class Tracker(switch: Boolean,
       lastMove = lastMove.scale(point),
       upPos = upPos.scale(point))
 
+//TODO do we want to translate the scroll wheel?
+  def transform(transform: Point => Point
+//                , transformScrol: Point =>Point
+               ): Tracker =
+    copy(
+      currentPosition = transform(currentPosition),
+      downPos = transform(downPos),
+      lastMove = transform(lastMove),
+      upPos = transform( upPos)
+//      ,scroll = transformScrol(scroll)
+    )
+
 }
 
 case class PointerState(
