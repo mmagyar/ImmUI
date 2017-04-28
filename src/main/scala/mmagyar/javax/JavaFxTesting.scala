@@ -4,6 +4,7 @@ import java.util.concurrent.Executors
 import javafx.application.Application
 import javafx.scene.Scene
 import javafx.scene.canvas.{Canvas, GraphicsContext}
+import javafx.scene.image.PixelFormat
 import javafx.scene.input.{KeyEvent, MouseEvent, ScrollEvent}
 import javafx.scene.layout.Pane
 import javafx.scene.paint.{Color => FxColor}
@@ -47,6 +48,12 @@ class JavaFxTesting extends Application {
   //  private val imageView = new WritableImage(800, 400)
   //  private val imageBf   = imageView.getPixelWriter
 
+  import java.awt.image.BufferedImage
+  import java.awt.image.DataBufferInt
+
+  val img                = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
+  val pixels: Array[Int] = img.getRaster.getDataBuffer.asInstanceOf[DataBufferInt].getData
+
   private var document: Document =
     Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(1, 1)))
 //  private var document: Document =
@@ -54,14 +61,12 @@ class JavaFxTesting extends Application {
   val br = new BufferDraw()
 
   def testBufferDraw(): Array[Array[ColorByte]] = {
+    val timing =  Timing()
     val td  = document
     val res = br.updateBuffer(td)
 
-    //    res.foreach(println)
-
-    //    println(DemoScenarios.simple)
-    //    println("RESULT SIZE", res.size , res.headOption.map(_.size).getOrElse(0), "Document size", td.root.size)
-
+    if (writeRenderTime)
+      timing.print("Render UI")
     br.wholeBuffer
   }
 
@@ -71,6 +76,7 @@ class JavaFxTesting extends Application {
     val root = new Pane
 
     root.getChildren.add(canvas)
+//    root.getChildren.add(img)
     val scene = new Scene(root)
     scene.setOnKeyPressed {
       case a: KeyEvent if a.getText == " " =>
@@ -162,7 +168,7 @@ class JavaFxTesting extends Application {
 
   def update(): Unit = {
 
-    buffDraw()
+    buffDraw(source = testBufferDraw())
 //pixDraw()
     //    println(document.root)
   }
@@ -230,31 +236,31 @@ class JavaFxTesting extends Application {
 
   }
 
-  def buffDraw(printToScreen: Boolean = true): Unit = {
+  def buffDraw(source: Array[Array[ColorByte]], printToScreen: Boolean = true): Unit = {
     val start = Timing()
 
-    val buf = testBufferDraw()
-    if (writeRenderTime)
-      start.print("Buffer frame")
+    val buf = source
 
     if (!printToScreen) return
     var x      = 0
     var y      = 0
     val offset = 0
     val w      = buf.length
+    val h      = buf.head.length
 
+    val arg = new Array[Int](w * (h + 1))
     while (x < w) {
-      val yArr = buf(x - offset)
+      val yArr = buf(x)
       while (y < yArr.length) {
-        val clr = yArr(y)
-        pw.setColor(x, y, new FxColor(clr.red / 255.0, clr.green / 255.0, clr.blue / 255.0, 1))
+        arg(y * w + x) = yArr(y).c
         y += 1
       }
       x += 1
       y = 0
     }
+    pw.setPixels(0, 0, w, h, PixelFormat.getIntArgbInstance, arg, 0, w)
     if (writeRenderTime)
-      start.print("Buffer render")
+      start.print("Render Canvas")
   }
 
   def benchmark(): Unit = {
@@ -265,14 +271,25 @@ class JavaFxTesting extends Application {
     //warmup
     warmUp()
     val time = Timing()
-    mark.foreach(x => buffDraw(false))
-    time.print("Total time", frames)
+    mark.foreach(x => buffDraw(testBufferDraw(), printToScreen = false))
+    time.print("Total time for UI", frames)
+
+    println("Starting draw time benchmark")
+
+    val testBuf = testBufferDraw()
+
+    val time2 = Timing()
+
+    mark.foreach(x => buffDraw(testBuf))
+
+    time2.print("Total time for javaFx", frames)
+
   }
 
   def warmUp(): Unit = {
-    buffDraw(false)
-    buffDraw(false)
-    buffDraw(false)
-    buffDraw(false)
+    buffDraw(testBufferDraw(), false)
+    buffDraw(testBufferDraw(), false)
+    buffDraw(testBufferDraw(), false)
+    buffDraw(testBufferDraw(), false)
   }
 }

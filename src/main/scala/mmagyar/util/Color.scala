@@ -27,20 +27,22 @@ object ColorByte {
   def apply(color: Color): ColorByte = ColorByte(color.red, color.green, color.blue, color.opacity)
   def apply(red: Int, green: Int, blue: Int, opacity: Int): ColorByte =
     new ColorByte(
-      ((red & 0xFF) << 24) | ((green & 0xFF) << 16) | ((blue & 0xFF) << 8) | (opacity & 0xFF))
+      (((opacity & 0xFF) << 24) | (red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF))
 
   def apply(red: Int, green: Int, blue: Int, opacity: Double): ColorByte =
     new ColorByte(
-      ((red & 0xFF) << 24) | ((green & 0xFF) << 16) | ((blue & 0xFF) << 8) |
-        ((opacity * 255).min(255).max(0).toInt & 0xFF))
+      ((((opacity * 255)
+        .min(255)
+        .max(0)
+        .toInt & 0xFF) << 24) | (red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF))
 
   val empty: ColorByte = new ColorByte(0)
 }
 class ColorByte(val c: Int) extends AnyVal {
-  def red: Int   = c >>> 24 & 0xFF
-  def green: Int = c >>> 16 & 0xFF
-  def blue: Int  = c >>> 8 & 0xFF
-  def alpha: Int = c & 0xFF
+  def red: Int   = (c >>> 16) & 0xFF
+  def green: Int = (c >>> 8) & 0xFF
+  def blue: Int  = c & 0xFF
+  def alpha: Int = (c >>> 24) & 0xFF
 
   def toColor: Color = Color(red, green, blue, alpha.toDouble / 0xFF.toDouble)
 
