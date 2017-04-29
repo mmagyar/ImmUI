@@ -65,12 +65,7 @@ class Dialogue private (updateReason: UpdateReason,
         val textSize = Point(size.x - style.scrollBar.x, 10) //margin.ySum+1)
 
         val multiText =
-          SizableGroup.scrollableTextBox(
-            Point.zero,
-            Sizing(textSize, Point(textSize.x, 1), grow = Grow.Affinity),
-            text,
-            margin,
-            style.fontLooks)
+          SizableGroup.scrollableTextBox(text, Sizing(textSize, Point(textSize.x, 1), grow = Grow.Affinity), style.fontLooks, Point.zero, margin)
 
         val wrapText = ScrollbarGroup(multiText)
 
@@ -82,11 +77,11 @@ class Dialogue private (updateReason: UpdateReason,
             Layout.centeredDown,
             id = ShapeyId("test_2"))
         val innards =
-          ElementList(Vertical(Layout.centered, BoundWidthAndHeight(size)), wrapText, buttonsGr)
+          ElementList(Vertical(Layout.centered, Bound(size)), wrapText, buttonsGr)
 
         val list = ElementList(
           Rect(Sizing(size), looks = style.groupLooks, zOrder = -2),
-          new SizableGroup(innards, Point.zero, Sizing(size)))
+          new SizableGroup(innards, Sizing(size), Point.zero))
         list
       case Position => elementList
       case Content | Behaviour =>

@@ -85,36 +85,16 @@ class ScrollbarGroup(val position: Point,
   val xScrollbar: Vector[Rect] =
     if (drawScrollBar._1)
       Vector(
-        Rect(
-          Sizing(Point(child.size.x, scrollBarSize.y)),
-          Point(0, child.size.y),
-          Looks(style.scrollBarBgColor),
-          id = scrollBarXId),
-        Rect(
-          Sizing(Point(scrollW.x, scrollBarSize.y)),
-          Point(scrollKnobOffset.x, child.size.y),
-          Looks(style.scrollBarColor),
-          zOrder = 2,
-          id = knobXId
-        )
+        Rect(Sizing(Point(child.size.x, scrollBarSize.y)), Looks(style.scrollBarBgColor), position = Point(0, child.size.y), id = scrollBarXId),
+        Rect(Sizing(Point(scrollW.x, scrollBarSize.y)), Looks(style.scrollBarColor), zOrder = 2, Point(scrollKnobOffset.x, child.size.y), id = knobXId)
       )
     else Vector.empty
 
   val yScrollBar: Vector[Rect] =
     if (drawScrollBar._2)
       Vector(
-        Rect(
-          Sizing(Point(scrollBarSize.x, child.size.y)),
-          Point(child.size.x, 0),
-          Looks(style.scrollBarBgColor),
-          id = scrollBarYId),
-        Rect(
-          Sizing(Point(scrollBarSize.x, scrollW.y)),
-          Point(child.size.x, scrollKnobOffset.y),
-          Looks(style.scrollBarColor),
-          zOrder = 2,
-          id = knobYId
-        )
+        Rect(Sizing(Point(scrollBarSize.x, child.size.y)), Looks(style.scrollBarBgColor), position = Point(child.size.x, 0), id = scrollBarYId),
+        Rect(Sizing(Point(scrollBarSize.x, scrollW.y)), Looks(style.scrollBarColor), zOrder = 2, Point(child.size.x, scrollKnobOffset.y), id = knobYId)
       )
     else Vector.empty
   val elementList = ElementList(

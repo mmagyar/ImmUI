@@ -42,7 +42,7 @@ class JavaFxTesting extends Application {
   val gc: GraphicsContext = canvas.getGraphicsContext2D
 
   private var document: Document =
-    Document(root = DemoScenarios.mainDemo, transform = Transform(scale = Point(1, 1)))
+    Document(root = DemoScenarios.analysed(size), transform = Transform(scale = Point(1, 1)))
 //  private var document: Document =
 //    Document(root = DemoScenarios.negative, transform = Transform(scale = Point(2, 2)))
   val bufferDraw = new BufferDraw()
@@ -133,7 +133,7 @@ class JavaFxTesting extends Application {
     stage.setScene(scene)
     stage.setTitle("ImmuGUI")
     stage.setY(0)
-    //    stage.setX(2890)
+        stage.setX(2890)
     //    stage.setX(1620)
     stage.show()
     //    stage.setResizable(false)

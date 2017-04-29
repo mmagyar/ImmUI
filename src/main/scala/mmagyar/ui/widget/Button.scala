@@ -31,10 +31,7 @@ case class Button(position: Point,
     with PositionableShapey {
 
   private val margin = style.buttonMargin
-  private val textElPre = Text(
-    style.defaultButtonTextMargin.topLeft + margin.topLeft,
-    text,
-    if (isActive) style.fontLooksActive else style.fontLooks)
+  private val textElPre = Text(text, style.defaultButtonTextMargin.topLeft + margin.topLeft, if (isActive) style.fontLooksActive else style.fontLooks)
 
   private val minSizeDiff = minWidth - textElPre.size.x
 
@@ -47,10 +44,7 @@ case class Button(position: Point,
   val size: Point = rectSize + margin.pointSum
 
   private val bg: Rect =
-    Rect(
-      Sizing(rectSize),
-      margin.topLeft,
-      if (isActive) style.buttonLooksActive else style.buttonLooks)
+    Rect(Sizing(rectSize), if (isActive) style.buttonLooksActive else style.buttonLooks, position = margin.topLeft)
 
   override val elementList: ElementList = ElementList(textEl, bg)
 

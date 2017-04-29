@@ -141,9 +141,9 @@ trait RotatableShapey extends Shapey with Rotatable[RotatableShapey]
 trait LabelableShapey extends Shapey with Labelable[LabelableShapey]
 
 final case class Rect(sizing: Sizing,
-                      position: Point = Point.zero,
                       looks: Looks = Looks(Color.amber, Color.green),
                       zOrder: Double = 1,
+                      position: Point = Point.zero,
                       id: ShapeyId = ShapeyId())
     extends Drawable
     with LookableShapey
@@ -166,14 +166,14 @@ final case class Rect(sizing: Sizing,
 //TODO we might want to remove "HIDDEN" attribute
 
 object MultilineText {
-  def apply(position: Point,
-            text: String,
+  def apply(text: String,
             looks: Looks = Looks(Color.transparent, Color.grey),
+            position: Point = Point.zero,
             maxLineWidth: Double = 64,
             dynamicSize: Boolean = true,
             zOrder: Double = 1,
             id: ShapeyId = ShapeyId.apply(),
-            font: Font = Text.defaultFont): MultilineText =
+            font: Font = Text.defaultFont) =
     new MultilineText(
       position,
       text,
@@ -222,7 +222,8 @@ final case class MultilineText(
       .map(x => Point(x.maxX, x.posY + font.getSizeForString(x.text)._2))
       .getOrElse(Point.zero)
 
-  override def position(point: Point): MultilineText = if(position == point) this else copy(position = point)
+  override def position(point: Point): MultilineText =
+    if (position == point) this else copy(position = point)
 
   private lazy val lineElements: Vector[Shapey] = linePositions.map(
     x =>
@@ -248,18 +249,17 @@ final case class MultilineText(
       Grow(dynamicSize),
       Shrink(dynamicSize))
 
-  //TODO that +40 is only for testing
   override def sizing(sizing: Sizing): SizableShapey =
-  if (sizing == this.sizing) this
-  else copy(maxLineWidthBase = sizing.baseSize.x, maxLineWidthCurrent = sizing.size.x + 40)
+    if (sizing == this.sizing) this
+    else copy(maxLineWidthBase = sizing.baseSize.x, maxLineWidthCurrent = sizing.size.x)
 
 }
 
 object Text {
   lazy val defaultFont: Font = FontManager.loadBdfFont("fonts/u_vga16.bdf")
 
-  def apply(position: Point,
-            label: String,
+  def apply(label: String,
+            position: Point = Point.zero,
             looks: Looks = Looks(Color.transparent, Color.grey),
             zOrder: Double = 1,
             font: Font = Text.defaultFont,
@@ -290,7 +290,13 @@ final case class Text(
   override def position(point: Point): Text =
     if (position != point) copy(position = point) else this
 
-  override def label(string: String): Text = copy(label = string)
+  override def label(string: String): Text = label(string,recalculateSize = true)
+
+  def label(string: String, recalculateSize: Boolean = true): Text =
+    if (recalculateSize) {
+      val newSize = Point(font.getSizeForString(string))
+      copy(label = string, sizing = Sizing(newSize, newSize, newSize))
+    } else copy(label = string)
 
   override def sizing(sizing: Sizing): Text = copy(sizing = sizing)
 

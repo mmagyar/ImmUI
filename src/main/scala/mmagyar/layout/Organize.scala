@@ -2,6 +2,7 @@ package mmagyar.layout
 
 import mmagyar.layout.Fill._
 import mmagyar.layout.Wrap.{EqualLineCut, EqualLines, Simple, SimpleCut}
+import mmagyar.ui.Shapey
 import mmagyar.util.{Point, PointSwapper}
 
 import scala.annotation.tailrec
@@ -10,17 +11,36 @@ import scala.annotation.tailrec
 /**
   * This group of traits and classes is responsible for the order, organization of elements
   *
-  * @todo gosh, this really need tests
+  * @todo gosh, this really need tests AND documentation, what organizeToBounds supposed to mean?
   * @todo better handling Vertical and Horizontal layout when elements can not fit
   */
 sealed trait Organize {
 //  def layout: Layout
 
-  def organize[T <: Positionable[T] with Material](elements: Vector[T],
-                                                   offset: Point = Point.zero,
-                                                   organizeToBounds: Boolean = false): Vector[T]
+  /**
+    *
+    * @param elements the elements to organize
+    * @param offset their absolute offset
+    * @param organizeToBounds if it's set to Some(true) , elements will be stretched to the set bounds,
+    *                         if Some(false), to the longest elements
+    *                         if None, the algorithm will stretch if both bounds are set
+    * @tparam T type of the organizable, immutable elements
+    * @return
+    */
+  def organize[T <: Positionable[T] with Material](
+      elements: Vector[T],
+      offset: Point = Point.zero,
+      organizeToBounds: Option[Boolean] = None): Vector[T]
 
   def size: LayoutSizeConstraint
+
+  def setSize(sizeConstraint: LayoutSizeConstraint): Organize = this match {
+    case a: Horizontal => a.copy(size = sizeConstraint)
+    case a: Vertical   => a.copy(size = sizeConstraint)
+    case a: FreeForm   => a
+    case a: Relative   => a
+    case a: Union      => a.copy(sizeConstraint)
+  }
 
 }
 
@@ -39,6 +59,7 @@ object Organize {
                                                    startPosition: Point,
                                                    alignContent: AlignSimple,
                                                    alignItem: Align,
+                                                   wholeBound: Point,
                                                    ps: PointSwapper): Vector[T] = {
 
     val withAlignInfo = alignItem.complex(ps._1(lineSize), ps, elementsToOrganize)
@@ -49,7 +70,10 @@ object Organize {
         val initPos = cc._1.position(ps._1Add(startPosition, cc._2.offset))
         val sizedEl: T = initPos match {
           case a: Sizable[T @unchecked] =>
-            val maxSize = ps._2(lineSize).min(ps._2(a.sizing.maxSize))
+
+            val maxSize = ps._2(lineSize).min(ps._2(a.sizing.maxSize)).min(ps._2(wholeBound))
+            a match {case a: Shapey if wholeBound.x == 168  => println(a.id,maxSize,"LINE", lineSize, "BOUND", wholeBound) case _ =>}
+//            val maxSize = ps._2(lineSize).min(ps._2(a.sizing.maxSize))
 
             val result      = alignContent.align(maxSize, sizeSec, sizeChangeable = true)
             val result2     = result.size.max(ps._2(a.sizing.minSize))
@@ -61,7 +85,10 @@ object Organize {
           case a => a
         }
 
-        val alignResult = alignContent.align(ps._2(lineSize), ps._2(sizedEl.size))
+//        println("CONSTRAINT", wholeBound, "LINE", lineSize)
+
+        val alignResult = alignContent.align(ps._2(lineSize.min(wholeBound)), ps._2(sizedEl.size))
+//        val alignResult = alignContent.align(ps._2(lineSize), ps._2(sizedEl.size))
         val positioned =
           sizedEl.position(ps._2Set(sizedEl.position, alignResult.offset + ps._2(startPosition)))
 
@@ -245,6 +272,7 @@ object Organize {
       bounds: Point,
       organizeToBounds: Boolean = false): Vector[T] = {
 
+    println("organize to bounds?", organizeToBounds, elements.map({case a:Shapey => a.id}), if(organizeToBounds)bounds)
     //TODO try shrink when necessary (insufficient vertical space),
     // handle too high wrap layout
 
@@ -281,6 +309,7 @@ object Organize {
           basePoint,
           layout.alignContent,
           layout.wrap.alignItem,
+          bounds,
           ps
         )
       case Simple(alignItem, alignContent, _, _) =>
@@ -296,6 +325,7 @@ object Organize {
             ps._2Add(basePoint, ln.offset_2 + wholeOffset),
             alignContent,
             alignItem,
+            bounds,
             ps
           )
         })
@@ -311,34 +341,45 @@ object Organize {
 final case class Horizontal(layout: Layout = Layout(), size: LayoutSizeConstraint = Unbound())
     extends Organize {
 
-  override def organize[T <: Positionable[T] with Material](
-      elements: Vector[T],
-      offset: Point = Point.zero,
-      organizeToBounds: Boolean = false): Vector[T] =
+  override def organize[T <: Positionable[T] with Material](elements: Vector[T],
+                                                            offset: Point = Point.zero,
+                                                            organizeToBounds: Option[Boolean] =
+                                                              None): Vector[T] =
     Organize.wrapOrganize[T](
       elements,
       layout,
       PointSwapper.x,
       offset,
       size.constraintSize,
-      organizeToBounds)
+      organizeToBounds.getOrElse(organizeToBounds.getOrElse(size match {
+        case Unbound()               => false
+        case BoundWidth(constraint)  => false
+        case BoundHeight(constraint) => true
+        case Bound(constraintSize)   => true
+      })))
 
 }
 
 final case class Vertical(layout: Layout = Layout(), size: LayoutSizeConstraint = Unbound())
     extends Organize {
 
-  override def organize[T <: Positionable[T] with Material](
-      elements: Vector[T],
-      offset: Point = Point.zero,
-      organizeToBounds: Boolean = false): Vector[T] =
+  override def organize[T <: Positionable[T] with Material](elements: Vector[T],
+                                                            offset: Point = Point.zero,
+                                                            organizeToBounds: Option[Boolean] =
+                                                              None): Vector[T] =
     Organize.wrapOrganize(
       elements,
       layout,
       PointSwapper.y,
       offset,
       size.constraintSize,
-      organizeToBounds)
+      organizeToBounds.getOrElse(size match {
+        case Unbound()               => false
+        case BoundWidth(constraint)  => true
+        case BoundHeight(constraint) => false
+        case Bound(constraintSize)   => true
+      })
+    )
 
 }
 
@@ -350,10 +391,10 @@ case class FreeForm() extends Organize {
   val size: LayoutSizeConstraint = Unbound()
 
   //  def size(point:Point):FreeForm     =  copy(size.)
-  override def organize[T <: Positionable[T] with Material](
-      elements: Vector[T],
-      offset: Point,
-      organizeToBounds: Boolean = false): Vector[T] =
+  override def organize[T <: Positionable[T] with Material](elements: Vector[T],
+                                                            offset: Point,
+                                                            organizeToBounds: Option[Boolean] =
+                                                              None): Vector[T] =
     elements
 
 }
@@ -372,7 +413,7 @@ case class Relative(position: Point) extends Organize {
   override def organize[T <: Positionable[T] with Material](
       elements: Vector[T],
       offset: Point,
-      organizeToBounds: Boolean = false): Vector[T] =
+      organizeToBounds: Option[Boolean] = None): Vector[T] =
     elements
 
 //  def position(point: Point): Relative = this.copy(position = point)
@@ -392,20 +433,20 @@ case class Union(size: LayoutSizeConstraint = Unbound(),
                  stretchType: UnionLayoutSetting = StretchToConstraint)
     extends Organize {
 
-  override def organize[T <: Positionable[T] with Material](
-      elements: Vector[T],
-      offset: Point = Point.zero,
-      organizeToBounds: Boolean = false): Vector[T] = {
+  override def organize[T <: Positionable[T] with Material](elements: Vector[T],
+                                                            offset: Point = Point.zero,
+                                                            organizeToBounds: Option[Boolean] =
+                                                              None): Vector[T] = {
 
     val largest = elements.foldLeft(Point.zero)((p, c) => p.max(c.size))
 
     val newSize = stretchType match {
       case StretchToConstraint =>
         size match {
-          case Unbound()                           => largest
-          case BoundWidth(constraint)              => Point(constraint, largest.y)
-          case BoundHeight(constraint)             => Point(largest.x, constraint)
-          case BoundWidthAndHeight(constraintSize) => constraintSize
+          case Unbound()               => largest
+          case BoundWidth(constraint)  => Point(constraint, largest.y)
+          case BoundHeight(constraint) => Point(largest.x, constraint)
+          case Bound(constraintSize)   => constraintSize
         }
       case StretchToLargest => largest
     }

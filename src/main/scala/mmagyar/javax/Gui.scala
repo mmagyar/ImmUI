@@ -54,10 +54,10 @@ object Gui {
 
     val el1 =
       Rect(Sizing(
-                Point(40, 40),
-                grow = Grow.Affinity,
-                shrink = Shrink.Affinity,
-                minSize = Point(20, 20)), Point(40, 30))
+                      Point(40, 40),
+                      grow = Grow.Affinity,
+                      shrink = Shrink.Affinity,
+                      minSize = Point(20, 20)), position = Point(40, 30))
         .fill(Color.blue)
         .stroke(Color.white)
         .lineWidth(1)
@@ -69,26 +69,26 @@ object Gui {
       //,
               Group(
                 Relative(),
-                Rect(Sizing(Point(30, 30), Point(80, 50), Point(80, 50)), Point(0, 0))
+                Rect(Sizing(Point(30, 30), Point(80, 50), Point(80, 50)), position = Point(0, 0))
                   .fill(Color.green)
                   .stroke(Color.red)
                   .lineWidth(3),
-                Rect(Sizing(Point(30, 30), Point(80, 50), Point(80, 50)), Point(30, 0))
+                Rect(Sizing(Point(30, 30), Point(80, 50), Point(80, 50)), position = Point(30, 0))
                   .fill(Color.white)
                   .stroke(Color.blue)
                   .lineWidth(3)
               ).copy(position = Point.zero, rotation = Degree(0)),
-              Rect(Sizing(Point(90, 50), Point(80, 50), Point(80, 50)), Point(0, 0))
+              Rect(Sizing(Point(90, 50), Point(80, 50), Point(80, 50)), position = Point(0, 0))
                 .fill(Color.grey)
                 .stroke(Color.silver)
                 .lineWidth(3)
             ).copy(position = Point.zero, rotation = Degree(45))
     //)
-    val el3 = Rect(Sizing(Point(80, 50), grow = Grow.Affinity, shrink = Shrink.Affinity, minSize = Point(2, 2)), Point(45, 55))
+    val el3 = Rect(Sizing(Point(80, 50), grow = Grow.Affinity, shrink = Shrink.Affinity, minSize = Point(2, 2)), position = Point(45, 55))
       .fill(Color.blue)
       .stroke(Color.white)
       .lineWidth(0.5)
-    val text = Text(Point(10, 0), "AAIAA Bubi - áéűúőóü :)")
+    val text = Text("AAIAA Bubi - áéűúőóü :)", Point(10, 0))
 
     val bmp = BitmapShapey(
       Point.zero,
@@ -116,10 +116,10 @@ object Gui {
               Relative(Point(200, 10)),
               Group(
                 Relative(Point(20, 170)),
-                Rect(Sizing(100, 100), Point(0, 0), Looks(fill = Color.white, stroke = Color.red, strokeLineWidth = 5)),
-                Text(Point(0, 0), "This is A very long text to test if it's al right")
+                Rect(Sizing(100, 100), Looks(fill = Color.white, stroke = Color.red, strokeLineWidth = 5), position = Point(0, 0)),
+                Text("This is A very long text to test if it's al right", Point(0, 0))
 
-              ,Rect(Sizing(10, 10), Point(10, 0), Looks(fill = Color.green, stroke = Color.silver, strokeLineWidth = 1))
+              ,Rect(Sizing(10, 10), Looks(fill = Color.green, stroke = Color.silver, strokeLineWidth = 1), position = Point(10, 0))
               ).copy(position = Point.zero, rotation = Degree(45)),
               bmp.copy(zOrder = 1.2)
             ).copy(position = Point.zero, zOrder = 2)

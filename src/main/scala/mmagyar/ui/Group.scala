@@ -1,14 +1,18 @@
 package mmagyar.ui
 
+import mmagyar.layout.Grow.Affinity
 import mmagyar.layout._
 import mmagyar.ui.interaction._
-import mmagyar.util.{BoundingBox, Box, Degree, Point}
+import mmagyar.util._
 
 object Group {
   def apply(elements: Shapey*): Group = Group(ElementList(elements: _*), Point.zero)
 
   def apply(organize: Organize, elements: Shapey*): Group =
     Group(ElementList(organize, elements: _*), Point.zero)
+
+  def apply(organize: Organize, behaviour: Behaviour[Group], elements: Shapey*): Group =
+    Group(ElementList(organize, elements: _*), Point.zero, behaviour = behaviour)
 
   def vertical(position: Point,
                size: LayoutSizeConstraint,
@@ -24,6 +28,7 @@ object Group {
 
   def relative(position: Point, elements: Shapey*): Group =
     Group(ElementList(Relative(Point.zero), elements: _*), position)
+
 }
 
 /**
@@ -44,7 +49,7 @@ final case class Group(elementList: ElementList,
                        scale: Point = Point.one,
                        zOrder: Double = 1,
                        id: ShapeyId = ShapeyId(),
-                       behaviour: BehaviourBasic[Group] = BehaviourBasic())
+                       behaviour: Behaviour[Group] = BehaviourBasic())
     extends GenericGroup[Group]
     with RotatableShapey
     with PositionableShapey {
@@ -83,14 +88,17 @@ final case class Group(elementList: ElementList,
 
   override def mapElements(map: (Shapey) => Shapey): Group = setElements(elementList.map(map))
 
+  def setBounds(layoutSizeConstraint: LayoutSizeConstraint): Group =
+    setElements(elementList.copy(organize = elementList.organize.setSize(layoutSizeConstraint)))
 }
 
 object SizableGroup {
 
   case class ScrollWheelBehaviour(divider: Double = 8) extends BehaviourAction[SizableGroup] {
-    override def action(in: SizableGroup, tracker: Tracker): SizableGroup ={
-      println("OFFSET",in.offset - (tracker.scroll / divider))
-      in.copy(offset = in.offset - (tracker.scroll / divider))}
+    override def action(in: SizableGroup, tracker: Tracker): SizableGroup = {
+      println("OFFSET", in.offset - (tracker.scroll / divider))
+      in.copy(offset = in.offset - (tracker.scroll / divider))
+    }
   }
 
   case object ScrollDragBehaviour extends BehaviourAction[SizableGroup] {
@@ -111,18 +119,18 @@ object SizableGroup {
       uniformLineSize = true),
     alignContent = Align.Center)
 
-  def apply(position: Point = Point.zero,
-            size: Point,
-            margin: Box = Box.zero,
+  def apply(organize: Organize,
             elements: Vector[Shapey],
+            sizing: Sizing =
+              Sizing(Point(64, 64), Point(64, 64), shrink = Shrink.Affinity, grow = Grow.Affinity),
+            position: Point = Point.zero,
+            margin: Box = Box.zero,
             layout: Layout = defaultLayout,
             zOrder: Int = 1): SizableGroup =
-    new SizableGroup(
-      ElementList(elements, Horizontal(layout, BoundWidthAndHeight(size))),
-      position,
-      Sizing(size),
-      zOrder,
-      margin = margin)
+    new SizableGroup(ElementList(elements, organize), sizing, position, zOrder, margin = margin)
+
+  def apply(organize: Organize, elements: Shapey*): SizableGroup =
+    SizableGroup(organize, elements.toVector)
 
   def horizontal(sizing: Sizing,
                  margin: Box = Box.zero,
@@ -132,12 +140,12 @@ object SizableGroup {
                  position: Point = Point.zero,
                  id: ShapeyId = ShapeyId()): SizableGroup =
     new SizableGroup(
-      ElementList(elements, Horizontal(layout, BoundWidthAndHeight(sizing.size))),
-      position,
+      ElementList(elements, Horizontal(layout, Bound(sizing.size))),
       sizing,
+      position,
       zOrder,
-      margin = margin,
-      id = id)
+      id = id,
+      margin = margin)
 
   def selfSizedHorizontal(maxTotalWidth: Double,
                           elements: Vector[Shapey],
@@ -154,11 +162,11 @@ object SizableGroup {
     ).size.y + margin.ySum
     new SizableGroup(
       ElementList(elements, Horizontal(layout)),
-      position,
       Sizing(Point(maxTotalWidth, elementHeight)),
+      position,
       zOrder,
-      margin = margin,
-      id = id)
+      id = id,
+      margin = margin)
   }
 
   def selfSizedVertical(maxTotalHeight: Double,
@@ -171,35 +179,66 @@ object SizableGroup {
     val elementsWidth = Group(Vertical(layout, bound), elements: _*).size.x + margin.xSum
     new SizableGroup(
       ElementList(elements, Vertical(layout.copy(layout.wrap.copy(stretchLinesToBounds = false)))),
-      position,
       Sizing(Point(elementsWidth, maxTotalHeight)),
+      position,
       zOrder,
       margin = margin
     )
   }
 
-  def scrollableTextBox(position: Point,
+  def scrollableTextBox(text: String,
                         sizing: Sizing,
-                        text: String,
-                        margin: Box,
                         fontLooks: Looks,
+                        position: Point = Point.zero,
+                        margin: Box = Box.zero,
                         zOrder: Double = 1,
                         id: ShapeyId = ShapeyId()): SizableGroup = {
-    val sg = new SizableGroup(
-      ElementList(
-        Union(LayoutSizeConstraint.fromSize(sizing.size)),
-        MultilineText(Point.zero, text, fontLooks)),
-      position,
+    SizableGroup.scrollable(
+      MultilineText(text, fontLooks, Point.zero),
       sizing,
+      position,
+      margin,
+      zOrder,
+      id)
+  }
+
+  def scrollableWithBackground(inner: Shapey,
+                               sizing: Sizing,
+                               position: Point = Point.zero,
+                               margin: Box = Box.zero,
+                               backgroundLooks: Looks = Looks(Color.navy),
+                               zOrder: Double = 1,
+                               id: ShapeyId = ShapeyId()): SizableGroup = {
+    new SizableGroup(
+      ElementList(
+        Union(),
+        Rect(Sizing(Point.one, grow = Affinity), backgroundLooks, Double.MinValue),
+        SizableGroup.scrollable(inner, sizing, margin = margin)
+      ),
+      sizing,
+      position,
+      zOrder,
+      id,
+      Box.zero
+    )
+  }
+
+  def scrollable(inner: Shapey,
+                 sizing: Sizing,
+                 position: Point = Point.zero,
+                 margin: Box = Box.zero,
+                 zOrder: Double = 1,
+                 id: ShapeyId = ShapeyId()): SizableGroup = {
+    new SizableGroup(
+      ElementList(Union(LayoutSizeConstraint.fromSize(sizing.size)), inner),
+      sizing,
+      Point.zero,
       zOrder,
       id,
       margin,
-      behaviour = SizableGroup.ScrollBehaviour
-    )
+      behaviour = SizableGroup.ScrollBehaviour)
 
-    sg
   }
-
 }
 
 /**
@@ -216,14 +255,13 @@ object SizableGroup {
   * @param behaviour Behaviour
   */
 class SizableGroup(elements: ElementList,
-                   val position: Point,
                    val sizing: Sizing,
+                   val position: Point = Point.zero,
                    val zOrder: Double = 1,
                    val id: ShapeyId = ShapeyId(),
                    val margin: Box = Box.zero,
-                   //Setting an offset can violate the margin
-                   _offset: Point = Point.zero,
-                   val behaviour: Behaviour[SizableGroup] = BehaviourBasic())
+                   val behaviour: Behaviour[SizableGroup] = BehaviourBasic(),
+                   _offset: Point = Point.zero)
     extends GenericGroup[SizableGroup]
     with PositionableShapey
     with SizableShapey {
@@ -232,15 +270,15 @@ class SizableGroup(elements: ElementList,
     elements.copy(
       elements = elements.elements,
       organize = elements.organize match {
-        case a: Horizontal => a.copy(size = BoundWidthAndHeight(sizing.size - margin.pointSum))
-        case a: Vertical   => a.copy(size = BoundWidthAndHeight(sizing.size - margin.pointSum))
-        case a: Union      => a.copy(size = BoundWidthAndHeight(sizing.size - margin.pointSum))
+        case a: Horizontal => a.copy(size = Bound(sizing.size - margin.pointSum))
+        case a: Vertical   => a.copy(size = Bound(sizing.size - margin.pointSum))
+        case a: Union      => a.copy(size = Bound(sizing.size - margin.pointSum))
         case a             => a
 //          System.err.println(
 //            "Sizable group needs a Bounded size organizer, defaulting to horizontal layout")
 //          Horizontal(Layout.left, BoundWidthAndHeight(sizing.size))
       },
-      organizeToBounds = true,
+      organizeToBounds = Some(true),
       offset = margin.topLeft + offset.invert
     )
   }
@@ -297,7 +335,7 @@ class SizableGroup(elements: ElementList,
            margin: Box = margin,
            offset: Point = offset,
            behaviour: Behaviour[SizableGroup] = behaviour): SizableGroup =
-    new SizableGroup(elementList, position, sizing, zOrder, id, margin, offset, behaviour)
+    new SizableGroup(elementList, sizing, position, zOrder, id, margin, behaviour, offset)
 
   //TODO rendered with 0 size on X?
 //  println(boundingBox)

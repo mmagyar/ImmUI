@@ -20,7 +20,7 @@ trait Sizable[A <: Sizable[A]] extends hasSize { this: A =>
 }
 
 object LayoutSizeConstraint {
-  implicit def fromSize(point: Point): LayoutSizeConstraint = BoundWidthAndHeight(point)
+  implicit def fromSize(point: Point): LayoutSizeConstraint = Bound(point)
 }
 
 sealed trait LayoutSizeConstraint { def constraintSize: Point }
@@ -33,4 +33,4 @@ case class BoundWidth(constraint: Double) extends LayoutSizeConstraint {
 case class BoundHeight(constraint: Double) extends LayoutSizeConstraint {
   def constraintSize: Point = Point(Point.large.y, constraint)
 }
-case class BoundWidthAndHeight(constraintSize: Point) extends LayoutSizeConstraint
+case class Bound(constraintSize: Point) extends LayoutSizeConstraint

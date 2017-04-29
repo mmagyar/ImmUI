@@ -58,11 +58,15 @@ class BufferDraw() {
 
   }
 
+  val maxBlendSize :Point = Point(Int.MaxValue/ 2,Int.MaxValue/ 2)
+
   def blendToBuffer(offset: Point,
                     source: Array[Array[ColorByte]],
                     constrain: BoundingBox,
                     targetBuffer: Array[Array[ColorByte]]): Unit = {
-    val cp = offset
+
+    //To prevent possible integer overflow
+    val cp = offset.min(maxBlendSize)
 
     val offX   = cp.x.toInt
     val offY   = cp.y.toInt
@@ -82,12 +86,13 @@ class BufferDraw() {
       val h       = if (yArr.length + offY > ySize) ySize - offY else yArr.length
       val resultY = targetBuffer(x + offX)
       while (y < h) {
-        val clr = yArr(y)
-        if (clr.alpha != 0 && constrain.inside(Point(x + offX, y + offY)))
-          resultY.update(
-            y + offY,
-            if (clr.alpha == 255) clr
-            else resultY(y + offY).alphaComposition(clr))
+          val clr = yArr(y)
+          if (clr.alpha != 0 && constrain.inside(Point(x + offX, y + offY)))
+            resultY.update(
+              y + offY,
+              if (clr.alpha == 255) clr
+              else resultY(y + offY).alphaComposition(clr))
+
         y += 1
       }
       x += 1
@@ -180,7 +185,7 @@ class BufferDraw() {
         DrawInstruction(a.position, res, Array.empty)
       case drawable: Drawable =>
         drawable match {
-          case Rect(sizing, position, looks, _, _) =>
+          case Rect(sizing,  looks, _ ,position, _) =>
             val scaled = sizing.size * scale
             val pixels = new ColorBorderMap(
               scaled.x.toInt,

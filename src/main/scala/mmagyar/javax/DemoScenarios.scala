@@ -2,6 +2,7 @@ package mmagyar.javax
 
 import mmagyar.layout._
 import mmagyar.ui._
+import mmagyar.ui.builder.BuildContainer
 import mmagyar.ui.interaction.{BehaviourBasic, InjectedBehaviourAction}
 import mmagyar.ui.widget.{Dialogue, DialogueOption}
 import mmagyar.ui.widgetHelpers.Style
@@ -24,16 +25,9 @@ object DemoScenarios {
       Relative(Point(200, 10)),
       Group(
         Relative(Point(20, 70)),
-        Rect(
-          Sizing(100, 100),
-          Point(0, 0),
-          Looks(fill = Color.white, stroke = Color.red, strokeLineWidth = 5)),
-        Text(Point(0, 0), "This is A very long text to test if it's al right"),
-        Rect(
-          Sizing(10, 10),
-          Point(10, 0),
-          Looks(fill = Color.green, stroke = Color.silver, strokeLineWidth = 1),
-          zOrder = 3)
+        Rect(Sizing(100, 100), Looks(fill = Color.white, stroke = Color.red, strokeLineWidth = 5), position = Point(0, 0)),
+        Text("This is A very long text to test if it's al right", Point(0, 0)),
+        Rect(Sizing(10, 10), Looks(fill = Color.green, stroke = Color.silver, strokeLineWidth = 1), zOrder = 3, Point(10, 0))
       ).copy(position = Point.zero, rotation = Degree(45)),
       bmp.copy(zOrder = 1.2)
     ).copy(position = Point.zero, rotation = Degree(-12), zOrder = 2)
@@ -43,11 +37,8 @@ object DemoScenarios {
     g2,
     Group(
       Relative(Point(10, 170)),
-      Rect(
-        Sizing(100, 100),
-        Point(0, 0),
-        Looks(fill = Color.white, stroke = Color.red, strokeLineWidth = 5)),
-      Text(Point(0, 0), "This is A very long text to test if it's al right", zOrder = 2)
+      Rect(Sizing(100, 100), Looks(fill = Color.white, stroke = Color.red, strokeLineWidth = 5), position = Point(0, 0)),
+      Text("This is A very long text to test if it's al right", Point(0, 0), zOrder = 2)
 
       //        ,Rect(
       //          Point(10, 0),
@@ -60,13 +51,11 @@ object DemoScenarios {
   val simpleGroup: Group = Group
     .horizontal(
       Point.zero,
-      BoundWidthAndHeight(Point(320 - 1, 240 - 1)),
+      Bound(Point(320 - 1, 240 - 1)),
       Layout(),
       Rect(Sizing(30, 40)),
       Rect(Sizing(30, 60), looks = Looks(Color.white, Color.blue, 2)),
-      Rect(
-        Sizing(Point(50, 50), grow = Grow.Affinity),
-        looks = Looks(Color.green, Color.silver, 10))
+      Rect(Sizing(Point(50, 50), grow = Grow.Affinity), looks = Looks(Color.green, Color.silver, 10))
     )
 
   lazy val simpleGroup2: Group = Group(
@@ -74,13 +63,11 @@ object DemoScenarios {
     Group
       .horizontal(
         Point.zero,
-        BoundWidthAndHeight(Point(320 - 1, 240 - 1)),
+        Bound(Point(320 - 1, 240 - 1)),
         Layout(),
         Rect(Sizing(30, 40)),
         Rect(Sizing(30, 60), looks = Looks(Color.white, Color.blue, 2)),
-        Rect(
-          Sizing(Point(50, 50), grow = Grow.Affinity),
-          looks = Looks(Color.green, Color.silver, 10))
+        Rect(Sizing(Point(50, 50), grow = Grow.Affinity), looks = Looks(Color.green, Color.silver, 10))
       )
       .copy(position = Point.zero, rotation = Degree(0), id = ShapeyId("AHOY"))
   )
@@ -101,13 +88,11 @@ object DemoScenarios {
     Group
       .horizontal(
         Point.zero,
-        BoundWidthAndHeight(Point(320 - 1, 240 - 1)),
+        Bound(Point(320 - 1, 240 - 1)),
         Layout(),
         Rect(Sizing(30, 40)),
         doubleThis,
-        Rect(
-          Sizing(Point(50, 50), grow = Grow.Affinity),
-          looks = Looks(Color.green, Color.silver, 10))
+        Rect(Sizing(Point(50, 50), grow = Grow.Affinity), looks = Looks(Color.green, Color.silver, 10))
       )
       //    .copy(rotation = Degree(0),id = ShapeyId("AHOY"),behaviour = Behaviour.diag[Group])
       .copy(
@@ -121,27 +106,27 @@ object DemoScenarios {
 
   lazy val simple: Group = Group(
     Rect(Sizing(5, 5)),
-    Rect(Sizing(10, 10), Point(10, 10)),
+    Rect(Sizing(10, 10), position = Point(10, 10)),
     Group(
       Horizontal(),
-      Rect(Sizing(15, 15), Point(3, 3), Looks(Color(255, 0, 0, 0.5)), 3),
-      Rect(Sizing(15, 15), Point(3, 3), Looks(Color(0, 0, 255, 0.5)), 3))
+      Rect(Sizing(15, 15), Looks(Color(255, 0, 0, 0.5)), 3, Point(3, 3)),
+      Rect(Sizing(15, 15), Looks(Color(0, 0, 255, 0.5)), 3, Point(3, 3)))
       .scale(2)
       .position(Point(20, 20)),
-    Rect(Sizing(15, 15), Point(13, 4), Looks(Color(0, 255, 0, 0.5)), 3),
+    Rect(Sizing(15, 15), Looks(Color(0, 255, 0, 0.5)), 3, Point(13, 4)),
     SizableGroup(
-      Point(20, 20),
-      Point(160, 80),
-      layout = Layout(Wrap.No(), Fill.No, Align.Left),
+      Horizontal(Layout(Wrap.No(), Fill.No, Align.Left)),
+      position = Point(20, 20),
+      sizing = Sizing(160, 80),
       elements = Vector(
         Rect(Sizing(Point(80, 30), maxSize = Point(150, 70), grow = Grow.No)),
-        Text(Point(40, 40), "HELLO"))
+        Text("HELLO", Point(40, 40)))
     )
   )
 
   lazy val mainDemo: Group = Group(
     Relative(),
-    Rect(Sizing(150, 15), Point(4, 4), zOrder = -8),
+    Rect(Sizing(150, 15), zOrder = -8, position = Point(4, 4)),
     BitmapShapey(
       (5, 20),
       Sizing(25, 100),
@@ -177,20 +162,19 @@ object DemoScenarios {
 
   lazy val testA: Group = Group(
     Rect(Sizing(5, 5)),
-    Rect(Sizing(10, 10), Point(10, 10), zOrder = 20),
+    Rect(Sizing(10, 10), zOrder = 20, position = Point(10, 10)),
     Group(
       Relative(),
-      Rect(Sizing(15, 15), Point(3, 3), Looks(Color(255, 0, 0)), 3),
+      Rect(Sizing(15, 15), Looks(Color(255, 0, 0)), 3, Point(3, 3)),
 //      Rect(Sizing(15, 15), Point(3, 3), Looks(Color(0, 0, 255, 0.5)), 3),
-      Rect(Sizing(15, 15), Point(13, 4), Looks(Color(0, 255, 0, 0.5)), 4),
+      Rect(Sizing(15, 15), Looks(Color(0, 255, 0, 0.5)), 4, Point(13, 4)),
       SizableGroup(
-        Point(20, 20),
-        Point(160, 80),
-        layout = Layout(Wrap.No(), Fill.No, Align.Left),
+        Horizontal(Layout(Wrap.No(), Fill.No, Align.Left)),
+        position = Point(20, 20),
+        sizing = Sizing(160, 80),
         elements = Vector(
           Rect(Sizing(Point(80, 30), maxSize = Point(150, 70), grow = Grow.No)),
-          Text(Point(40, 40), "HELLO")
-        )
+          Text("HELLO", Point(40, 40)))
       )
     ).scale(2)
       .position(Point(10, 10))
@@ -199,12 +183,12 @@ object DemoScenarios {
   lazy val rotationDemo: Group = Group(
     Relative(),
     Rect(Sizing(5, 5)),
-    Rect(Sizing(90, 90), zOrder = -2, looks = Looks(Color(0, 0, 0))),
-    Rect(Sizing(10, 10), Point(10, 10)),
+    Rect(Sizing(90, 90), looks = Looks(Color(0, 0, 0)), zOrder = -2),
+    Rect(Sizing(10, 10), position = Point(10, 10)),
     Group(
       Horizontal(),
-      Rect(Sizing(5, 5), Point(3, 3), Looks(Color(255, 0, 0, 0.5)), 3),
-      Rect(Sizing(5, 5), Point.zero, Looks(Color(0, 0, 255, 0.5)), 3))
+      Rect(Sizing(5, 5), Looks(Color(255, 0, 0, 0.5)), 3, Point(3, 3)),
+      Rect(Sizing(5, 5), Looks(Color(0, 0, 255, 0.5)), 3, Point.zero))
       .scale(4)
       .position(Point(0, 0))
       .position(Point(20, 20))
@@ -219,9 +203,9 @@ object DemoScenarios {
 //    Rect(Sizing(10, 10), Point(10, 10)),
     Group(
       Relative(),
-      Rect(Sizing(50, 50), Point.zero, Looks(Color(255, 0, 0)), 3).copy(id = ShapeyId("TOP RECT")),
+      Rect(Sizing(50, 50),  Looks(Color(255, 0, 0)), 3).copy(id = ShapeyId("TOP RECT")),
       Group(Rect(Sizing(25, 25), looks = Looks(Color(0, 255, 0)), zOrder = 4).copy(id =
-        ShapeyId("INSIDE RECT")))
+              ShapeyId("INSIDE RECT")))
         .copy(
           zOrder = 4,
           behaviour = BehaviourBasic(click = Some(InjectedBehaviourAction((x, y) => {
@@ -243,5 +227,7 @@ object DemoScenarios {
       }))), zOrder = 22, id = ShapeyId("ROTATED GROUP")) //behaviour = InjectedBehaviourAction())
   )
 
-  lazy val negative : Group = Group(Relative(), Rect(Sizing(40,40),Point(-1,-1)))
+  lazy val negative : Group = Group(Relative(), Rect(Sizing(40,40), position = Point(-1,-1)))
+
+  def analysed(maxSize:Point):Group = BuildContainer.builder(maxSize, Group(mainDemo))
 }
