@@ -11,7 +11,7 @@ import scala.annotation.tailrec
 /**
   * This group of traits and classes is responsible for the order, organization of elements
   *
-  * @todo gosh, this really need tests AND documentation, what organizeToBounds supposed to mean?
+  * @todo gosh, this really need tests AND documentation
   * @todo better handling Vertical and Horizontal layout when elements can not fit
   */
 sealed trait Organize {
@@ -118,9 +118,7 @@ object Organize {
         val growableSpace = remainingWidth - nonGrowable
 
         //If we have 0 (or less) space, we don't need to do anything
-        //TODO test is this predicate provides the correct results always
         if (growableSpace - currentSpace > 0 && currentSpace > 0) {
-          //TODO no growing will happen, if the growables are 0 in size
           val multiplier = if (currentSpace <= 0) 1 else growableSpace / currentSpace
           elements.foldLeft((false, Vector[T]()))((prev, current) => {
             current match {
@@ -175,7 +173,6 @@ object Organize {
         val shrinkableSpace = remainingWidth - nonShrinkable
 
         //If we have 0 (or more) space, we don't need to do anything
-        //TODO this might not terminate in some cases
         if (shrinkableSpace - currentSpace < 0) {
           val multiplier = if (currentSpace == 0) 1 else shrinkableSpace / currentSpace
           elements.foldLeft((false, Vector[T]()))((prev, current) => {
@@ -260,7 +257,6 @@ object Organize {
       basePoint: Point,
       bounds: Point,
       organizeToBounds: Boolean = false): Vector[T] = {
-    //TODO try shrink when necessary (insufficient vertical space),
     // handle too high wrap layout
 
     val linesRaw = elements.foldLeft(Vector[LineSummer[T]]())(partitionLines(ps, bounds, _, _))

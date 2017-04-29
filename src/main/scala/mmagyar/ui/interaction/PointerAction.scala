@@ -86,7 +86,6 @@ class PointerAction(
 
   }
 
-  //TODO behaviour on root group is not executed
   def getElement(document: Document,
                  pointArg: Point,
                  drawableOnly: Boolean = false): Vector[PointedElement] =

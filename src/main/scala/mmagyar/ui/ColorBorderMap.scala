@@ -86,7 +86,7 @@ object ColorMap {
 
   def rotate(rotate: Degree,
              colorMap: Array[Array[ColorByte]],
-             default: ColorByte = ColorByte.empty):  Array[Array[ColorByte]] = {
+             default: ColorByte = ColorByte.empty): Array[Array[ColorByte]] = {
 
     val orgX: Int   = colorMap.length
     val orgY: Int   = colorMap.headOption.map(x => x.length).getOrElse(0)
@@ -94,11 +94,11 @@ object ColorMap {
     val bound       = BoundingBox(size = orgSize).rotatedBBox(rotate)
     val finalWidth  = bound.size.x.ceil.toInt
     val finalHeight = bound.size.y.ceil.toInt
-    var x = 0
-    var y = 0
+    var x           = 0
+    var y           = 0
 
-    val midX     = orgX / 2
-    val midY     = orgY / 2
+    val midX = orgX / 2
+    val midY = orgY / 2
 
     val shift = bound.position
 
@@ -139,7 +139,6 @@ class ColorBorderMap(val x: Int,
 
   lazy val pixelsColor: Vector[Vector[Color]] = {
     if (strokeColor.visible) {
-      //TODO there will be uneven results when x or y < strokeWidth * 2
       val sideStrokeVector = Vector.fill(y)(strokeColor)
 
       val middleStrokedVector =
@@ -157,8 +156,7 @@ class ColorBorderMap(val x: Int,
   lazy val pixelsByte: Vector[Vector[ColorByte]] = {
     val defaultColor = ColorByte(default)
     if (strokeColor.visible) {
-      val stroke = ColorByte(strokeColor)
-      //TODO there will be uneven results when x or y < strokeWidth * 2
+      val stroke           = ColorByte(strokeColor)
       val sideStrokeVector = Vector.fill(y)(stroke)
 
       val middleStrokedVector =
@@ -173,11 +171,13 @@ class ColorBorderMap(val x: Int,
     } else Vector.fill(x, y)(defaultColor)
   }
 
+  /**
+    *  uneven  stroke when x or y < strokeWidth * 2
+    */
   lazy val pixelsArrayByte: Array[Array[ColorByte]] = {
     val defaultColor = ColorByte(default)
     if (strokeColor.visible) {
-      val stroke = ColorByte(strokeColor)
-      //TODO there will be uneven results when x or y < strokeWidth * 2
+      val stroke           = ColorByte(strokeColor)
       val sideStrokeVector = Array.fill(y)(stroke)
 
       val middleStrokedVector =

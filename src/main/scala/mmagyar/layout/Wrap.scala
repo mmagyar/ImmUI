@@ -36,7 +36,6 @@ sealed trait Wrap {
            alignContent: AlignSimple = alignContent,
            stretchLinesToBounds: Boolean = stretchLinesToBounds,
            uniformLineSize: Boolean = uniformLineSize):Wrap
-  //todo add option for margin to wrap (wrap sooner there are less then x amount of empty space on the line, can help with layout
 }
 
 object Wrap {

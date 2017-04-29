@@ -127,21 +127,6 @@ class BufferDraw() {
     constraint
   }
 
-  def getChecksum[T](arg: Array[Array[T]]): String =
-    Base64.getEncoder.encodeToString(
-      MessageDigest
-        .getInstance("MD5")
-        .digest(arg.map(_.toVector).toVector.toString.getBytes))
-
-  def getChecksum(string: String): String =
-    Base64.getEncoder.encodeToString(
-      MessageDigest
-        .getInstance("MD5")
-        .digest(string.getBytes))
-
-  //TODO optimize by eliminating the intermediate buffers
-  //TODO alternative optimization, every Buffer should be created in a future, to utilise multiple core
-  //TODO might be a good idea to check if the group is even in view (for groups with constraint size 0 there is no need to render anything)
   def getBuffer(x: Shapey,
                 rotate: Vector[Transform],
                 constraint: BoundingBox,

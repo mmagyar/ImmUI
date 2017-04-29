@@ -7,9 +7,8 @@ import mmagyar.ui._
 import mmagyar.util.{Point, TriState}
 
 /** Magyar Máté 2017, all rights reserved */
-/**
-  * TODO handle the rotation of the element while scrolling, both dragging and the scroll bar
-  */
+
+
 object ScrollbarGroup {
   val defaultScrollbars: (TriState, TriState) = (TriState.Auto, TriState.Auto)
 
@@ -67,7 +66,6 @@ class ScrollbarGroup(val position: Point,
 
   private val scrollW = child.size.union((x, ps) =>
     if (x > ps._1(child.totalScrollSize)) x else ((x / ps._1(child.totalScrollSize)) * x).max(4))
-  //TODO only show neccessery scroll bars
   private val scrollKnobOffset = child.scrollPercent * (child.size - scrollW)
 
   val drawScrollBar: (Boolean, Boolean) =

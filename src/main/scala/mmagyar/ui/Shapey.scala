@@ -14,24 +14,9 @@ import scala.language.implicitConversions
 /**
   * This will be the BIG doc block for the whole Shapey element system
   *
-  * todo:
-  *  - animation
-  *    - idea: create parameter animate
-  *    - signature: (delta : MilliSeconds) => Shapey
-  *    - default: delta => this
-  *  - behaviour
-  *    - idea: create a parameter which should be a collection of functions
-  * it should not be able to escape it's own scope
-  *    - signature: interaction: Option[Behaviour[T < : this ] ]
-  *      - Behaviour class : Behaviour[T < : Shapey](click:Option[Action[T] ],
-  * move:Option[Action[T] ],
-  * drag:Option[Action[T] ],
-  * down:Option[Action[T] ],up:Option[Action[T] ])
-  *      - Action class: Action{ def action[T < : Shapey](in:T, tracker:interaction.Tracker):T }
   *
   **/
 object ShapeyId {
-  //TODO maybe add option to throw on collision?
   val index: AtomicLong = new AtomicLong(0)
 
   def apply(): ShapeyId = ShapeyId(Symbol("AUTO_GEN_ID: " + index.addAndGet(1).toHexString))
@@ -78,7 +63,6 @@ sealed trait Shapey extends Material {
   final private def prepend(nest: Int): String =
     (1 to (nest * 3)).foldLeft("")((p, c) => p + (if (c % 3 == 0) "│" else " "))
 
-  //TODO tabulated fields for readability
   final def elementsPrint(nest: Int = 0): String =
     prepend(nest) +
       s"$stringName(id: ${id.symbol} pos: $position size: $size${customToString match {
@@ -162,8 +146,6 @@ final case class Rect(sizing: Sizing,
 
   override def sizing(sizing: Sizing): SizableShapey = copy(sizing = sizing)
 }
-
-//TODO we might want to remove "HIDDEN" attribute
 
 object MultilineText {
   def apply(text: String,
@@ -270,7 +252,6 @@ object Text {
   }
 }
 
-//TODO are text objects really sizable?
 final case class Text(
     position: Point,
     label: String,
@@ -340,7 +321,6 @@ object BitmapShapey {
 //    }
 
 }
-//TODO alternative constructor that sets the element to the bitmap size / aspect ratio
 final case class BitmapShapey(
     position: Point,
     sizing: Sizing,

@@ -47,8 +47,6 @@ object BuildContainer {
   def controlPanel(size: Point): Groupable[_] =
     SizableGroup.scrollableWithBackground(
       Group(
-        //TODO investigate changing automatic id's of multiline text
-        //TODO when clicking and changing unrelated element
         Vertical(Layout(Wrap.Simple(alignContent = Align.Stretch(Align.Left)))),
         MultilineText("SHOW DATA HERE, and this overlaps, way over", id = ShapeyId("DEBUG_THIS")),
         Text("Selected Id:"),

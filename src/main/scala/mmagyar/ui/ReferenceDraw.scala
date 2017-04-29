@@ -19,7 +19,6 @@ class ReferenceDraw(var scale: Double = 1) {
     val root = document.root
     scale = document.transform.scale.x
     val point = pointArg / document.transform.scale
-    //TODO instead of returning a list of colors, the `Color` class should to the blending
 
     draw(Vector(root), Vector(PointTransform(document.transform.offset)), pointArg)
   }
@@ -28,7 +27,6 @@ class ReferenceDraw(var scale: Double = 1) {
            rotate: Vector[PointTransform] = Vector.empty,
            point: Point): Color = {
 
-    //TODO do blending of colors
     var i         = 0
     var el: Color = Color.transparent
 
@@ -95,7 +93,6 @@ class ReferenceDraw(var scale: Double = 1) {
           case _ =>
             throw new Error("Only bitmap fonts are supported by the reference drawer")
         }
-      //TODO this generates uneven border when rotated, check this out later
       case a: Strokable[_]
           if a.boundingBox
             .onEdge(currentPoint, Point(a.lineWidth, a.lineWidth), 1.0 / scale) =>

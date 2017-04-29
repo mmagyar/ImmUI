@@ -155,7 +155,6 @@ object SizableGroup {
                           position: Point = Point.zero,
                           id: ShapeyId = ShapeyId()): SizableGroup = {
     val bound = BoundWidth(maxTotalWidth - margin.xSum)
-    //TODO revise this
     val elementHeight = Group(
       Horizontal(layout.copy(layout.wrap.copy(stretchLinesToBounds = false)), bound),
       elements: _*
@@ -283,7 +282,6 @@ class SizableGroup(elements: ElementList,
     )
   }
 
-  //TODO make better sizable text box, that is resizable, and sizable without having to care about scrollbars
   private val preOffset: Point = _offset.max(Point.zero)
   private val processed        = processElementList(elements, preOffset)
 
@@ -336,7 +334,4 @@ class SizableGroup(elements: ElementList,
            offset: Point = offset,
            behaviour: Behaviour[SizableGroup] = behaviour): SizableGroup =
     new SizableGroup(elementList, sizing, position, zOrder, id, margin, behaviour, offset)
-
-  //TODO rendered with 0 size on X?
-//  println(boundingBox)
 }

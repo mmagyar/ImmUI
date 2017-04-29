@@ -9,7 +9,6 @@ sealed trait Fill {
     */
 //  def alignLine: Align
 }
-//TODO might add Space Around , Space Between and other similars
 object Fill {
 
   /** Items will keep their original size*/
@@ -29,6 +28,4 @@ object Fill {
 
   /** Fill the remaining space with the last element / shrink the fist*/
   case object Last extends Fill
-
-  //TODO we might want to have options such as, Fill, GrowOnly , ShrinkOnly
 }

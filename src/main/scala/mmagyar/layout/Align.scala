@@ -6,10 +6,6 @@ import mmagyar.util.PointSwapper
 case class AlignResult(offset: Double, size: Double)
 
 sealed trait Align {
-
-  //TODO deprecate this
-
-
   def complex[T <: Material](maxSize: Double,
                              ps: PointSwapper,
                              elements: Vector[T]): Vector[(T, AlignResult)]
