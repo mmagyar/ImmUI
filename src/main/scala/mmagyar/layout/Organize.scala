@@ -70,9 +70,12 @@ object Organize {
         val initPos = cc._1.position(ps._1Add(startPosition, cc._2.offset))
         val sizedEl: T = initPos match {
           case a: Sizable[T @unchecked] =>
-
-            val maxSize = ps._2(lineSize).min(ps._2(a.sizing.maxSize)).min(ps._2(wholeBound))
-            a match {case a: Shapey if wholeBound.x == 168  => println(a.id,maxSize,"LINE", lineSize, "BOUND", wholeBound) case _ =>}
+            val maxSize = ps._2(lineSize).min(ps._2(a.sizing.maxSize))
+            a match {
+              case a: Shapey if wholeBound.x == 168 =>
+                println(a.id, maxSize, "LINE", lineSize, "BOUND", wholeBound)
+              case _ =>
+            }
 //            val maxSize = ps._2(lineSize).min(ps._2(a.sizing.maxSize))
 
             val result      = alignContent.align(maxSize, sizeSec, sizeChangeable = true)
@@ -87,7 +90,7 @@ object Organize {
 
 //        println("CONSTRAINT", wholeBound, "LINE", lineSize)
 
-        val alignResult = alignContent.align(ps._2(lineSize.min(wholeBound)), ps._2(sizedEl.size))
+        val alignResult = alignContent.align(ps._2(lineSize), ps._2(sizedEl.size))
 //        val alignResult = alignContent.align(ps._2(lineSize), ps._2(sizedEl.size))
         val positioned =
           sizedEl.position(ps._2Set(sizedEl.position, alignResult.offset + ps._2(startPosition)))
@@ -271,8 +274,6 @@ object Organize {
       basePoint: Point,
       bounds: Point,
       organizeToBounds: Boolean = false): Vector[T] = {
-
-    println("organize to bounds?", organizeToBounds, elements.map({case a:Shapey => a.id}), if(organizeToBounds)bounds)
     //TODO try shrink when necessary (insufficient vertical space),
     // handle too high wrap layout
 
@@ -317,10 +318,18 @@ object Organize {
           if (organizeToBounds)
             layout.alignContent.align(ps._2(bounds), lineGrow.previousOffset).offset
           else 0
+
+        val additionalHeightPerLine =
+          ps._2(bounds) - lineGrow.lines.foldLeft(0.0)((p, c) => p + ps._2(c.lineSize)) match {
+            case a if a > 0 => a / lineGrow.lines.size
+            case _          => 0
+          }
+
         lineGrow.lines.foldLeft[Vector[T]](Vector.empty[T])((p, ln: LineSummer[T]) => {
           p ++ organize(
             ln.elements,
-            if (organizeToBounds) ps._1Set(ln.lineSize, ps._1(bounds))
+            if (organizeToBounds)
+              ps(bounds, ps._2(ln.lineSize) + additionalHeightPerLine)
             else ps._1Set(ln.lineSize, lineGrow.longestLineLength),
             ps._2Add(basePoint, ln.offset_2 + wholeOffset),
             alignContent,
@@ -356,7 +365,8 @@ final case class Horizontal(layout: Layout = Layout(), size: LayoutSizeConstrain
         case BoundWidth(constraint)  => false
         case BoundHeight(constraint) => true
         case Bound(constraintSize)   => true
-      })))
+      }))
+    )
 
 }
 
@@ -410,10 +420,10 @@ case class Relative(position: Point) extends Organize {
 
   val size: LayoutSizeConstraint = Unbound()
 
-  override def organize[T <: Positionable[T] with Material](
-      elements: Vector[T],
-      offset: Point,
-      organizeToBounds: Option[Boolean] = None): Vector[T] =
+  override def organize[T <: Positionable[T] with Material](elements: Vector[T],
+                                                            offset: Point,
+                                                            organizeToBounds: Option[Boolean] =
+                                                              None): Vector[T] =
     elements
 
 //  def position(point: Point): Relative = this.copy(position = point)

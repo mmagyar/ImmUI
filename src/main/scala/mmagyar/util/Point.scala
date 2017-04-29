@@ -450,4 +450,12 @@ case class PointSwapper private (_1: (Point) => Double,
 
   def _1Add(point: Point, value: Double): Point = _1Set(point, value + _1(point))
   def _2Add(point: Point, value: Double): Point = _2Set(point, value + _2(point))
+
+  def _1Set(point: Point, set_1FromThis:Point):Point = _1Set(point, _1(set_1FromThis))
+  def _2Set(point: Point, set_2FromThis:Point):Point = _2Set(point, _2(set_2FromThis))
+
+  def apply(_1A:Double, _2A :Double):Point = _2Set(_1Set(Point.zero,_1A),_2A)
+  def apply(_1A:Point, _2A :Point):Point = _2Set(_1Set(Point.zero,_1A),_2A)
+  def apply(_1A:Double, _2A :Point):Point = _2Set(_1Set(Point.zero,_1A),_2A)
+  def apply(_1A:Point, _2A :Double):Point = _2Set(_1Set(Point.zero,_1A),_2A)
 }
