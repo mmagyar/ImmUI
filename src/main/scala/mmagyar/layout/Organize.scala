@@ -66,18 +66,10 @@ object Organize {
     withAlignInfo
       .foldLeft((ps._1(startPosition), Vector[T]()))((pp, cc) => {
         val sizeSec = ps._2(cc._1.size)
-
         val initPos = cc._1.position(ps._1Add(startPosition, cc._2.offset))
         val sizedEl: T = initPos match {
           case a: Sizable[T @unchecked] =>
-            val maxSize = ps._2(lineSize).min(ps._2(a.sizing.maxSize))
-            a match {
-              case a: Shapey if wholeBound.x == 168 =>
-                println(a.id, maxSize, "LINE", lineSize, "BOUND", wholeBound)
-              case _ =>
-            }
-//            val maxSize = ps._2(lineSize).min(ps._2(a.sizing.maxSize))
-
+            val maxSize     = ps._2(lineSize).min(ps._2(a.sizing.maxSize))
             val result      = alignContent.align(maxSize, sizeSec, sizeChangeable = true)
             val result2     = result.size.max(ps._2(a.sizing.minSize))
             val currentSize = ps._2(a.size)
@@ -87,16 +79,10 @@ object Organize {
             else a.size(a.size)
           case a => a
         }
-
-//        println("CONSTRAINT", wholeBound, "LINE", lineSize)
-
         val alignResult = alignContent.align(ps._2(lineSize), ps._2(sizedEl.size))
-//        val alignResult = alignContent.align(ps._2(lineSize), ps._2(sizedEl.size))
         val positioned =
           sizedEl.position(ps._2Set(sizedEl.position, alignResult.offset + ps._2(startPosition)))
-
         (pp._1 + ps._1(positioned.size), pp._2 ++ Vector[T](positioned))
-
       })
       ._2
   }
@@ -228,7 +214,7 @@ object Organize {
                                             cr: T): Vector[LineSummer[T]] = {
     val last = if (p.nonEmpty) p.last else LineSummer(Point.zero, Vector[T](), 0.0)
     //Resize elements to their original size,
-    //this helps keeping the ui elements more consitent on multiple layout runs.
+    //this helps keeping the ui elements more consistent on multiple layout runs.
     val c = cr match {
       case a: Sizable[T @unchecked] =>
         a.size(a.baseSize)
