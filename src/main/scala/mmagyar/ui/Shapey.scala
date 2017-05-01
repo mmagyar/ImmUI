@@ -73,7 +73,7 @@ sealed trait Shapey extends Material {
 
   def customToString: String = ""
 
-  lazy val stringName: String = getClass.getName.split('.').lastOption.getOrElse("Shapey")
+ def stringName: String = getClass.getName.split('.').lastOption.getOrElse("Shapey")
 
   final override def toString: String = elementsPrint()
 
@@ -184,6 +184,7 @@ final case class MultilineText(
   private case class LinesMetric(sizeX: Int, sizeY: Int, maxX: Int, posY: Int, text: String)
 
   private lazy val textLines: Vector[String] = font.sliceToMaxLineWidth(text, maxLineWidthCurrent)
+
   private lazy val linePositions: Vector[LinesMetric] =
     textLines.foldLeft(Vector[LinesMetric]())((p, c) => {
       val currentSize = font.getSizeForString(c)
@@ -207,20 +208,20 @@ final case class MultilineText(
   override def position(point: Point): MultilineText =
     if (position == point) this else copy(position = point)
 
-  private lazy val lineElements: Vector[Shapey] = linePositions.map(
+  private lazy val lineElements: Vector[Shapey] = linePositions.zipWithIndex.map(
     x =>
       Text(
-        Point(0, x.posY),
-        x.text,
-        Sizing(Point(x.sizeX, x.sizeY)),
+        Point(0, x._1.posY),
+        x._1.text,
+        Sizing(Point(x._1.sizeX, x._1.sizeY)),
         looks,
         zOrder,
         font,
-        ShapeyId()))
+        ShapeyId(id.symbol + "_text_line_" + x._2)))
 
   override lazy val elementList: ElementList = ElementList(lineElements, Relative.zero)
 
-  override lazy val customToString: String = s"text: $text"
+  override def customToString: String = s"text: $text"
 
   override lazy val sizing: Sizing =
     Sizing(
@@ -281,7 +282,7 @@ final case class Text(
 
   override def sizing(sizing: Sizing): Text = copy(sizing = sizing)
 
-  override lazy val customToString: String = s"text: $label"
+  override def  customToString: String = s"text: $label"
 
   if (size != boundingBox.size)
     println(size, boundingBox.size, id)
