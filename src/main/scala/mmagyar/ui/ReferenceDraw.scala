@@ -77,7 +77,7 @@ class ReferenceDraw(var scale: Double = 1) {
       case a: Text if a.boundingBox.inside(currentPoint) =>
         a.font match {
           case b: FontBitmap =>
-            val chars = b.organize(a.label)
+            val chars = b.organize(a.text)
             val cp    = (currentPoint - a.position).toInt
             chars
               .find(x => x._1._1 + x._2.size._1 > cp._1)

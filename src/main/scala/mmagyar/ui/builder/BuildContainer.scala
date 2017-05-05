@@ -52,7 +52,6 @@ object BuildContainer {
         Text("Selected Id:"),
         Text("", id = ShapeyId("SEL_ID_HERE")),
         Text("\ndetail:"),
-
         MultilineText("", id = ShapeyId("SEL_DETAIL_HERE"))
       ),
       Sizing(size),
@@ -60,27 +59,36 @@ object BuildContainer {
     )
 
   def builder(maxSize: Point, toAnalyse: Groupable[_]): Group =
-   Group( Group(
-      Horizontal(Layout(Wrap.No()), Bound(maxSize)),
+    Group(
+      Group(
+        Horizontal(Layout(Wrap.No()), Bound(maxSize)),
 //      BehaviourBasic.diag[Group],
-      BehaviourBasic(
-        Some(InjectedBehaviourAction((group: Group, tracker: Tracker) => {
-          group.change(x => x.id("SEL_ID_HERE") || x.id("SEL_DETAIL_HERE"), {
-            case a: Text =>
-              a.label(
-                tracker.downElements.headOption
-                  .map(_.shapey.id.symbol.name)
-                  .getOrElse(""))
-            case a: MultilineText =>
-              a.copy(text = tracker.downElements.headOption
-                .map(_.shapey.toString)
-                .getOrElse(""))
-          })
+        BehaviourBasic(
+          Some(InjectedBehaviourAction((group: Group, tracker: Tracker) => {
+            group.change(
+              x => x.id("SEL_ID_HERE") || x.id("SEL_DETAIL_HERE"), {
+                case a: Text  if a.id("SEL_ID_HERE")=>
+                  a.text(
+                    tracker.downElements.headOption
+                      .map(_.shapey.id.symbol.name)
+                      .getOrElse(""))
+                case a: MultilineText =>
+                  a.copy(text = tracker.downElements.headOption
+                    .map(y => {
+                      y.shapey match {
+                        case spy if spy == group          => "SELF - CONTROL PANEL"
+                        case spy: Group if spy.has(group) => "PARENT"
+                        case spy                          => spy.toString
+                      }
+                    })
+                    .getOrElse(""))
+              }
+            )
 
-        }))
-      ),
-      controlPanel(Point(180, maxSize.y)),
-      toAnalyse
-    ))//.copy(behaviour = BehaviourBasic.diag)
+          }))
+        ),
+        controlPanel(Point(180, maxSize.y)),
+        toAnalyse
+      )) //.copy(behaviour = BehaviourBasic.diag)
 
 }

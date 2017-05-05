@@ -179,7 +179,7 @@ final case class MultilineText(
     font: Font
 ) extends Groupable[MultilineText]
     with PositionableShapey
-    with SizableShapey {
+    with SizableShapey with LabelableShapey {
 
   private case class LinesMetric(sizeX: Int, sizeY: Int, maxX: Int, posY: Int, text: String)
 
@@ -227,7 +227,8 @@ final case class MultilineText(
     Sizing(
       Point(maxLineWidthBase, textSize.y),
       textSize,
-      Point(6, textSize.y),
+      Point.zero,
+//      Point(6, textSize.y), //TODO Revise max size
       Point.large.copy(y = textSize.y),
       Grow(dynamicSize),
       Shrink(dynamicSize))
@@ -236,26 +237,27 @@ final case class MultilineText(
     if (sizing == this.sizing) this
     else copy(maxLineWidthBase = sizing.baseSize.x, maxLineWidthCurrent = sizing.size.x)
 
+  def text(text:String) :MultilineText = if (text == this.text) this else copy(text = text)
 }
 
 object Text {
   lazy val defaultFont: Font = FontManager.loadBdfFont("fonts/u_vga16.bdf")
 
-  def apply(label: String,
+  def apply(text: String,
             position: Point = Point.zero,
             looks: Looks = Looks(Color.transparent, Color.grey),
             zOrder: Double = 1,
             font: Font = Text.defaultFont,
             id: ShapeyId = ShapeyId()): Text = {
-    val stringSize = Point(font.getSizeForString(label))
+    val stringSize = Point(font.getSizeForString(text))
     val sizing     = Sizing(stringSize, stringSize, stringSize)
-    Text(position, label, sizing, looks, zOrder, font, id)
+    Text(position, text, sizing, looks, zOrder, font, id)
   }
 }
 
 final case class Text(
     position: Point,
-    label: String,
+    text: String,
     sizing: Sizing,
     looks: Looks,
     zOrder: Double,
@@ -272,17 +274,17 @@ final case class Text(
   override def position(point: Point): Text =
     if (position != point) copy(position = point) else this
 
-  override def label(string: String): Text = label(string,recalculateSize = true)
+  override def text(string: String): Text = text(string,recalculateSize = true)
 
-  def label(string: String, recalculateSize: Boolean = true): Text =
+  def text(string: String, recalculateSize: Boolean = true): Text =
     if (recalculateSize) {
       val newSize = Point(font.getSizeForString(string))
-      copy(label = string, sizing = Sizing(newSize, newSize, newSize))
-    } else copy(label = string)
+      copy(text = string, sizing = Sizing(newSize, newSize, newSize))
+    } else copy(text = string)
 
   override def sizing(sizing: Sizing): Text = copy(sizing = sizing)
 
-  override def  customToString: String = s"text: $label"
+  override def  customToString: String = s"text: $text"
 
   if (size != boundingBox.size)
     println(size, boundingBox.size, id)

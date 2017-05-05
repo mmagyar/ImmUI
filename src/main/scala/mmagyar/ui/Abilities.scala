@@ -42,6 +42,6 @@ trait Rotatable[A <: Rotatable[A]] { this: A =>
 
 
 trait Labelable[A <: Labelable[A]] { this: A =>
-  def label: String
-  def label(string: String): A
+  def text: String
+  def text(string: String): A
 }

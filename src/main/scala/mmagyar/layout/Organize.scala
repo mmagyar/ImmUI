@@ -48,6 +48,19 @@ object Organize {
 //  def maxSize(elements: Vector[hasSize]): Point =
 //    elements.foldLeft(Point.zero)((p, c) => p.max(c.size))
 
+  implicit class SwapPoint(point: Point) {
+    def _1(implicit psw: PointSwapper): Double = psw._1(point)
+
+    def _2(implicit psw: PointSwapper): Double = psw._2(point)
+
+    def _1(value: Double)(implicit psw: PointSwapper): Point = psw._1Set(point, value)
+
+    def _2(value: Double)(implicit psw: PointSwapper): Point = psw._2Set(point, value)
+
+    def _1Add(value: Double)(implicit psw: PointSwapper): Point = psw._1Add(point, value)
+
+    def _2Add(value: Double)(implicit psw: PointSwapper): Point = psw._2Add(point, value)
+  }
   def getSummed_1[T <: Material](elements: Vector[T], ps: PointSwapper): Double =
     elements.foldLeft(0.0)((p: Double, c: T) => p + ps._1(c.size))
 
@@ -257,7 +270,7 @@ object Organize {
       basePoint: Point,
       bounds: Point,
       organizeToBounds: Boolean = false): Vector[T] = {
-    // handle too high wrap layout
+    implicit val pointSwapper = ps
 
     val linesRaw = elements.foldLeft(Vector[LineSummer[T]]())(partitionLines(ps, bounds, _, _))
 
@@ -272,13 +285,12 @@ object Organize {
     val lineGrow = linesWUniform_2.foldLeft(LineGrow[T]())((p, c) => {
       val currentWidth = getSummed_1(c.elements, ps)
       val elements =
-        if (currentWidth > ps._1(bounds)) shrink(c.elements, layout.fill, bounds, ps)
+        if (currentWidth > bounds._1) shrink(c.elements, layout.fill, bounds, ps)
         else grow(c.elements, layout.fill, bounds, ps)
 
       val lineL   = getSummed_1(elements, ps)
-      val tallest = getMax_2(elements, ps).max(ps._2(c.lineSize)) + additional
-      val summer =
-        LineSummer(ps._2Set(ps._1Set(c.lineSize, lineL), tallest), elements, p.previousOffset)
+      val tallest = getMax_2(elements, ps).max(c.lineSize._2) + additional
+      val summer = LineSummer(c.lineSize._1(lineL)._2(tallest), elements, p.previousOffset)
 
       LineGrow(p.lines :+ summer, p.longestLineLength.max(lineL), p.previousOffset + tallest)
     })
@@ -298,28 +310,64 @@ object Organize {
       case Simple(alignItem, alignContent, _, _) =>
         val wholeOffset =
           if (organizeToBounds)
-            layout.alignContent.align(ps._2(bounds), lineGrow.previousOffset).offset
+            layout.alignContent.align(bounds._2, lineGrow.previousOffset).offset
           else 0
 
         val additionalHeightPerLine =
-          ps._2(bounds) - lineGrow.lines.foldLeft(0.0)((p, c) => p + ps._2(c.lineSize)) match {
+          bounds._2 - lineGrow.lines.foldLeft(0.0)((p, c) => p + c.lineSize._2) match {
             case a if a > 0 => a / lineGrow.lines.size
             case _          => 0
           }
 
-        lineGrow.lines.foldLeft[Vector[T]](Vector.empty[T])((p, ln: LineSummer[T]) => {
-          p ++ organize(
-            ln.elements,
-            if (organizeToBounds)
-              ps(bounds, ps._2(ln.lineSize) + additionalHeightPerLine)
-            else ps._1Set(ln.lineSize, lineGrow.longestLineLength),
-            ps._2Add(basePoint, ln.offset_2 + wholeOffset),
-            alignContent,
-            alignItem,
-            bounds,
-            ps
-          )
-        })
+        /**
+          * Shrinks the elements y their secondary attribute if it's neccessery and possible
+          * It will not force any element under it's minimum size.
+          * In other words, handles too high wrap layout
+          * @param linesV line collect
+          * @tparam Z type
+          * @return
+          *  This may be optimized to run one less iteration.
+          */
+        def shrinkLine_2[Z <: Positionable[Z] with Material](linesV: LineGrow[Z]): LineGrow[Z] = {
+          val totalCurrent_2 = linesV.previousOffset
+          if (totalCurrent_2 > bounds._2) {
+            val minSize = linesV.lines.foldLeft(0.0)((xp, xc) => {
+              val minSize = xc.elements.foldLeft(0.0)((p, c) =>
+                (c match { case a: Sizable[_] => a.sizing.minSize; case a => a.size })._2.max(p))
+              if (xc.lineSize._2 <= minSize) xc.lineSize._2 + xp
+              else xp
+            })
+
+            val linesMinusMin = totalCurrent_2 - minSize
+            if (linesMinusMin <= 0) linesV
+            else {
+              val reductionFactor = (bounds._2 - minSize) / linesMinusMin
+
+              linesV.copy(lines = linesV.lines.map(x => {
+
+                val scaled = x.lineSize._2 * reductionFactor
+                val min = x.elements.foldLeft(0.0)((p, c) =>
+                  (c match { case a: Sizable[_] => a.sizing.minSize; case a => a.size })._2.max(p))
+                val cSize = if (scaled <= min) min else scaled
+                x.copy(lineSize = x.lineSize._2(cSize))
+              }))
+            }
+
+          } else linesV
+        }
+        shrinkLine_2(lineGrow).lines
+          .foldLeft[Vector[T]](Vector.empty[T])((p, ln: LineSummer[T]) => {
+            p ++ organize(
+              ln.elements,
+              if (organizeToBounds) bounds._2(ln.lineSize._2 + additionalHeightPerLine)
+              else ln.lineSize._1(lineGrow.longestLineLength),
+              basePoint._2Add(ln.offset_2 + wholeOffset),
+              alignContent,
+              alignItem,
+              bounds,
+              ps
+            )
+          })
       case EqualLines(_, _, _, _)   => ???
       case SimpleCut(_, _, _, _)    => ???
       case EqualLineCut(_, _, _, _) => ???
