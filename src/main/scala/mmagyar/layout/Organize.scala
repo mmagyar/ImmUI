@@ -290,7 +290,7 @@ object Organize {
 
       val lineL   = getSummed_1(elements, ps)
       val tallest = getMax_2(elements, ps).max(c.lineSize._2) + additional
-      val summer = LineSummer(c.lineSize._1(lineL)._2(tallest), elements, p.previousOffset)
+      val summer  = LineSummer(c.lineSize._1(lineL)._2(tallest), elements, p.previousOffset)
 
       LineGrow(p.lines :+ summer, p.longestLineLength.max(lineL), p.previousOffset + tallest)
     })
@@ -326,15 +326,19 @@ object Organize {
           * @param linesV line collect
           * @tparam Z type
           * @return
-          *  This may be optimized to run one less iteration.
           */
         def shrinkLine_2[Z <: Positionable[Z] with Material](linesV: LineGrow[Z]): LineGrow[Z] = {
           val totalCurrent_2 = linesV.previousOffset
+
+          def getMin(p: Double, c: Z): Double =
+            (c match {
+              case a: Sizable[_] if a.sizing.shrink == Shrink.Affinity => a.sizing.minSize
+              case a                                                   => a.size
+            })._2.max(p)
+
           if (totalCurrent_2 > bounds._2) {
             val minSize = linesV.lines.foldLeft(0.0)((xp, xc) => {
-              val minSize = xc.elements.foldLeft(0.0)((p, c) =>
-                (c match { case a: Sizable[_] => a.sizing.minSize; case a => a.size })._2.max(p))
-              if (xc.lineSize._2 <= minSize) xc.lineSize._2 + xp
+              if (xc.lineSize._2 <= xc.elements.foldLeft(0.0)(getMin)) xc.lineSize._2 + xp
               else xp
             })
 
@@ -346,9 +350,8 @@ object Organize {
               linesV.copy(lines = linesV.lines.map(x => {
 
                 val scaled = x.lineSize._2 * reductionFactor
-                val min = x.elements.foldLeft(0.0)((p, c) =>
-                  (c match { case a: Sizable[_] => a.sizing.minSize; case a => a.size })._2.max(p))
-                val cSize = if (scaled <= min) min else scaled
+                val min    = x.elements.foldLeft(0.0)(getMin)
+                val cSize  = if (scaled <= min) min else scaled
                 x.copy(lineSize = x.lineSize._2(cSize))
               }))
             }
