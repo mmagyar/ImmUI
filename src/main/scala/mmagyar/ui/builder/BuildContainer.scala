@@ -62,7 +62,6 @@ object BuildContainer {
     Group(
       Group(
         Horizontal(Layout(Wrap.No()), Bound(maxSize)),
-//      BehaviourBasic.diag[Group],
         BehaviourBasic(
           Some(InjectedBehaviourAction((group: Group, tracker: Tracker) => {
             group.change(
@@ -89,6 +88,5 @@ object BuildContainer {
         ),
         controlPanel(Point(180, maxSize.y)),
         toAnalyse
-      )) //.copy(behaviour = BehaviourBasic.diag)
-
+      ))
 }

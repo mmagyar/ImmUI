@@ -66,14 +66,14 @@ class PointerAction(
         * When dragging, also fire the event the origin elements
         * Or should it also fire the current elements as well
         */
-      val behaveables =
+      val behavables =
         (if (tracker.state == State.Drag) tracker.downElements
          else actionElements).collect {
           case PointedElement(a, b: Behaveable[_]) if b.behaviour.canBehave(tracker) =>
             PointedElement(a, b)
         }
       group.copy(
-        root = behaveables.foldLeft(group.root)((p, c) =>
+        root = behavables.foldLeft(group.root)((p, c) =>
           p.change(
             _.id == c.shapey.id, {
               case a: Behaveable[_] =>

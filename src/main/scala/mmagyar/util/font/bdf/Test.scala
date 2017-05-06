@@ -7,14 +7,14 @@ object Test {
 
   def main(args: Array[String]): Unit = {
 
-    val ldr  = new FontLoadBDFStd()
+//    val ldr  = new FontLoadBDFStd()
 //    val read = ldr.readBDF("fonts/ter-u32b.bdf")
 
 //    val read = ldr.readBDF("test.bdf")
 
-    val mgr = FontManager.loadBdfFont("fonts/radon.bdf")
+//    val mgr = FontManager.loadBdfFont("fonts/radon.bdf")
 
-println(mgr.organize("Szia"))
+
 
 //    arg.lines.foreach(input=> {
 //      (0 to 32).map(x => x < 32 && ((input & 1 << x) != 0)).foreach(x=> if(x) print('X') else print('.'))

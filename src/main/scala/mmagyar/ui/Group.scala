@@ -211,7 +211,7 @@ object SizableGroup {
     new SizableGroup(
       ElementList(
         Union(),
-        Rect(Sizing(Point.one, grow = Affinity), backgroundLooks, Double.MinValue),
+        Rect(Sizing.grow(Point.one), backgroundLooks, Double.MinValue),
         SizableGroup.scrollable(inner, sizing, margin = margin)
       ),
       sizing,

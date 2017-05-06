@@ -73,7 +73,7 @@ sealed trait Shapey extends Material {
 
   def customToString: String = ""
 
- def stringName: String = getClass.getName.split('.').lastOption.getOrElse("Shapey")
+  def stringName: String = getClass.getName.split('.').lastOption.getOrElse("Shapey")
 
   final override def toString: String = elementsPrint()
 
@@ -179,7 +179,8 @@ final case class MultilineText(
     font: Font
 ) extends Groupable[MultilineText]
     with PositionableShapey
-    with SizableShapey with LabelableShapey {
+    with SizableShapey
+    with LabelableShapey {
 
   private case class LinesMetric(sizeX: Int, sizeY: Int, maxX: Int, posY: Int, text: String)
 
@@ -227,17 +228,15 @@ final case class MultilineText(
     Sizing(
       Point(maxLineWidthBase, textSize.y),
       textSize,
-      Point.zero,
-//      Point(6, textSize.y), //TODO Revise max size
-      Point.large.copy(y = textSize.y),
-      Grow(dynamicSize),
-      Shrink(dynamicSize))
+      if (dynamicSize) Grow(Point.large.copy(y = textSize.y)) else Grow.No,
+      if (dynamicSize) Shrink.Affinity else Shrink.No
+    )
 
   override def sizing(sizing: Sizing): SizableShapey =
     if (sizing == this.sizing) this
     else copy(maxLineWidthBase = sizing.baseSize.x, maxLineWidthCurrent = sizing.size.x)
 
-  def text(text:String) :MultilineText = if (text == this.text) this else copy(text = text)
+  def text(text: String): MultilineText = if (text == this.text) this else copy(text = text)
 }
 
 object Text {
@@ -274,7 +273,7 @@ final case class Text(
   override def position(point: Point): Text =
     if (position != point) copy(position = point) else this
 
-  override def text(string: String): Text = text(string,recalculateSize = true)
+  override def text(string: String): Text = text(string, recalculateSize = true)
 
   def text(string: String, recalculateSize: Boolean = true): Text =
     if (recalculateSize) {
@@ -284,7 +283,7 @@ final case class Text(
 
   override def sizing(sizing: Sizing): Text = copy(sizing = sizing)
 
-  override def  customToString: String = s"text: $text"
+  override def customToString: String = s"text: $text"
 
   if (size != boundingBox.size)
     println(size, boundingBox.size, id)

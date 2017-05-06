@@ -19,7 +19,7 @@ object Bitmap {
         odd = !odd
         if (odd) x
         else
-          x.map(y => {
+          x.map(_ => {
             even = !even
             if (even) byteB else byteC
           })
@@ -34,8 +34,8 @@ object Bitmap {
                 colorB: Color = Color.green,
                 colorC: Color = Color.blue,
                 colorD: Color = Color.silver): Bitmap = {
-    var halfW = x / 2
-    var halfH = y / 2
+    val halfW = x / 2
+    val halfH = y / 2
 
     def triColor(color: Color): (ColorByte, ColorByte, ColorByte) =
       (ColorByte(color), ColorByte(color.lighten(110)), ColorByte(color.darken(70)))
@@ -45,7 +45,7 @@ object Bitmap {
     val byteC = triColor(colorC)
     val byteD = triColor(colorD)
 
-    def resolveCOlor(num: (Int, Int), colors: (ColorByte, ColorByte, ColorByte)): ColorByte = {
+    def resolveColor(num: (Int, Int), colors: (ColorByte, ColorByte, ColorByte)): ColorByte = {
       if (num._1 % 2 == 0) colors._1
       else if (num._2 % 2 == 0) colors._2
       else colors._3
@@ -59,15 +59,15 @@ object Bitmap {
           x._1.zipWithIndex.map(
             y =>
               if (x._2 >= halfW)
-                if (y._2 >= halfH) resolveCOlor((x._2, y._2), byteA)
-                else resolveCOlor((x._2, y._2), byteB)
-              else if (y._2 >= halfH) resolveCOlor((x._2, y._2), byteC)
-              else resolveCOlor((x._2, y._2), byteD)))
+                if (y._2 >= halfH) resolveColor((x._2, y._2), byteA)
+                else resolveColor((x._2, y._2), byteB)
+              else if (y._2 >= halfH) resolveColor((x._2, y._2), byteC)
+              else resolveColor((x._2, y._2), byteD)))
 
     new Bitmap(pixels)
   }
 
-  def scale(double: Double):Vector[Vector[Color]]= {???}
+  def scale(double: Double):Vector[Vector[Color]]= ???
 }
 case class Bitmap(pixels: Vector[Vector[ColorByte]]) {
   val size: (Int, Int) = (pixels.size, pixels.headOption.getOrElse(Vector.empty).size)

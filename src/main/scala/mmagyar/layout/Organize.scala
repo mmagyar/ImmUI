@@ -2,7 +2,6 @@ package mmagyar.layout
 
 import mmagyar.layout.Fill._
 import mmagyar.layout.Wrap.{EqualLineCut, EqualLines, Simple, SimpleCut}
-import mmagyar.ui.Shapey
 import mmagyar.util.{Point, PointSwapper}
 
 import scala.annotation.tailrec
@@ -86,8 +85,9 @@ object Organize {
             val result      = alignContent.align(maxSize, sizeSec, sizeChangeable = true)
             val result2     = result.size.max(ps._2(a.sizing.minSize))
             val currentSize = ps._2(a.size)
-            if ((result2 > currentSize && a.sizing.grow == Grow.Affinity) ||
-                (result2 < currentSize && a.sizing.shrink == Shrink.Affinity))
+//            if ((result2 > currentSize && a.sizing.grow == Grow.Affinity) ||
+//              (result2 < currentSize && a.sizing.shrink == Shrink.Affinity))
+            if ((result2 > currentSize) || (result2 < currentSize))
               a.size(ps._2Set(a.size, result2))
             else a.size(a.size)
           case a => a
@@ -117,7 +117,7 @@ object Organize {
 
     val sizables = elements.collect { case a: Sizable[_] => a }
     val remainingWidth: Double = ps._1(lineSize) -
-      getSummed_1(elements.filter({ case a: Sizable[_] => false; case _ => true }), ps)
+      getSummed_1(elements.filter({ case _: Sizable[_] => false; case _ => true }), ps)
 
     fill match {
       case No => elements
@@ -174,7 +174,7 @@ object Organize {
                                                  ps: PointSwapper): Vector[T] = {
     val sizables = elements.collect { case a: Sizable[_] => a }
     val remainingWidth: Double = ps._1(lineSize) -
-      getSummed_1(elements.filter({ case a: Sizable[_] => false; case _ => true }), ps)
+      getSummed_1(elements.filter({ case _: Sizable[_] => false; case _ => true }), ps)
     fill match {
       case No => elements
       case Equal =>
@@ -263,6 +263,47 @@ object Organize {
     remaining / lines.size
   }
 
+  /**
+    * Shrinks the elements y their secondary attribute if it's neccessery and possible
+    * It will not force any element under it's minimum size.
+    * In other words, handles too high wrap layout
+    * @param linesV line collect
+    * @tparam Z type
+    * @return
+    */
+  private def shrinkLine_2[Z <: Positionable[Z] with Material](linesV: LineGrow[Z], bounds: Point)(
+      implicit pointSwapper: PointSwapper): LineGrow[Z] = {
+    val totalCurrent_2 = linesV.previousOffset
+
+    def getMin(p: Double, c: Z): Double =
+      (c match {
+        case a: Sizable[_] => a.sizing.minSize
+        case a             => a.size
+      })._2.max(p)
+
+    if (totalCurrent_2 > bounds._2) {
+      val minSize = linesV.lines.foldLeft(0.0)((xp, xc) => {
+        if (xc.lineSize._2 <= xc.elements.foldLeft(0.0)(getMin)) xc.lineSize._2 + xp
+        else xp
+      })
+
+      val linesMinusMin = totalCurrent_2 - minSize
+      if (linesMinusMin <= 0) linesV
+      else {
+        val reductionFactor = (bounds._2 - minSize) / linesMinusMin
+
+        linesV.copy(lines = linesV.lines.map(x => {
+
+          val scaled = x.lineSize._2 * reductionFactor
+          val min    = x.elements.foldLeft(0.0)(getMin)
+          val cSize  = if (scaled <= min) min else scaled
+          x.copy(lineSize = x.lineSize._2(cSize))
+        }))
+      }
+
+    } else linesV
+  }
+
   def wrapOrganize[T <: Positionable[T] with Material](
       elements: Vector[T],
       layout: Layout,
@@ -319,46 +360,7 @@ object Organize {
             case _          => 0
           }
 
-        /**
-          * Shrinks the elements y their secondary attribute if it's neccessery and possible
-          * It will not force any element under it's minimum size.
-          * In other words, handles too high wrap layout
-          * @param linesV line collect
-          * @tparam Z type
-          * @return
-          */
-        def shrinkLine_2[Z <: Positionable[Z] with Material](linesV: LineGrow[Z]): LineGrow[Z] = {
-          val totalCurrent_2 = linesV.previousOffset
-
-          def getMin(p: Double, c: Z): Double =
-            (c match {
-              case a: Sizable[_] if a.sizing.shrink == Shrink.Affinity => a.sizing.minSize
-              case a                                                   => a.size
-            })._2.max(p)
-
-          if (totalCurrent_2 > bounds._2) {
-            val minSize = linesV.lines.foldLeft(0.0)((xp, xc) => {
-              if (xc.lineSize._2 <= xc.elements.foldLeft(0.0)(getMin)) xc.lineSize._2 + xp
-              else xp
-            })
-
-            val linesMinusMin = totalCurrent_2 - minSize
-            if (linesMinusMin <= 0) linesV
-            else {
-              val reductionFactor = (bounds._2 - minSize) / linesMinusMin
-
-              linesV.copy(lines = linesV.lines.map(x => {
-
-                val scaled = x.lineSize._2 * reductionFactor
-                val min    = x.elements.foldLeft(0.0)(getMin)
-                val cSize  = if (scaled <= min) min else scaled
-                x.copy(lineSize = x.lineSize._2(cSize))
-              }))
-            }
-
-          } else linesV
-        }
-        shrinkLine_2(lineGrow).lines
+        shrinkLine_2(lineGrow, bounds).lines
           .foldLeft[Vector[T]](Vector.empty[T])((p, ln: LineSummer[T]) => {
             p ++ organize(
               ln.elements,
@@ -395,9 +397,9 @@ final case class Horizontal(layout: Layout = Layout(), size: LayoutSizeConstrain
       size.constraintSize,
       organizeToBounds.getOrElse(organizeToBounds.getOrElse(size match {
         case Unbound()               => false
-        case BoundWidth(constraint)  => false
-        case BoundHeight(constraint) => true
-        case Bound(constraintSize)   => true
+        case BoundWidth(_)  => false
+        case BoundHeight(_) => true
+        case Bound(_)   => true
       }))
     )
 
@@ -418,16 +420,16 @@ final case class Vertical(layout: Layout = Layout(), size: LayoutSizeConstraint 
       size.constraintSize,
       organizeToBounds.getOrElse(size match {
         case Unbound()               => false
-        case BoundWidth(constraint)  => true
-        case BoundHeight(constraint) => false
-        case Bound(constraintSize)   => true
+        case BoundWidth(_)  => true
+        case BoundHeight(_) => false
+        case Bound(_)   => true
       })
     )
 
 }
 
 /**
-  * Freeform layout, akin to absolute position, this layout always starts at Point zero
+  * FreeForm layout, akin to absolute position, this layout always starts at Point zero
   */
 case class FreeForm() extends Organize {
   val layout: Layout             = Layout()

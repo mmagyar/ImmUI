@@ -2,7 +2,6 @@ package mmagyar.util
 
 import mmagyar.layout.{Material, Positionable}
 
-
 /** Created by Magyar Máté on 2017-01-22, All rights reserved. */
 class DebugDraw(val printSize: Point = Point(90, 40), val cameraOffset: Point = Point.zero) {
 
@@ -40,23 +39,23 @@ class DebugDraw(val printSize: Point = Point(90, 40), val cameraOffset: Point = 
             val ru     = points.contains('└')
             val rd     = points.contains('┌')
 
-            val lineCount = points.count(_ == '─')
-            val vertCount = points.count(_ == '│')
+            val lineCount     = points.count(_ == '─')
+            val verticalCount = points.count(_ == '│')
             val char =
-              if (ru && rd) if (lu && ld) '╬' else if (vertCount > 0) '╠' else '╞'
-              else if (lu && ld) if (vertCount > 0) '╣' else '╡'
+              if (ru && rd) if (lu && ld) '╬' else if (verticalCount > 0) '╠' else '╞'
+              else if (lu && ld) if (verticalCount > 0) '╣' else '╡'
               else if (ld && rd) if (lineCount > 0) '╦' else '╥'
               else if (lu && ru) if (lineCount > 0) '╩' else '╨'
               else if (ld && lineCount > 0) '┭' // ╕
               else if (rd && lineCount > 0) '┮' // ╒
               else if (lu && lineCount > 0) '┵' // ╕
               else if (ru && lineCount > 0) '┶' // ╒
-              else if (rd && vertCount > 0) '┟' //
-              else if (ld && vertCount > 0) '┧' //
-              else if (ru && vertCount > 0) '┞' // ╙
-              else if (lu && vertCount > 0) '┦' // ╜
+              else if (rd && verticalCount > 0) '┟' //
+              else if (ld && verticalCount > 0) '┧' //
+              else if (ru && verticalCount > 0) '┞' // ╙
+              else if (lu && verticalCount > 0) '┦' // ╜
               else if (lineCount > 1) '═'
-              else if (vertCount > 1) '║'
+              else if (verticalCount > 1) '║'
               else if (points.count(_ == '+') > 1) 'X'
               else points.find(x => x != ' ').getOrElse('.')
 

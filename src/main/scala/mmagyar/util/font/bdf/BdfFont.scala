@@ -1,10 +1,10 @@
 package mmagyar.util.font.bdf
 
 import mmagyar.ui.{BitmapChar, FontBitmap}
-import mmagyar.util.{BoundingBox, Point}
+import mmagyar.util.Point
 import mmagyar.util.font.bdf.Font.IntPoint
 
-import scala.collection.immutable.{Map, Queue}
+import scala.collection.immutable.Map
 import scala.io.Source
 
 /** Magyar Máté 2017, all rights reserved */

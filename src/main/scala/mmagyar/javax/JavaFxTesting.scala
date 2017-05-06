@@ -56,11 +56,11 @@ class JavaFxTesting extends Application {
 
     if (writeRenderTime)
       timing.print("Render UI")
-    bufferDraw.wholeBuffer
+    resultBitmap
   }
 
   var needsUpdate: Boolean = true
-  var actions              = new PointerAction()
+  val actions              = new PointerAction()
 
   def start(stage: Stage) {
     val root = new Pane
@@ -85,15 +85,13 @@ class JavaFxTesting extends Application {
         document(document.copy(root = root))
       //        println(document.root)
       case a: KeyEvent if a.getText.toLowerCase() == "t" =>
-        val root = document.root.change(_.id("HEEY"), {
+        val root = document.root.change(_.id("HEY"), {
           case xx: Group => xx.rotation(Degree(xx.rotation.value + (if (a.isShiftDown) -3 else 3)))
 //          case a=> a
         })
         document(document.copy(root = root))
       case a => println("UNKNOWN KEY:" + a)
     }
-
-    var pos: PointerState = PointerState(Point.zero, switch = false)
 
     scene.setOnMouseMoved({
       case a: MouseEvent =>
@@ -131,7 +129,7 @@ class JavaFxTesting extends Application {
         document(actions.act(None, document, Point(a.getDeltaX, a.getDeltaY)))
     })
     stage.setScene(scene)
-    stage.setTitle("ImmuGUI")
+    stage.setTitle("Shapey Reference")
     stage.setY(0)
         stage.setX(2890)
     //    stage.setX(1620)
@@ -174,7 +172,6 @@ class JavaFxTesting extends Application {
     if (!printToScreen) return
     var x      = 0
     var y      = 0
-    val offset = 0
     val w      = buf.length
     val h      = buf.head.length
 
@@ -198,10 +195,9 @@ class JavaFxTesting extends Application {
     val frames = 60
     val mark   = 0 until frames
 
-    //warmup
     warmUp()
     val time = Timing()
-    mark.foreach(x => buffDraw(testBufferDraw(), printToScreen = false))
+    mark.foreach(_ => buffDraw(testBufferDraw(), printToScreen = false))
     time.print("Total time for UI", frames)
 
     println("Starting draw time benchmark")
@@ -210,7 +206,7 @@ class JavaFxTesting extends Application {
 
     val time2 = Timing()
 
-    mark.foreach(x => buffDraw(testBuf))
+    mark.foreach(_ => buffDraw(testBuf))
 
     time2.print("Total time for javaFx", frames)
 

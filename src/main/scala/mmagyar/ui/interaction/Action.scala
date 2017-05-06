@@ -22,7 +22,7 @@ object BehaviourBasic {
 
   def empty[T <: mmagyar.ui.Shapey]: BehaviourBasic[T] = BehaviourBasic[T]()
 
-  def diag[T <: Shapey]: BehaviourBasic[T] = BehaviourBasic[T](
+  def diagnosticPrint[T <: Shapey]: BehaviourBasic[T] = BehaviourBasic[T](
     Some(InjectedBehaviourAction[T]((in, track) => {
       println("Click", in, track); in
     })),

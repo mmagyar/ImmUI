@@ -74,7 +74,7 @@ case class Point(x: Double, y: Double) {
   def ceil: Point   = Point(x.ceil, y.ceil)
   def floor: Point  = Point(x.floor, y.floor)
 
-  def bothEqual(value:Double) : Boolean  = x == value && y == value
+  def bothEqual(value: Double): Boolean = x == value && y == value
 
   def aspectMatchWidth(newWidth: Double): Point = Point(newWidth, this.y * (newWidth / this.x))
 
@@ -122,7 +122,6 @@ case class Point(x: Double, y: Double) {
     if (this.x < 0 || this.y < 0) Point(Math.abs(this.x), Math.abs(this.y))
     else this
   }
-
 
   /**
     * Truncates it to specified decimal values, defaults to 6
@@ -201,10 +200,10 @@ case class Point(x: Double, y: Double) {
     val x = this.x - origin.x
     val y = this.y - origin.y
     // rotate point
-    val xnew = x * c - y * s
-    val ynew = x * s + y * c
+    val xNew = x * c - y * s
+    val yNew = x * s + y * c
     // translate point back:
-    Point(xnew + origin.x, ynew + origin.y)
+    Point(xNew + origin.x, yNew + origin.y)
   }
 
   def isZero: Boolean = this.x == 0 && this.y == 0
@@ -227,8 +226,8 @@ object BoundingBox {
     else {
       val head :: tail = pointList
       val result =
-        tail.foldLeft[(Point, Point)]((head, head))((prev: (Point, Point), crnt: Point) =>
-          (prev._1.min(crnt), prev._2.max(crnt)))
+        tail.foldLeft[(Point, Point)]((head, head))((prev: (Point, Point), c: Point) =>
+          (prev._1.min(c), prev._2.max(c)))
       BoundingBox(result._1, result._2.sub(result._1))
     }
   }
@@ -451,11 +450,11 @@ case class PointSwapper private (_1: (Point) => Double,
   def _1Add(point: Point, value: Double): Point = _1Set(point, value + _1(point))
   def _2Add(point: Point, value: Double): Point = _2Set(point, value + _2(point))
 
-  def _1Set(point: Point, set_1FromThis:Point):Point = _1Set(point, _1(set_1FromThis))
-  def _2Set(point: Point, set_2FromThis:Point):Point = _2Set(point, _2(set_2FromThis))
+  def _1Set(point: Point, set_1FromThis: Point): Point = _1Set(point, _1(set_1FromThis))
+  def _2Set(point: Point, set_2FromThis: Point): Point = _2Set(point, _2(set_2FromThis))
 
-  def apply(_1A:Double, _2A :Double):Point = _2Set(_1Set(Point.zero,_1A),_2A)
-  def apply(_1A:Point, _2A :Point):Point = _2Set(_1Set(Point.zero,_1A),_2A)
-  def apply(_1A:Double, _2A :Point):Point = _2Set(_1Set(Point.zero,_1A),_2A)
-  def apply(_1A:Point, _2A :Double):Point = _2Set(_1Set(Point.zero,_1A),_2A)
+  def apply(_1A: Double, _2A: Double): Point = _2Set(_1Set(Point.zero, _1A), _2A)
+  def apply(_1A: Point, _2A: Point): Point   = _2Set(_1Set(Point.zero, _1A), _2A)
+  def apply(_1A: Double, _2A: Point): Point  = _2Set(_1Set(Point.zero, _1A), _2A)
+  def apply(_1A: Point, _2A: Double): Point  = _2Set(_1Set(Point.zero, _1A), _2A)
 }

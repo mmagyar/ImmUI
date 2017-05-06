@@ -1,14 +1,13 @@
 package mmagyar.ui.widget
 
-import mmagyar.layout.{Relative, Sizing}
+import mmagyar.layout.Grow.{Affinity, No, Until}
+import mmagyar.layout.{Grow, Relative, Shrink, Sizing}
 import mmagyar.ui.interaction._
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.ui._
 import mmagyar.util.{Point, TriState}
 
 /** Magyar Máté 2017, all rights reserved */
-
-
 object ScrollbarGroup {
   val defaultScrollbars: (TriState, TriState) = (TriState.Auto, TriState.Auto)
 
@@ -83,16 +82,34 @@ class ScrollbarGroup(val position: Point,
   val xScrollbar: Vector[Rect] =
     if (drawScrollBar._1)
       Vector(
-        Rect(Sizing(Point(child.size.x, scrollBarSize.y)), Looks(style.scrollBarBgColor), position = Point(0, child.size.y), id = scrollBarXId),
-        Rect(Sizing(Point(scrollW.x, scrollBarSize.y)), Looks(style.scrollBarColor), zOrder = 2, Point(scrollKnobOffset.x, child.size.y), id = knobXId)
+        Rect(
+          Sizing(Point(child.size.x, scrollBarSize.y)),
+          Looks(style.scrollBarBgColor),
+          position = Point(0, child.size.y),
+          id = scrollBarXId),
+        Rect(
+          Sizing(Point(scrollW.x, scrollBarSize.y)),
+          Looks(style.scrollBarColor),
+          zOrder = 2,
+          Point(scrollKnobOffset.x, child.size.y),
+          id = knobXId)
       )
     else Vector.empty
 
   val yScrollBar: Vector[Rect] =
     if (drawScrollBar._2)
       Vector(
-        Rect(Sizing(Point(scrollBarSize.x, child.size.y)), Looks(style.scrollBarBgColor), position = Point(child.size.x, 0), id = scrollBarYId),
-        Rect(Sizing(Point(scrollBarSize.x, scrollW.y)), Looks(style.scrollBarColor), zOrder = 2, Point(child.size.x, scrollKnobOffset.y), id = knobYId)
+        Rect(
+          Sizing(Point(scrollBarSize.x, child.size.y)),
+          Looks(style.scrollBarBgColor),
+          position = Point(child.size.x, 0),
+          id = scrollBarYId),
+        Rect(
+          Sizing(Point(scrollBarSize.x, scrollW.y)),
+          Looks(style.scrollBarColor),
+          zOrder = 2,
+          Point(child.size.x, scrollKnobOffset.y),
+          id = knobYId)
       )
     else Vector.empty
   val elementList = ElementList(
@@ -108,7 +125,7 @@ class ScrollbarGroup(val position: Point,
   override def mapElements(map: (Shapey) => Shapey): ScrollbarGroup =
     copyInternal(child = map(cChild) match {
       case a: SizableGroup => a
-      case a =>
+      case _ =>
         System.err.println("""when mapping a scrollbar group,
             | the element must retain
             |  it's original type of Sizable group.
@@ -134,23 +151,21 @@ class ScrollbarGroup(val position: Point,
   override lazy val sizing: Sizing =
     Sizing(
       cChild.size + scrollBarSize,
-      cChild.sizing.minSize + scrollBarSize,
-      cChild.sizing.maxSize + scrollBarSize,
-      cChild.sizing.grow,
-      cChild.sizing.shrink)
+      cChild.sizing.grow.changeSize(_ + scrollBarSize),
+      cChild.sizing.shrink.changeSize(_ + scrollBarSize)
+    )
 
   override def sizing(sizing: Sizing): ScrollbarGroup =
     if (sizing == this.sizing) this
     else
       copyInternal(
         child = child.sizing(
-          child.sizing.copy(
+          Sizing(
             sizing.baseSize - scrollBarSize,
             sizing.size - scrollBarSize,
-            sizing.minSize - scrollBarSize,
-            sizing.maxSize - scrollBarSize,
-            sizing.grow,
-            sizing.shrink)))
+            sizing.grow.changeSize(_ - scrollBarSize),
+            sizing.shrink.changeSize(_ - scrollBarSize)
+          )))
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case a: ScrollbarGroup => a.cChild == cChild

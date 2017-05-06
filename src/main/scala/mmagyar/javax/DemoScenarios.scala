@@ -55,7 +55,7 @@ object DemoScenarios {
       Layout(),
       Rect(Sizing(30, 40)),
       Rect(Sizing(30, 60), looks = Looks(Color.white, Color.blue, 2)),
-      Rect(Sizing(Point(50, 50), grow = Grow.Affinity), looks = Looks(Color.green, Color.silver, 10))
+      Rect(Sizing(Point(50, 50), Grow.Affinity, Shrink.No), looks = Looks(Color.green, Color.silver, 10))
     )
 
   lazy val simpleGroup2: Group = Group(
@@ -67,7 +67,7 @@ object DemoScenarios {
         Layout(),
         Rect(Sizing(30, 40)),
         Rect(Sizing(30, 60), looks = Looks(Color.white, Color.blue, 2)),
-        Rect(Sizing(Point(50, 50), grow = Grow.Affinity), looks = Looks(Color.green, Color.silver, 10))
+        Rect(Sizing.grow(Point(50, 50)), looks = Looks(Color.green, Color.silver, 10))
       )
       .copy(position = Point.zero, rotation = Degree(0), id = ShapeyId("AHOY"))
   )
@@ -78,13 +78,6 @@ object DemoScenarios {
   lazy val doublePresence: Group = Group(
     Relative(),
     doubleThis,
-    //    Text(Point(100,100),"OHHZ NO",looks = Looks(Color.red, Color.blue,3),5),
-    //    new Dialogue(
-    //      "ohh hawdy, this text overlaps",
-    //      Point.zero,
-    //      Point(100, 100),
-    //      Vector(DialogueOption("OK"), DialogueOption("CANCEL")),
-    //      4)(Style()),
     Group
       .horizontal(
         Point.zero,
@@ -92,14 +85,13 @@ object DemoScenarios {
         Layout(),
         Rect(Sizing(30, 40)),
         doubleThis,
-        Rect(Sizing(Point(50, 50), grow = Grow.Affinity), looks = Looks(Color.green, Color.silver, 10))
+        Rect(Sizing.grow(Point(50, 50)), looks = Looks(Color.green, Color.silver, 10))
       )
-      //    .copy(rotation = Degree(0),id = ShapeyId("AHOY"),behaviour = Behaviour.diag[Group])
       .copy(
         position = Point.zero,
         rotation = Degree(0),
         id = ShapeyId("AHOY"),
-        behaviour = BehaviourBasic(click = Some(InjectedBehaviourAction[Group]((a, t) =>
+        behaviour = BehaviourBasic(click = Some(InjectedBehaviourAction[Group]((a, _) =>
           a.copy(rotation = Degree(a.rotation.value + 5)))))
       )
   )
@@ -119,7 +111,7 @@ object DemoScenarios {
       position = Point(20, 20),
       sizing = Sizing(160, 80),
       elements = Vector(
-        Rect(Sizing(Point(80, 30), maxSize = Point(150, 70), grow = Grow.No)),
+        Rect(Sizing(Point(80, 30), Grow( Point(150, 70)),Shrink.No)),
         Text("HELLO", Point(40, 40)))
     )
   )
@@ -135,7 +127,7 @@ object DemoScenarios {
       Align2d(Align.Right, Align.Right)),
     Group(
       Dialogue(
-        "ohh hawdy, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
+        "ohh hacky, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
         Point.zero,
         Sizing(Point(240, 110)),
         Vector(
@@ -144,7 +136,7 @@ object DemoScenarios {
           DialogueOption("MAYBE"),
           DialogueOption("NOT ENOUGH")
         )
-      )(Style())).copy(id = ShapeyId("HEEY"), position = Point(30, 30), zOrder = 4,scale = Point(1.789,1.789))
+      )(Style())).copy(id = ShapeyId("HEY"), position = Point(30, 30), zOrder = 4,scale = Point(1.789,1.789))
   )
 
   lazy val dialogue: Group = Group(
@@ -173,7 +165,7 @@ object DemoScenarios {
         position = Point(20, 20),
         sizing = Sizing(160, 80),
         elements = Vector(
-          Rect(Sizing(Point(80, 30), maxSize = Point(150, 70), grow = Grow.No)),
+          Rect(Sizing(Point(80, 30), Grow(Point(150, 70)),Shrink.No)),
           Text("HELLO", Point(40, 40)))
       )
     ).scale(2)
@@ -193,7 +185,7 @@ object DemoScenarios {
       .position(Point(0, 0))
       .position(Point(20, 20))
       .rotation(new Degree(90))
-      .copy(zOrder = 22, id = ShapeyId("HEEY"))
+      .copy(zOrder = 22, id = ShapeyId("HEY"))
   )
 
   lazy val interactionDev: Group = Group(
@@ -209,7 +201,7 @@ object DemoScenarios {
         .copy(
           zOrder = 4,
           behaviour = BehaviourBasic(click = Some(InjectedBehaviourAction((x, y) => {
-            println("Hellow", y.currentPosition)
+            println("Hello", y.currentPosition)
 
             x
           }))),
@@ -222,7 +214,7 @@ object DemoScenarios {
       .position(Point(10, 10))
       .rotation(new Degree(45))
       .copy(behaviour = BehaviourBasic(click = Some(InjectedBehaviourAction((x, y) => {
-        println("HAII", y.currentPosition)
+        println("HAI", y.currentPosition)
         x
       }))), zOrder = 22, id = ShapeyId("ROTATED GROUP")) //behaviour = InjectedBehaviourAction())
   )
