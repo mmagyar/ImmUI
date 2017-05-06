@@ -4,8 +4,9 @@ import mmagyar.layout.Grow.Affinity
 import mmagyar.layout._
 import mmagyar.ui._
 import mmagyar.ui.interaction._
-import mmagyar.ui.widget.WidgetWithChildrenBase
-import mmagyar.util.{Box, Color, Point}
+import mmagyar.ui.widget.{ScrollbarGroup, WidgetWithChildrenBase}
+import mmagyar.ui.widgetHelpers.Style
+import mmagyar.util.{Box, Color, Point, TriState}
 
 /** Magyar Máté 2017, all rights reserved */
 /*
@@ -45,18 +46,21 @@ class BuildContainer(val contents: Groupable[_],
 object BuildContainer {
 
   def controlPanel(size: Point): Groupable[_] =
-    SizableGroup.scrollableWithBackground(
-      Group(
-        Vertical(Layout(Wrap.Simple(alignContent = Align.Stretch(Align.Left)))),
-        MultilineText("SHOW DATA HERE, and this overlaps, way over", id = ShapeyId("DEBUG_THIS")),
-        Text("Selected Id:"),
-        Text("", id = ShapeyId("SEL_ID_HERE")),
-        Text("\ndetail:"),
-        MultilineText("", id = ShapeyId("SEL_DETAIL_HERE"))
-      ),
-      Sizing(size),
-      margin = Box(Point(6, 6))
-    )
+    new ScrollbarGroup(SizableGroup.scrollableWithBackground(
+            Group(
+              //TODO no warp should stil have align content
+              Vertical(Layout(Wrap.No(),alignContent = Align.Stretch(Align.Center))),//(alignContent = Align.Stretch(Align.Left)))),
+              MultilineText(
+                "SHOW DATA HERE, and this overlaps, way over",
+                id = ShapeyId("DEBUG_THIS")),
+              Text("Selected Id:"),
+              MultilineText("", id = ShapeyId("SEL_ID_HERE")),
+              Text("\ndetail:"),
+              MultilineText("", id = ShapeyId("SEL_DETAIL_HERE"),minSize = Point(24,8))
+            ),
+            Sizing(size),
+            margin = Box(Point(6, 6))
+          ), 1, x => x.elements.collect { case a: SizableGroup => a }.head, scrollBars = (TriState.Auto, TriState.Auto),maxSizing = Some(Sizing(size)))(Style())
 
   def builder(maxSize: Point, toAnalyse: Groupable[_]): Group =
     Group(
@@ -66,12 +70,12 @@ object BuildContainer {
           Some(InjectedBehaviourAction((group: Group, tracker: Tracker) => {
             group.change(
               x => x.id("SEL_ID_HERE") || x.id("SEL_DETAIL_HERE"), {
-                case a: Text  if a.id("SEL_ID_HERE")=>
+                case a: MultilineText if a.id("SEL_ID_HERE") =>
                   a.text(
                     tracker.downElements.headOption
                       .map(_.shapey.id.symbol.name)
                       .getOrElse(""))
-                case a: MultilineText =>
+                case a: MultilineText if a.id("SEL_DETAIL_HERE") =>
                   a.copy(text = tracker.downElements.headOption
                     .map(y => {
                       y.shapey match {

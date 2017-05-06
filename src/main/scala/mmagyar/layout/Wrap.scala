@@ -47,7 +47,7 @@ object Wrap {
       extends Wrap {
 
     /** This value is ignored when using this wrap type **/
-    val alignContent: AlignSimple = Align.Left
+    val alignContent: AlignSimple = Align.Stretch(Align.Left)
 
     /** This value is ignored when using this wrap type **/
     val alignItem = Align.Left

@@ -65,7 +65,13 @@ class Dialogue private (updateReason: UpdateReason,
         val textSize = Point(size.x - style.scrollBar.x, 10) //margin.ySum+1)
 
         val multiText =
-          SizableGroup.scrollableTextBox(text, Sizing(textSize, Point(textSize.x, 1), grow = Grow.Affinity), style.fontLooks, Point.zero, margin)
+          SizableGroup.scrollableTextBox(
+            text,
+            Sizing(textSize, Point(textSize.x, 1), grow = Grow.Affinity),
+            style.fontLooks,
+            Point.zero,
+            margin,
+            id = ShapeyId(id.symbol.name + "_TEXT_BOX"))
 
         val wrapText = ScrollbarGroup(multiText)
 
@@ -116,7 +122,7 @@ class Dialogue private (updateReason: UpdateReason,
   }
   override def mapElements(map: (Shapey) => Shapey): Dialogue = elementList.map(map) match {
     case a if a == elementList => this
-    case mappedElements =>copyInternal(UpdateReason.Content, elementListNew = mappedElements)
+    case mappedElements        => copyInternal(UpdateReason.Content, elementListNew = mappedElements)
   }
 
   def copy(text: String = text,

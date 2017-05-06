@@ -341,7 +341,10 @@ object Organize {
         organize(
           lineGrow.lines.headOption.map(_.elements).getOrElse(Vector.empty),
           if (organizeToBounds) bounds
-          else lineGrow.lines.headOption.map(_.lineSize).getOrElse(Point.zero),
+          else
+            lineGrow.lines.headOption
+              .map(_.lineSize._1(lineGrow.longestLineLength))
+              .getOrElse(Point.zero),
           basePoint,
           layout.alignContent,
           layout.wrap.alignItem,
@@ -396,10 +399,10 @@ final case class Horizontal(layout: Layout = Layout(), size: LayoutSizeConstrain
       offset,
       size.constraintSize,
       organizeToBounds.getOrElse(organizeToBounds.getOrElse(size match {
-        case Unbound()               => false
+        case Unbound()      => false
         case BoundWidth(_)  => false
         case BoundHeight(_) => true
-        case Bound(_)   => true
+        case Bound(_)       => true
       }))
     )
 
@@ -419,10 +422,10 @@ final case class Vertical(layout: Layout = Layout(), size: LayoutSizeConstraint 
       offset,
       size.constraintSize,
       organizeToBounds.getOrElse(size match {
-        case Unbound()               => false
+        case Unbound()      => false
         case BoundWidth(_)  => true
         case BoundHeight(_) => false
-        case Bound(_)   => true
+        case Bound(_)       => true
       })
     )
 

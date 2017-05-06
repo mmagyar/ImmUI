@@ -1,10 +1,9 @@
 package mmagyar.ui.widget
 
-import mmagyar.layout.Grow.{Affinity, No, Until}
-import mmagyar.layout.{Grow, Relative, Shrink, Sizing}
+import mmagyar.layout.{Relative, Sizing}
+import mmagyar.ui._
 import mmagyar.ui.interaction._
 import mmagyar.ui.widgetHelpers.Style
-import mmagyar.ui._
 import mmagyar.util.{Point, TriState}
 
 /** Magyar Máté 2017, all rights reserved */
@@ -16,7 +15,7 @@ object ScrollbarGroup {
       val knobX  = tracker.downElements.exists(_.shapey.id == in.knobXId)
       val knobY  = tracker.downElements.exists(_.shapey.id == in.knobYId)
       val drag   = tracker.lastMove - tracker.currentPosition
-      val exp    = drag * (in.cChild.totalScrollSize / in.cChild.size)
+      val exp    = drag * (in.scrollProvider.totalScrollSize / in.scrollProvider.size)
       val offset = Point(if (knobX) exp.x else 0, if (knobY) exp.y else 0)
       if (offset != Point.zero) in.offset(in.offset - offset) else in
     }
@@ -44,35 +43,66 @@ object ScrollbarGroup {
             scrollBars: (TriState, TriState) = defaultScrollbars,
             zOrder: Double = 1,
             id: ShapeyId = ShapeyId.apply())(implicit style: Style): ScrollbarGroup =
-    new ScrollbarGroup(child.position, child, scrollBars, zOrder, id)(style)
+    new ScrollbarGroup(child, zOrder, scrollBars = scrollBars, id = id, position = child.position)(
+      style)
 
   def positioned(position: Point,
                  child: SizableGroup,
                  zOrder: Double = 1,
                  scrollBars: (TriState, TriState) = defaultScrollbars,
                  id: ShapeyId = ShapeyId.apply())(implicit style: Style): ScrollbarGroup =
-    new ScrollbarGroup(position, child, scrollBars, zOrder, id)(style)
+    new ScrollbarGroup(child, zOrder, scrollBars = scrollBars, id = id, position = position)(style)
 }
-class ScrollbarGroup(val position: Point,
-                     val child: SizableGroup,
+
+/**
+  *
+  * @param child2 it's children
+  * @param zOrder zOrder
+  * @param getScrollProvider an optional function that gets the element
+  *                          that provides the scroll position,
+  *                          by default it gets `child`,
+  *                          but when overwritten, any children of `child`
+  *                          can provide the scroll positions
+  * @param resizeProviderWhenChangingSizing should sizing applied to the scroll provider as well
+  * @param scrollBars set visibility of scrollbars (on,off,auto)
+  * @param id id
+  * @param position positionOfThe ScrollbarGroup
+  * @param style style
+  */
+class ScrollbarGroup(val child2: SizableGroup,
+                     val zOrder: Double = 1,
+                     val getScrollProvider: (SizableGroup) => SizableGroup = x => x,
+                     val resizeProviderWhenChangingSizing: Boolean = true,
                      val scrollBars: (TriState, TriState) = ScrollbarGroup.defaultScrollbars,
-                     val zOrder: Double,
-                     val id: ShapeyId)(implicit style: Style)
+                     val id: ShapeyId = ShapeyId(),
+                     val position: Point = Point.zero,
+                     maxSizing: Option[Sizing] = None)(implicit style: Style)
     extends WidgetWithChildrenBase[ScrollbarGroup]
     with SizableShapey {
 
-  private val childId = child.id
-
-  private val scrollW = child.size.union((x, ps) =>
-    if (x > ps._1(child.totalScrollSize)) x else ((x / ps._1(child.totalScrollSize)) * x).max(4))
-  private val scrollKnobOffset = child.scrollPercent * (child.size - scrollW)
-
+  private val scrollProviderTemp = getScrollProvider(child2)
   val drawScrollBar: (Boolean, Boolean) =
-    (scrollBars._1.getOrElse(child.canOffset._1), scrollBars._2.getOrElse(child.canOffset._2))
+    (
+      scrollBars._1.getOrElse(scrollProviderTemp.canOffset._1),
+      scrollBars._2.getOrElse(scrollProviderTemp.canOffset._2))
 
   val scrollBarSize = Point(
     if (drawScrollBar._2) style.scrollBar.x else 0,
     if (drawScrollBar._1) style.scrollBar.y else 0)
+
+  val child: SizableGroup =
+    maxSizing
+      .map(x => resizeSubElementsIncludeScrollBar(child2, scrollProviderTemp.id, scrollBarSize, x))
+      .getOrElse(child2)
+  private val childId = child.id
+
+  val scrollProvider: SizableGroup = getScrollProvider(child)
+
+  private val scrollW = child.size.union(
+    (x, ps) =>
+      if (x > ps._1(scrollProvider.totalScrollSize)) x
+      else ((x / ps._1(scrollProvider.totalScrollSize)) * x).max(4))
+  private val scrollKnobOffset = scrollProvider.scrollPercent * (child.size - scrollW)
 
   val scrollBarXId: ShapeyId = ShapeyId(id.symbol.name + "ScrollX_bar")
   val scrollBarYId: ShapeyId = ShapeyId(id.symbol.name + "ScrollY_bar")
@@ -113,12 +143,15 @@ class ScrollbarGroup(val position: Point,
       )
     else Vector.empty
   val elementList = ElementList(
-    (if (child.position != Point.zero) child.position(Point.zero) else child) +:
+    (if (child.position != Point.zero) child match {
+       case a: PositionableShapey => a.position(Point.zero)
+       case a                     => a
+     } else child) +:
       (yScrollBar ++ xScrollbar),
     Relative()
   )
 
-  private val cChild =
+  private val cChild: SizableGroup =
     elementList.elements.find(x => x.id == childId).get.asInstanceOf[SizableGroup]
 
   override val behaviour: Behaviour[ScrollbarGroup] = ScrollbarGroup.DefaultBehaviour
@@ -133,9 +166,15 @@ class ScrollbarGroup(val position: Point,
         cChild
     })
 
-  def offset: Point = cChild.offset
+  def offset: Point = scrollProvider.offset
   def offset(offset: Point): ScrollbarGroup =
-    if (offset == cChild.offset) this else copyInternal(child = cChild.copy(offset = offset))
+    if (offset == scrollProvider.offset) this
+    else
+      copyInternal(
+        child =
+          if (scrollProvider.id == cChild.id) cChild.offset(offset)
+          else
+            cChild.change(_.id == scrollProvider.id, { case a: SizableGroup => a.offset(offset) }))
 
   override def position(point: Point): PositionableShapey =
     if (point == this.position) this else copyInternal(point)
@@ -144,8 +183,17 @@ class ScrollbarGroup(val position: Point,
                            child: SizableGroup = cChild,
                            scrollBars: (TriState, TriState) = scrollBars,
                            zOrder: Double = zOrder,
-                           id: ShapeyId = id): ScrollbarGroup = {
-    new ScrollbarGroup(position, child, scrollBars, zOrder, id)
+                           id: ShapeyId = id,
+                           getScrollProvider: (SizableGroup) => SizableGroup = getScrollProvider,
+                           maxSizing: Option[Sizing] = maxSizing): ScrollbarGroup = {
+    new ScrollbarGroup(
+      child,
+      zOrder,
+      getScrollProvider,
+      scrollBars = scrollBars,
+      id = id,
+      position = position,
+      maxSizing = maxSizing)
   }
 
   override lazy val sizing: Sizing =
@@ -155,20 +203,35 @@ class ScrollbarGroup(val position: Point,
       cChild.sizing.shrink.changeSize(_ + scrollBarSize)
     )
 
+  def resizeSubElementsIncludeScrollBar(input: SizableGroup,
+                                        providerId: ShapeyId,
+                                        scrollBarSize: Point,
+                                        reSizing: Sizing): SizableGroup = {
+    val newSizing = Sizing(
+      reSizing.baseSize - scrollBarSize,
+      reSizing.size - scrollBarSize,
+      reSizing.grow.changeSize(_ - scrollBarSize),
+      reSizing.shrink.changeSize(_ - scrollBarSize)
+    )
+
+    if (resizeProviderWhenChangingSizing && input.id != providerId)
+      input
+        .change(_.id == providerId, {
+          case a: SizableGroup => a.sizing(newSizing)
+        })
+        .sizing(newSizing)
+    else input.sizing(newSizing)
+  }
+
   override def sizing(sizing: Sizing): ScrollbarGroup =
     if (sizing == this.sizing) this
     else
-      copyInternal(
-        child = child.sizing(
-          Sizing(
-            sizing.baseSize - scrollBarSize,
-            sizing.size - scrollBarSize,
-            sizing.grow.changeSize(_ - scrollBarSize),
-            sizing.shrink.changeSize(_ - scrollBarSize)
-          )))
+      copyInternal(child =
+        resizeSubElementsIncludeScrollBar(cChild, scrollProvider.id, scrollBarSize, sizing))
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case a: ScrollbarGroup => a.cChild == cChild
     case _                 => false
   }
+
 }

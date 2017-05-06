@@ -155,7 +155,8 @@ object MultilineText {
             dynamicSize: Boolean = true,
             zOrder: Double = 1,
             id: ShapeyId = ShapeyId.apply(),
-            font: Font = Text.defaultFont) =
+            font: Font = Text.defaultFont,
+            minSize: Point = Point.one) =
     new MultilineText(
       position,
       text,
@@ -165,7 +166,8 @@ object MultilineText {
       dynamicSize,
       zOrder,
       id,
-      font)
+      font,
+      minSize)
 }
 final case class MultilineText(
     position: Point,
@@ -176,7 +178,8 @@ final case class MultilineText(
     dynamicSize: Boolean,
     zOrder: Double,
     id: ShapeyId,
-    font: Font
+    font: Font,
+    minSize: Point
 ) extends Groupable[MultilineText]
     with PositionableShapey
     with SizableShapey
@@ -229,7 +232,7 @@ final case class MultilineText(
       Point(maxLineWidthBase, textSize.y),
       textSize,
       if (dynamicSize) Grow(Point.large.copy(y = textSize.y)) else Grow.No,
-      if (dynamicSize) Shrink.Affinity else Shrink.No
+      if (dynamicSize) Shrink.Until(minSize) else Shrink.No
     )
 
   override def sizing(sizing: Sizing): SizableShapey =
