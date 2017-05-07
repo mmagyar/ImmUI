@@ -25,11 +25,8 @@ object SizableGroup {
   }
 
   val defaultLayout: Layout = Layout(
-    wrap = Wrap.Simple(
-      Align.SpaceAround,
-      Align.Stretch(Align.Center),
-      stretchLinesToBounds = true,
-      uniformLineSize = true),
+    wrap = Wrap
+      .Simple(Align.Stretch(Align.Center), stretchLinesToBounds = true, uniformLineSize = true),
     alignContent = Align.Center)
 
   def apply(organize: Organize,
@@ -177,7 +174,7 @@ class SizableGroup(elements: ElementList,
                    val margin: Box = Box.zero,
                    val behaviour: Behaviour[SizableGroup] = BehaviourBasic(),
                    _offset: Point = Point.zero)
-    extends GenericGroup[SizableGroup]
+    extends GenericGroupExternallyModifiable[SizableGroup]
     with PositionableShapey
     with SizableShapey {
 

@@ -70,8 +70,8 @@ class ElementList(_elements: Vector[Shapey],
       case a => a
     }).sortWith(_.zOrder > _.zOrder)
 
-  def map(fn: (Shapey) => Shapey): ElementList = elements.map(fn) match {
-    case a if a == elements => this
+  def map(fn: (Shapey) => Shapey): ElementList = _elements.map(fn) match {
+    case a if a == _elements => this
     case a                  => copy(a)
   }
 

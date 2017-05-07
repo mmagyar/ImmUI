@@ -7,8 +7,6 @@ trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]
     extends GroupableWithBehaveableChildren[T]
     with Behaveable[T] { this: T =>
 
-  def setElements(elementList: ElementList): T
-
   /**
     * Returns all the elements that has the 'element' as direct ascendants
     *
@@ -41,6 +39,7 @@ trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]
         .flatten
   }
 
+  //Might need to use ID based comparison
   def has[K <: Shapey](element: K, recursive: Boolean = true): Boolean = {
     val direct = elements.contains(element)
     if (direct || !recursive) direct
@@ -50,31 +49,6 @@ trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]
         case _                  => false
       }
   }
-  def replace[K <: Shapey, L <: Shapey](oldElement: K, newElement: L): T =
-    setElements(elementList.copy(elements.map {
-      case a if a == oldElement => newElement
-      case a: GenericGroup[_]   => a.replace(oldElement, newElement)
-      case a                    => a
-    }))
-
-  def remove[K <: Shapey](element: K, recursive: Boolean = true): T =
-    if (recursive) setElements(elementList.copy(elements = elements.collect {
-      case a if element != a  => a
-      case a: GenericGroup[_] => a.remove(element, recursive)
-    }))
-    else setElements(elementList.copy(elements.collect { case a if element != a => a }))
-
-  def add[K <: Shapey](element: K): T =
-    setElements(elementList.copy(elementList.elements :+ element))
-
-//  def change[K <: Shapey](where: (Shapey) => Boolean,
-//                          change: (Shapey) => K,
-//                          recursive: Boolean = true): T =
-//    setElements(elementList.copy(elements.map {
-//      case a if where(a)                   => change(a)
-//      case a: GenericGroup[_] if recursive => a.change(where, change, recursive)
-//      case a                               => a
-//    }))
 
   def get(where: (Shapey) => Boolean, recursive: Boolean = true): Vector[Shapey] =
     elements.collect {
@@ -82,7 +56,42 @@ trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]
       case a: GenericGroup[_] if recursive => a.get(where, recursive)
     }.flatten
 
+  def getFullyRecursive(where: (Shapey) => Boolean): Vector[Shapey] =
+    elements.collect {
+      case a if where(a) =>
+        Vector(a) ++ (a match {
+          case b: GenericGroup[_] => b.getFullyRecursive(where)
+          case _                  => Vector.empty[Shapey]
+        })
+      case a: GenericGroup[_] => a.getFullyRecursive(where)
+    }.flatten
+
+  def exists(where: (Shapey) => Boolean, recursive: Boolean = true): Boolean =
+    get(where, recursive).nonEmpty
+
 //  override def behave(tracker: Tracker): T =
 //    behaviour.behave(tracker).map(x => x.action(this, tracker)).getOrElse(this)
 
+}
+
+trait GenericGroupExternallyModifiable[T <: GenericGroupExternallyModifiable[T]]
+    extends GenericGroup[T] { this: T =>
+  def setElements(elementList: ElementList): T
+
+  def replace[K <: Shapey, L <: Shapey](oldElement: K, newElement: L): T =
+    setElements(elementList.copy(elements.map {
+      case a if a == oldElement                   => newElement
+      case a: GenericGroupExternallyModifiable[_] => a.replace(oldElement, newElement)
+      case a                                      => a
+    }))
+
+  def remove[K <: Shapey](element: K, recursive: Boolean = true): T =
+    if (recursive) setElements(elementList.copy(elements = elements.collect {
+      case a if element != a                      => a
+      case a: GenericGroupExternallyModifiable[_] => a.remove(element, recursive)
+    }))
+    else setElements(elementList.copy(elements.collect { case a if element != a => a }))
+
+  def add[K <: Shapey](element: K): T =
+    setElements(elementList.copy(elementList.elements :+ element))
 }

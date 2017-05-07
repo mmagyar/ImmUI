@@ -1,7 +1,7 @@
 package mmagyar.layout
 
 import mmagyar.layout.Fill._
-import mmagyar.layout.Wrap.{EqualLineCut, EqualLines, Simple, SimpleCut}
+import mmagyar.layout.Wrap.{EqualLines, Simple}
 import mmagyar.util.{Point, PointSwapper}
 
 import scala.annotation.tailrec
@@ -66,13 +66,13 @@ object Organize {
   def getMax_2[T <: Material](elements: Vector[T], ps: PointSwapper): Double =
     elements.foldLeft(0.0)((p: Double, c: T) => p.max(ps._2(c.size)))
 
-  def organize[T <: Material with Positionable[T]](elementsToOrganize: Vector[T],
-                                                   lineSize: Point,
-                                                   startPosition: Point,
-                                                   alignContent: AlignSimple,
-                                                   alignItem: Align,
-                                                   wholeBound: Point,
-                                                   ps: PointSwapper): Vector[T] = {
+  def organizeRow[T <: Material with Positionable[T]](elementsToOrganize: Vector[T],
+                                                      lineSize: Point,
+                                                      startPosition: Point,
+                                                      alignContent: AlignSimple,
+                                                      alignItem: Align,
+                                                      wholeBound: Point,
+                                                      ps: PointSwapper): Vector[T] = {
 
     val withAlignInfo = alignItem.complex(ps._1(lineSize), ps, elementsToOrganize)
     withAlignInfo
@@ -304,15 +304,10 @@ object Organize {
     } else linesV
   }
 
-  def wrapOrganize[T <: Positionable[T] with Material](
+  private def organizeElementsToRows[T <: Material with Positionable[T]](
       elements: Vector[T],
-      layout: Layout,
-      ps: PointSwapper,
-      basePoint: Point,
       bounds: Point,
-      organizeToBounds: Boolean = false): Vector[T] = {
-    implicit val pointSwapper = ps
-
+      layout: Layout)(implicit ps: PointSwapper): LineGrow[T] = {
     val linesRaw = elements.foldLeft(Vector[LineSummer[T]]())(partitionLines(ps, bounds, _, _))
 
     val linesWUniform_2 =
@@ -323,7 +318,7 @@ object Organize {
         calculateAddition_2ForLines(ps, bounds, linesWUniform_2)
       else 0
 
-    val lineGrow = linesWUniform_2.foldLeft(LineGrow[T]())((p, c) => {
+    linesWUniform_2.foldLeft(LineGrow[T]())((p, c) => {
       val currentWidth = getSummed_1(c.elements, ps)
       val elements =
         if (currentWidth > bounds._1) shrink(c.elements, layout.fill, bounds, ps)
@@ -335,23 +330,37 @@ object Organize {
 
       LineGrow(p.lines :+ summer, p.longestLineLength.max(lineL), p.previousOffset + tallest)
     })
+  }
+
+  def wrapOrganize[T <: Positionable[T] with Material](
+      elements: Vector[T],
+      layout: Layout,
+      ps: PointSwapper,
+      basePoint: Point,
+      bounds: Point,
+      organizeToBounds: Boolean = false): Vector[T] = {
+    implicit val pointSwapper = ps
 
     layout.wrap match {
-      case Wrap.No(_, _) =>
-        organize(
-          lineGrow.lines.headOption.map(_.elements).getOrElse(Vector.empty),
+      case Wrap.No =>
+        organizeRow(
+          elements.map({ case a: Sizable[T @unchecked] => a.size(a.baseSize); case a => a }),
           if (organizeToBounds) bounds
-          else
-            lineGrow.lines.headOption
-              .map(_.lineSize._1(lineGrow.longestLineLength))
-              .getOrElse(Point.zero),
+          else {
+            elements.foldLeft(Point.zero)((p, c) => {
+              val cr = c match { case a: Sizable[_] => a.baseSize; case a => a.size }
+              p._1Add(cr._1)._2(p._2.max(cr._2))
+            })
+          },
           basePoint,
           layout.alignContent,
-          layout.wrap.alignItem,
+          layout.alignItem,
           bounds,
           ps
         )
-      case Simple(alignItem, alignContent, _, _) =>
+      case Simple(alignContent, _, _) =>
+        val lineGrow = organizeElementsToRows(elements, bounds, layout)
+
         val wholeOffset =
           if (organizeToBounds)
             layout.alignContent.align(bounds._2, lineGrow.previousOffset).offset
@@ -365,20 +374,19 @@ object Organize {
 
         shrinkLine_2(lineGrow, bounds).lines
           .foldLeft[Vector[T]](Vector.empty[T])((p, ln: LineSummer[T]) => {
-            p ++ organize(
+            p ++ organizeRow(
               ln.elements,
               if (organizeToBounds) bounds._2(ln.lineSize._2 + additionalHeightPerLine)
               else ln.lineSize._1(lineGrow.longestLineLength),
               basePoint._2Add(ln.offset_2 + wholeOffset),
               alignContent,
-              alignItem,
+              layout.alignItem,
               bounds,
               ps
             )
           })
-      case EqualLines(_, _, _, _)   => ???
-      case SimpleCut(_, _, _, _)    => ???
-      case EqualLineCut(_, _, _, _) => ???
+      case EqualLines(_, _, _) => ???
+
     }
 
   }

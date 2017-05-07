@@ -50,7 +50,7 @@ final case class Group(elementList: ElementList,
                        zOrder: Double = 1,
                        id: ShapeyId = ShapeyId(),
                        behaviour: Behaviour[Group] = BehaviourBasic())
-    extends GenericGroup[Group]
+    extends GenericGroupExternallyModifiable[Group]
     with RotatableShapey
     with PositionableShapey {
 

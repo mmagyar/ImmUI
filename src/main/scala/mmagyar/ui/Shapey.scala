@@ -28,7 +28,8 @@ case class ShapeyId(symbol: Symbol) {
   def apply(string: Symbol): Boolean = symbol == string
   def apply(string: String): Boolean = symbol.name == string
 
-  //  override def toString: String = identifierString
+
+  override def toString: String = symbol.name
 }
 
 sealed trait Shapey extends Material {
@@ -97,6 +98,7 @@ trait Behaveable[A <: Behaveable[A]] extends Shapey { this: A =>
 
 }
 
+case class ChangeWithParents(shapey: Shapey, parents:Vector[Shapey])
 trait GroupableWithBehaveableChildren[A <: Groupable[A]] extends Groupable[A] { this: A =>
 
   def mapElements(map: (Shapey) => Shapey): A
@@ -104,13 +106,30 @@ trait GroupableWithBehaveableChildren[A <: Groupable[A]] extends Groupable[A] { 
   /**
     *
     * Change method is neccessery, since this is the way behaviour can act on it's children
+    * If the element is being changed by this, it will NOT be mapped over recursively
+    */
+  def changeWhereParents[K <: Shapey](where: (ChangeWithParents) => Boolean,
+                                        change: PartialFunction[Shapey, K],
+                                        recursive: Boolean = true,
+                                        parents: Vector[Shapey] = Vector.empty): A = mapElements {
+    case a if where(ChangeWithParents(a, parents)) && change.isDefinedAt(a) => change(a)
+    case a: GroupableWithBehaveableChildren[_] if recursive =>
+      a.changeWhereParents(where, change, recursive, parents :+ this)
+    case a => a
+  }
+
+  /**
+    *
+    * Change method is neccessery, since this is the way behaviour can act on it's children
+    * If the element is being changed by this, it will NOT be mapped over recursively
     */
   def change[K <: Shapey](where: (Shapey) => Boolean,
                           change: PartialFunction[Shapey, K],
                           recursive: Boolean = true): A = mapElements {
-    case a if where(a) && change.isDefinedAt(a)             => change(a)
-    case a: GroupableWithBehaveableChildren[_] if recursive => a.change(where, change, recursive)
-    case a                                                  => a
+    case a if where(a) && change.isDefinedAt(a) => change(a)
+    case a: GroupableWithBehaveableChildren[_] if recursive =>
+      a.change(where, change, recursive)
+    case a => a
   }
 }
 

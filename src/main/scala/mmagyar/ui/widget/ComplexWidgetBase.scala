@@ -25,8 +25,7 @@ object UpdateReason {
 
 trait WidgetWithChildrenBase[T <: WidgetWithChildrenBase[T]]
     extends PositionableShapey
-    with GroupableWithBehaveableChildren[T]
-    with Behaveable[T] { this: T =>
+    with GenericGroup[T] { this: T =>
 }
 
 abstract class ComplexWidgetBase[T <: ComplexWidgetBase[T]](_elementList: ElementList,

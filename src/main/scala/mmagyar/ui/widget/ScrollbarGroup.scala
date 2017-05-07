@@ -151,6 +151,7 @@ class ScrollbarGroup(val child2: SizableGroup,
     Relative()
   )
 
+  //This is not nice :*-(
   private val cChild: SizableGroup =
     elementList.elements.find(x => x.id == childId).get.asInstanceOf[SizableGroup]
 
