@@ -1,7 +1,5 @@
 package mmagyar.ui
 
-import java.security.MessageDigest
-import java.util.Base64
 
 import mmagyar.util.{BoundingBox, Point, _}
 
@@ -189,17 +187,17 @@ class BufferDraw() {
                 val chars = b.organize(label)
                 chars.foreach(c => {
 
-                  val offX = c._1._1
-                  val offY = c._1._2
+                  val offX = c.position._1
+                  val offY = c.position._2
 
-                  val w = c._2.size._1
+                  val w = c.pixel.size._1
                   var x = 0
                   var y = 0
                   while (x < w && (x + offX) < bgFont.size) { // && (x + offX) >= 0) {
 
                     var resY = bgFont(x + offX)
-                    while (y < c._2.size._2 && (y + offY) < resY.size) { //} && (y + offY) >= 0) {
-                      resY = resY.updated(y + offY, if (c._2.pixels(y)(x)) stroke else fill)
+                    while (y < c.pixel.size._2 && (y + offY) < resY.size) { //} && (y + offY) >= 0) {
+                      resY = resY.updated(y + offY, if (c.pixel.pixels(y)(x)) stroke else fill)
                       y += 1
                     }
                     bgFont = bgFont.updated(x + offX, resY)

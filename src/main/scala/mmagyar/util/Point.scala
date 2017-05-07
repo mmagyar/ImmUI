@@ -11,9 +11,9 @@ object Point {
 
   /** I don't know about you, but i don't want to always write Point(x,x),
     *  as (x,x) is just as meaningful and much more easier on the eyes.*/
-  implicit def intTupleToPoint(x: (Int, Int)): Point          = Point(x._1, x._2)
-  implicit def longTupleToPoint(x: (Long, Long)): Point       = Point(x._1, x._2)
-  implicit def floatTupleToPoint(x: (Float, Float)): Point    = Point(x._1, x._2)
+  implicit def intTupleToPoint(x: (Int, Int)): Point          = Point(x._1.toDouble, x._2.toDouble)
+  implicit def longTupleToPoint(x: (Long, Long)): Point       = Point(x._1.toDouble, x._2.toDouble)
+  implicit def floatTupleToPoint(x: (Float, Float)): Point    = Point(x._1.toDouble, x._2.toDouble)
   implicit def doubleTupleToPoint(x: (Double, Double)): Point = Point(x._1, x._2)
 
   /**
@@ -24,7 +24,11 @@ object Point {
     */
   def interpolate(v1: Double, v2: Double, value: Double): Double = v1 + (v2 - v1) * value
 
+
   def apply(coordinates: (Int, Int)): Point = Point(coordinates._1, coordinates._2)
+  def apply(x: Int,y: Int): Point = Point(x.toDouble, y.toDouble)
+  def apply(x: Float,y: Float): Point = Point(x.toDouble, y.toDouble)
+  def apply(x: Long,y: Long): Point = Point(x.toDouble, y.toDouble)
 //  def apply(coordinates: (Double, Double)): Point = Point(coordinates._1, coordinates._2)
 }
 
@@ -145,7 +149,7 @@ case class Point(x: Double, y: Double) {
     var i      = 0
     while (i < steps) {
 
-      val current = i / steps
+      val current = i / steps.toDouble
       result = result ++ List(
         new Point(
           Point.interpolate(point.x, this.x, current),
@@ -209,8 +213,11 @@ case class Point(x: Double, y: Double) {
   def isZero: Boolean = this.x == 0 && this.y == 0
 
   def comma(): String = s"${this.x},${this.y} "
-  lazy val info: String =
+  def info: String =
     if (this == Point.large) "(point near infinity)"
+    else if( x > Float.MaxValue && y > Float.MaxValue)  f"(x: above Float Max, y: above Float Max)"
+    else if( x > Float.MaxValue && y < Float.MaxValue)  f"(x: above Float Max, y: ${this.y}%.2f)"
+    else if( y > Float.MaxValue && x < Float.MaxValue)  f"(x: ${this.y}%.2f, y: above Float Max)"
     else f"(x: ${this.x}%.2f, y: ${this.y}%.2f)"
 
   override def toString: String = info

@@ -201,7 +201,6 @@ object DemoScenarios {
         .copy(
           zOrder = 4,
           behaviour = BehaviourBasic(click = Some(InjectedBehaviourAction((x, y) => {
-            println("Hello", y.currentPosition)
 
             x
           }))),
@@ -214,7 +213,6 @@ object DemoScenarios {
       .position(Point(10, 10))
       .rotation(new Degree(45))
       .copy(behaviour = BehaviourBasic(click = Some(InjectedBehaviourAction((x, y) => {
-        println("HAI", y.currentPosition)
         x
       }))), zOrder = 22, id = ShapeyId("ROTATED GROUP")) //behaviour = InjectedBehaviourAction())
   )

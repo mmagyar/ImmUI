@@ -8,8 +8,6 @@ import mmagyar.ui.interaction.{Behaviour, Tracker}
 import mmagyar.util._
 import mmagyar.util.font.bdf.FontManager
 
-import scala.language.implicitConversions
-
 /** Created by Magyar Máté on 2017-01-31, All rights reserved. */
 /**
   * This will be the BIG doc block for the whole Shapey element system
@@ -27,7 +25,6 @@ object ShapeyId {
 case class ShapeyId(symbol: Symbol) {
   def apply(string: Symbol): Boolean = symbol == string
   def apply(string: String): Boolean = symbol.name == string
-
 
   override def toString: String = symbol.name
 }
@@ -98,7 +95,7 @@ trait Behaveable[A <: Behaveable[A]] extends Shapey { this: A =>
 
 }
 
-case class ChangeWithParents(shapey: Shapey, parents:Vector[Shapey])
+case class ChangeWithParents(shapey: Shapey, parents: Vector[Shapey])
 trait GroupableWithBehaveableChildren[A <: Groupable[A]] extends Groupable[A] { this: A =>
 
   def mapElements(map: (Shapey) => Shapey): A
@@ -109,9 +106,9 @@ trait GroupableWithBehaveableChildren[A <: Groupable[A]] extends Groupable[A] { 
     * If the element is being changed by this, it will NOT be mapped over recursively
     */
   def changeWhereParents[K <: Shapey](where: (ChangeWithParents) => Boolean,
-                                        change: PartialFunction[Shapey, K],
-                                        recursive: Boolean = true,
-                                        parents: Vector[Shapey] = Vector.empty): A = mapElements {
+                                      change: PartialFunction[Shapey, K],
+                                      recursive: Boolean = true,
+                                      parents: Vector[Shapey] = Vector.empty): A = mapElements {
     case a if where(ChangeWithParents(a, parents)) && change.isDefinedAt(a) => change(a)
     case a: GroupableWithBehaveableChildren[_] if recursive =>
       a.changeWhereParents(where, change, recursive, parents :+ this)
@@ -211,18 +208,23 @@ final case class MultilineText(
   private lazy val linePositions: Vector[LinesMetric] =
     textLines.foldLeft(Vector[LinesMetric]())((p, c) => {
       val currentSize = font.getSizeForString(c)
+//      println("LINEHEIGHT:", currentSize, textLines.size, textLines.size * currentSize._2)
       p :+ p.lastOption
-        .map(x => {
-          LinesMetric(
-            currentSize._1,
-            currentSize._2,
-            x.maxX.max(currentSize._1),
-            x.posY + font.getSizeForString(x.text)._2,
-            c)
-        })
+        .map(
+          x =>
+            LinesMetric(
+              currentSize._1,
+              currentSize._2,
+              x.maxX.max(currentSize._1),
+              x.posY + font.getSizeForString(x.text)._2,
+              c))
         .getOrElse(LinesMetric(currentSize._1, currentSize._2, currentSize._1, 0, c))
     })
 
+//  private lazy val textSize: Point = linePositions.foldLeft(Point.zero)((p, c) => {
+//    Point(p.x.max(c.sizeX), p.y + c.sizeY)
+//  })
+//
   private lazy val textSize: Point =
     linePositions.lastOption
       .map(x => Point(x.maxX, x.posY + font.getSizeForString(x.text)._2))
@@ -308,7 +310,7 @@ final case class Text(
   override def customToString: String = s"text: $text"
 
   if (size != boundingBox.size)
-    println(size, boundingBox.size, id)
+    println((size, boundingBox.size, id))
 }
 
 sealed trait BitmapFill
@@ -327,6 +329,8 @@ case object Clip extends BitmapFill
 
 object BitmapShapey {
 
+  def align(mod: Double , originalSize: Int, targetSize: Double, align1: Align): Double =
+    align(mod, originalSize.toDouble, targetSize, align1)
   def align(mod: Double = 1, originalSize: Double, targetSize: Double, align: Align): Double =
     align match {
       case Right  => targetSize - (originalSize * mod)

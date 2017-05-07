@@ -24,22 +24,22 @@ object BehaviourBasic {
 
   def diagnosticPrint[T <: Shapey]: BehaviourBasic[T] = BehaviourBasic[T](
     Some(InjectedBehaviourAction[T]((in, track) => {
-      println("Click", in, track); in
+      println(("Click", in, track)); in
     })),
     Some(InjectedBehaviourAction[T]((in, track) => {
-      println("move", in, track); in
+      println(("move", in, track)); in
     })),
     Some(InjectedBehaviourAction[T]((in, track) => {
-      println("down", in, track); in
+      println(("down", in, track)); in
     })),
     Some(InjectedBehaviourAction[T]((in, track) => {
-      println("up", in, track); in
+      println(("up", in, track)); in
     })),
     Some(InjectedBehaviourAction[T]((in, track) => {
-      println("drag", in, track); in
+      println(("drag", in, track)); in
     })),
     Some(InjectedBehaviourAction[T]((in, track) => {
-      println("scroll", in, track); in
+      println(("scroll", in, track)); in
     }))
   )
 }

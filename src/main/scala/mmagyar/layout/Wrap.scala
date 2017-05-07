@@ -1,7 +1,5 @@
 package mmagyar.layout
 
-import mmagyar.layout.Fill.Equal
-
 /** Magyar Máté 2017, all rights reserved */
 sealed trait Wrap {
 

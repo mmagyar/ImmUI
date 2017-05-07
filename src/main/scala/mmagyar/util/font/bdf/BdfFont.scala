@@ -32,7 +32,9 @@ case class CharPixel(size: IntPoint,
 object Font {
   type IntPoint = (Int, Int)
   def add(a: IntPoint, b: IntPoint): IntPoint = (a._1 + b._1, a._2 + b._2)
+
 }
+
 case class Font(characters: Map[Char, CharPixel],
                 defaultChar: CharPixel,
                 family: String = "UNKNOWN",
@@ -41,11 +43,11 @@ case class Font(characters: Map[Char, CharPixel],
     extends FontBitmap {
   def apply(char: Char): CharPixel = characters.getOrElse(char, defaultChar)
 
-  def organize(text: String): Vector[(IntPoint, CharPixel)] =
+  def organize(text: String): Vector[CharInfo[CharPixel]] =
     text
-      .foldLeft(((0, 0), Vector[(IntPoint, CharPixel)]()))((p, c) => {
+      .foldLeft(((0, 0), Vector[CharInfo[CharPixel]]()))((p, c) => {
         val currentFont = this(c)
-        (Font.add(currentFont.device, p._1), p._2 :+ (p._1, currentFont))
+        (Font.add(currentFont.device, p._1), p._2 :+ CharInfo(p._1, currentFont))
       })
       ._2
 
@@ -53,7 +55,9 @@ case class Font(characters: Map[Char, CharPixel],
     characters.getOrElse(char, defaultChar).pixels
 
   override def getSizeForString(string: String): (Int, Int) =
-    organize(string).foldLeft(Point.zero)((p, c) => p.max(Point(c._1) + Point(c._2.size))).toInt
+    organize(string)
+      .foldLeft(Point.zero)((p, c) => p.max(Point(c.position) + Point(c.pixel.size)))
+      .toInt
 
   override def toString: String = s"font: $family $name"
 

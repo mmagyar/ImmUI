@@ -1,7 +1,7 @@
 package mmagyar.ui
 
 import mmagyar.layout.{Organize, Relative}
-import mmagyar.util.{BoundingBox, Point}
+import mmagyar.util.Point
 
 import scala.language.implicitConversions
 

@@ -1,11 +1,11 @@
 package mmagyar.ui.widget
 
 import mmagyar.layout._
-import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction, Tracker}
 import mmagyar.ui._
+import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction}
 import mmagyar.ui.widget.UpdateReason.{Text => _, _}
 import mmagyar.ui.widgetHelpers.Style
-import mmagyar.util.{Box, Color, Point}
+import mmagyar.util.{Box, Point}
 
 /** Magyar Máté 2017, all rights reserved */
 object DialogueOption {

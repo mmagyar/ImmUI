@@ -1,6 +1,5 @@
 package mmagyar.ui
 
-import mmagyar.ui.interaction.Tracker
 
 /** Magyar Máté 2017, all rights reserved */
 trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]

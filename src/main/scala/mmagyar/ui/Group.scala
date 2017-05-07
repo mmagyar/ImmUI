@@ -1,6 +1,5 @@
 package mmagyar.ui
 
-import mmagyar.layout.Grow.Affinity
 import mmagyar.layout._
 import mmagyar.ui.interaction._
 import mmagyar.util._

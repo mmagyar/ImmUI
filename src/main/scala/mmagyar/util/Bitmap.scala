@@ -67,25 +67,24 @@ object Bitmap {
     new Bitmap(pixels)
   }
 
-  def scale(double: Double):Vector[Vector[Color]]= ???
 }
 case class Bitmap(pixels: Vector[Vector[ColorByte]]) {
   val size: (Int, Int) = (pixels.size, pixels.headOption.getOrElse(Vector.empty).size)
 
-  def fillReplaceRect(x: Int, y: Int, w: Int, h: Int, color: Color): Unit = ()
+//  def fillReplaceRect(x: Int, y: Int, w: Int, h: Int, color: Color): Unit = ()
 
-  def drawReplacePixel(x: Int, y: Int, color: Color): Unit = ()
+//  def drawReplacePixel(x: Int, y: Int, color: Color): Unit = ()
 
-  def blitBlend(sourceX: Int,
-                sourceY: Int,
-                sourceW: Int,
-                sourceH: Int,
-                targetX: Int,
-                targetY: Int,
-                targetW: Int,
-                targetH: Int,
-                source: Bitmap,
-                color: Color): Unit = ()
+//  def blitBlend(sourceX: Int,
+//                sourceY: Int,
+//                sourceW: Int,
+//                sourceH: Int,
+//                targetX: Int,
+//                targetY: Int,
+//                targetW: Int,
+//                targetH: Int,
+//                source: Bitmap,
+//                color: Color): Unit = ()
 
   override def toString: String = s"Bitmap:$size"
 }

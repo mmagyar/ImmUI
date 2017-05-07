@@ -1,10 +1,9 @@
 package mmagyar.ui.builder
 
-import mmagyar.layout.Grow.Affinity
 import mmagyar.layout._
 import mmagyar.ui._
 import mmagyar.ui.interaction._
-import mmagyar.ui.widget.{ScrollbarGroup, WidgetWithChildrenBase}
+import mmagyar.ui.widget.ScrollbarGroup
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Color, Point, TriState}
 
@@ -49,14 +48,22 @@ object BuildContainer {
     new ScrollbarGroup(
       SizableGroup.scrollableWithBackground(
         Group(
-          Vertical(Layout(Wrap.No, alignItem = Align.Right, alignContent = Align.Stretch(Align.Left))),
+          Vertical(
+            Layout(
+              Wrap.No,
+//              alignItem = Align.Stretch(Align.Left),
+              alignItem = Align.Left,
+              alignContent = Align.Stretch(Align.Left))),
           MultilineText(
             "SHOW DATA HERE, and this overlaps, way over",
             id = ShapeyId("DEBUG_THIS")),
           Text("Selected Id:"),
           Text("", id = ShapeyId("SEL_ID_HERE")),
           Text("\ndetail:"),
-          MultilineText("", id = ShapeyId("SEL_DETAIL_HERE"), minSize = Point(24, 8))
+          MultilineText("", id = ShapeyId("SEL_DETAIL_HERE"), minSize = Point(24, 8)),
+          Rect(
+            Sizing(Point.one, Grow.Affinity, Shrink.Affinity),
+            looks = Looks(Color.lime, Color.olive, 1))
         ),
         Sizing(size),
         margin = Box(Point(6, 6))
@@ -86,7 +93,10 @@ object BuildContainer {
                       tracker.downElements.headOption
                         .map(y => y.shapey.toString)
                         .getOrElse("NO DATE")
-                    a.text(text)
+                    val res = a.text(text)
+                    println(("past", a.size, a.sizing))
+                    println(("CURRENT", res.size, a.sizing))
+                    res
                   case a: Text =>
                     val text =
                       tracker.downElements.headOption

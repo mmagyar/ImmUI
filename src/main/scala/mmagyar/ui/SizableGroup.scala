@@ -3,9 +3,6 @@ package mmagyar.ui
 import mmagyar.layout._
 import mmagyar.ui.interaction._
 import mmagyar.util.{BoundingBox, Box, Color, Point}
-
-import scala.util.Try
-
 object SizableGroup {
 
   case class ScrollWheelBehaviour(divider: Double = 8) extends BehaviourAction[SizableGroup] {
@@ -35,8 +32,7 @@ object SizableGroup {
               Sizing(Point(64, 64), Point(64, 64), shrink = Shrink.Affinity, grow = Grow.Affinity),
             position: Point = Point.zero,
             margin: Box = Box.zero,
-            layout: Layout = defaultLayout,
-            zOrder: Int = 1): SizableGroup =
+            zOrder: Double = 1): SizableGroup =
     new SizableGroup(ElementList(elements, organize), sizing, position, zOrder, margin = margin)
 
   def apply(organize: Organize, elements: Shapey*): SizableGroup =
@@ -46,7 +42,7 @@ object SizableGroup {
                  margin: Box = Box.zero,
                  elements: Vector[Shapey],
                  layout: Layout = defaultLayout,
-                 zOrder: Int = 1,
+                 zOrder: Double = 1,
                  position: Point = Point.zero,
                  id: ShapeyId = ShapeyId()): SizableGroup =
     new SizableGroup(
@@ -61,7 +57,7 @@ object SizableGroup {
                           elements: Vector[Shapey],
                           margin: Box = Box.zero,
                           layout: Layout = defaultLayout,
-                          zOrder: Int = 1,
+                          zOrder: Double = 1,
                           position: Point = Point.zero,
                           id: ShapeyId = ShapeyId()): SizableGroup = {
     val bound = BoundWidth(maxTotalWidth - margin.xSum)
@@ -82,7 +78,7 @@ object SizableGroup {
                         elements: Vector[Shapey],
                         margin: Box = Box.zero,
                         layout: Layout = defaultLayout,
-                        zOrder: Int = 1,
+                        zOrder: Double = 1,
                         position: Point = Point.zero): SizableGroup = {
     val bound         = BoundHeight(maxTotalHeight - margin.ySum)
     val elementsWidth = Group(Vertical(layout, bound), elements: _*).size.x + margin.xSum
@@ -145,7 +141,7 @@ object SizableGroup {
     new SizableGroup(
       ElementList(Union(LayoutSizeConstraint.fromSize(sizing.size)), inner),
       sizing,
-      Point.zero,
+      position,
       zOrder,
       id,
       margin,

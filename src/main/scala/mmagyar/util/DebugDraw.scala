@@ -1,6 +1,6 @@
 package mmagyar.util
 
-import mmagyar.layout.{Material, Positionable}
+import mmagyar.layout.Material
 
 /** Created by Magyar Máté on 2017-01-22, All rights reserved. */
 class DebugDraw(val printSize: Point = Point(90, 40), val cameraOffset: Point = Point.zero) {

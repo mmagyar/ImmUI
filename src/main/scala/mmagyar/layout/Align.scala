@@ -4,14 +4,15 @@ import mmagyar.util.PointSwapper
 
 /** Magyar Máté 2017, all rights reserved */
 case class AlignResult(offset: Double, size: Double)
+case class AlignResultWithElement[T <: Material](offset: Double, size: Double, element: T)
 
 sealed trait Align {
   def complex[T <: Material](maxSize: Double,
                              ps: PointSwapper,
-                             elements: Vector[T]): Vector[(T, AlignResult)]
+                             elements: Vector[T]): Vector[AlignResultWithElement[T]]
 }
 
-sealed trait AlignSimple extends Align{
+sealed trait AlignSimple extends Align {
   def align(maxSize: Double, elementSize: Double, sizeChangeable: Boolean = false): AlignResult
 }
 object Align {
@@ -24,10 +25,10 @@ object Align {
 
     def complex[T <: Material](maxSize: Double,
                                ps: PointSwapper,
-                               elements: Vector[T]): Vector[(T, AlignResult)] = {
+                               elements: Vector[T]): Vector[AlignResultWithElement[T]] = {
       elements
-        .foldLeft((Vector[(T, AlignResult)](), 0.0))((p, c) =>
-          (p._1 :+ (c, AlignResult(p._2, ps._1(c.size))), p._2 + ps._1(c.size)))
+        .foldLeft((Vector[AlignResultWithElement[T]](), 0.0))((p, c) =>
+          (p._1 :+ AlignResultWithElement(p._2, ps._1(c.size), c), p._2 + ps._1(c.size)))
         ._1
     }
 
@@ -42,17 +43,18 @@ object Align {
 
     def complex[T <: Material](maxSize: Double,
                                ps: PointSwapper,
-                               elements: Vector[T]): Vector[(T, AlignResult)] = {
+                               elements: Vector[T]): Vector[AlignResultWithElement[T]] = {
       val total  = elements.foldLeft(0.0)((p, c) => p + ps._1(c.size))
       val offset = maxSize - total
 
       elements
-        .foldLeft((Vector[(T, AlignResult)](), offset))((p, c) =>
-          (p._1 :+ (c, AlignResult(p._2, ps._1(c.size))), p._2 + ps._1(c.size)))
+        .foldLeft((Vector[AlignResultWithElement[T]](), offset))((p, c) =>
+          (p._1 :+ AlignResultWithElement(p._2, ps._1(c.size), c), p._2 + ps._1(c.size)))
         ._1
     }
   }
 
+  //TODO center should never offset to negative coordinates?
   final case object Center extends AlignSimple {
 
     override def align(maxSize: Double,
@@ -62,13 +64,13 @@ object Align {
 
     def complex[T <: Material](maxSize: Double,
                                ps: PointSwapper,
-                               elements: Vector[T]): Vector[(T, AlignResult)] = {
+                               elements: Vector[T]): Vector[AlignResultWithElement[T]] = {
       val total  = elements.foldLeft(0.0)((p, c) => p + ps._1(c.size))
       val offset = (maxSize - total) / 2
 
       elements
-        .foldLeft((Vector[(T, AlignResult)](), offset))((p, c) =>
-          (p._1 :+ (c, AlignResult(p._2, ps._1(c.size))), p._2 + ps._1(c.size)))
+        .foldLeft((Vector[AlignResultWithElement[T]](), offset))((p, c) =>
+          (p._1 :+ AlignResultWithElement(p._2, ps._1(c.size), c), p._2 + ps._1(c.size)))
         ._1
     }
   }
@@ -83,15 +85,15 @@ object Align {
 
     def complex[T <: Material](maxSize: Double,
                                ps: PointSwapper,
-                               elements: Vector[T]): Vector[(T, AlignResult)] = {
+                               elements: Vector[T]): Vector[AlignResultWithElement[T]] = {
       val total = elements.foldLeft(0.0)((p, c) => p + ps._1(c.size))
       val space = maxSize - total
       val multi = if (total == 0) 1 else space / total
 
       elements
-        .foldLeft((Vector[(T, AlignResult)](), 0.0))((p, c) => {
+        .foldLeft((Vector[AlignResultWithElement[T]](), 0.0))((p, c) => {
           val newSize = ps._1(c.size) * multi
-          (p._1 :+ (c, AlignResult(p._2, newSize)), p._2 + newSize)
+          (p._1 :+ AlignResultWithElement(p._2, newSize, c), p._2 + newSize)
         })
         ._1
     }
@@ -101,13 +103,13 @@ object Align {
   final case object SpaceBetween extends Align {
     def complex[T <: Material](maxSize: Double,
                                ps: PointSwapper,
-                               elements: Vector[T]): Vector[(T, AlignResult)] = {
+                               elements: Vector[T]): Vector[AlignResultWithElement[T]] = {
       val total = elements.foldLeft(0.0)((p, c) => p + ps._1(c.size))
       val space = (maxSize - total) / (elements.size - 1)
 
       elements
-        .foldLeft((Vector[(T, AlignResult)](), 0.0))((p, c) =>
-          (p._1 :+ (c, AlignResult(p._2, ps._1(c.size))), p._2 + space + ps._1(c.size)))
+        .foldLeft((Vector[AlignResultWithElement[T]](), 0.0))((p, c) =>
+          (p._1 :+ AlignResultWithElement(p._2, ps._1(c.size), c), p._2 + space + ps._1(c.size)))
         ._1
     }
 
@@ -118,13 +120,13 @@ object Align {
 
     def complex[T <: Material](maxSize: Double,
                                ps: PointSwapper,
-                               elements: Vector[T]): Vector[(T, AlignResult)] = {
+                               elements: Vector[T]): Vector[AlignResultWithElement[T]] = {
       val total = elements.foldLeft(0.0)((p, c) => p + ps._1(c.size))
       val space = (maxSize - total) / (elements.size + 1)
 
       elements
-        .foldLeft((Vector[(T, AlignResult)](), space))((p, c) =>
-          (p._1 :+ (c, AlignResult(p._2, ps._1(c.size))), p._2 + space + ps._1(c.size)))
+        .foldLeft((Vector[AlignResultWithElement[T]](), space))((p, c) =>
+          (p._1 :+ AlignResultWithElement(p._2, ps._1(c.size), c), p._2 + space + ps._1(c.size)))
         ._1
     }
 

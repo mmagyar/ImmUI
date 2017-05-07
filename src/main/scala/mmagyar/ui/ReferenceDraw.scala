@@ -1,8 +1,5 @@
 package mmagyar.ui
 
-import mmagyar.layout.Align.{Center, Left, Right, Stretch}
-import mmagyar.ui.widget.{ComplexWidgetBase, ScrollbarGroup}
-import mmagyar.util.font.bdf.{FontManager, Font => FontBdf}
 import mmagyar.util._
 
 /** Created by Magyar Máté on 2017-02-01, All rights reserved. */
@@ -79,10 +76,10 @@ class ReferenceDraw(var scale: Double = 1) {
             val chars = b.organize(a.text)
             val cp    = (currentPoint - a.position).toInt
             chars
-              .find(x => x._1._1 + x._2.size._1 > cp._1)
+              .find(x => x.position._1 + x.pixel.size._1 > cp._1)
               .map(x => {
-                val (xx, yy) = ((cp._1 - x._1._1).abs, (cp._2 - x._1._2).abs)
-                val fnt      = x._2
+                val (xx, yy) = ((cp._1 - x.position._1).abs, (cp._2 - x.position._2).abs)
+                val fnt      = x.pixel
                 if (fnt.pixels.size > yy) {
                   val row = fnt.pixels(yy)
                   if (row.size > xx && row(xx)) a.stroke

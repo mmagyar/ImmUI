@@ -1,11 +1,11 @@
 package mmagyar.ui.widget
 
 import mmagyar.layout.Sizing
-import mmagyar.ui.interaction._
-import mmagyar.ui.widgetHelpers.Style
 import mmagyar.ui._
-import mmagyar.ui.widget.Button.{DefaultBehaviour, ToggleButtonBehaviourAction}
-import mmagyar.util.{Box, Point}
+import mmagyar.ui.interaction._
+import mmagyar.ui.widget.Button.DefaultBehaviour
+import mmagyar.ui.widgetHelpers.Style
+import mmagyar.util.Point
 
 /** Magyar Máté 2017, all rights reserved */
 object Button {

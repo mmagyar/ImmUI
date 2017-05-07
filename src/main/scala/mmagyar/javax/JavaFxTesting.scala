@@ -14,7 +14,7 @@ import mmagyar.ui.interaction.{PointerAction, PointerState}
 import mmagyar.util._
 
 object JavaFxTesting {
-  def main(args: Array[String]) {
+  def main(args: Array[String]) :Unit = {
     Application.launch(classOf[JavaFxTesting], args: _*)
   }
 }
@@ -23,16 +23,17 @@ class JavaFxTesting extends Application {
   val size: Point     = Point(640, 480)
   val width: Int      = size.x.toInt
   val height: Int     = size.y.toInt
-  val multiplier: Int = 1
+  val multiplier: Double = 1
 
   var writeRenderTime: Boolean = false
   //  val width : Int = 1280/2
   //  val height: Int = 720/2
   //  val canvas = new Canvas(width, height)
 
-  val canvas = new Canvas(width * multiplier, height * multiplier)
-  canvas.setWidth(width * multiplier)
-  canvas.setHeight(height * multiplier)
+  val scaledSize = Point(width * multiplier, height * multiplier)
+  val canvas = new Canvas(scaledSize.x,scaledSize.y)
+  canvas.setWidth(scaledSize.x)
+  canvas.setHeight(scaledSize.y)
 //  canvas.setScaleX(multiplier)
 //  canvas.setScaleY(multiplier)
 //  canvas.setTranslateX(width)
@@ -62,7 +63,7 @@ class JavaFxTesting extends Application {
   var needsUpdate: Boolean = true
   val actions              = new PointerAction()
 
-  def start(stage: Stage) {
+  def start(stage: Stage) :Unit = {
     val root = new Pane
 
     root.getChildren.add(canvas)

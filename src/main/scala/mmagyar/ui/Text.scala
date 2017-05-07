@@ -1,31 +1,32 @@
 package mmagyar.ui
 
-import mmagyar.util.Point
+import mmagyar.util.font.bdf.Font.IntPoint
 
 /** Created by Magyar Máté on 2017-02-18, All rights reserved. */
 object Font {}
 
 sealed trait Font {
   def getSizeForString(string: String): (Int, Int)
-  def sliceToMaxLineWidth(string: String,width:Double): Vector[String]
+  def sliceToMaxLineWidth(string: String, width: Double): Vector[String]
 }
 
 case class FontUrl(url: String, fontStyle: FontStyle) extends Font {
   override def getSizeForString(string: String): (Int, Int) = ???
 
-  override def sliceToMaxLineWidth(string: String, width:Double): Vector[String] = ???
+  override def sliceToMaxLineWidth(string: String, width: Double): Vector[String] = ???
 }
 
 case class FontBinary(binary: Vector[Byte]) extends Font {
   override def getSizeForString(string: String): (Int, Int) = ???
 
-  override def sliceToMaxLineWidth(string: String, width:Double) : Vector[String] = ???
+  override def sliceToMaxLineWidth(string: String, width: Double): Vector[String] = ???
 }
 
 trait FontBitmap extends Font {
   def getPixels(char: Char): Vector[Vector[Boolean]]
 
-  def organize(text: String): Vector[((Int, Int), BitmapChar)]
+  def organize(text: String): Vector[CharInfo[BitmapChar]]
+  case class CharInfo[+T <: BitmapChar](position: IntPoint, pixel: T)
 
 }
 

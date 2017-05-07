@@ -1,6 +1,5 @@
 package mmagyar.ui.widget
 
-import com.sun.javafx.webkit.theme.RenderThemeImpl.Widget
 import mmagyar.ui._
 
 /** Magyar Máté 2017, all rights reserved */

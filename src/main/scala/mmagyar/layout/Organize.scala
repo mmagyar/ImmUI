@@ -66,38 +66,61 @@ object Organize {
   def getMax_2[T <: Material](elements: Vector[T], ps: PointSwapper): Double =
     elements.foldLeft(0.0)((p: Double, c: T) => p.max(ps._2(c.size)))
 
-  def organizeRow[T <: Material with Positionable[T]](elementsToOrganize: Vector[T],
-                                                      lineSize: Point,
-                                                      startPosition: Point,
-                                                      alignContent: AlignSimple,
-                                                      alignItem: Align,
-                                                      wholeBound: Point,
-                                                      ps: PointSwapper): Vector[T] = {
+  def organizeRow[T <: Material with Positionable[T]](
+      elementsToOrganize: Vector[T],
+      lineSize: Point,
+      startPosition: Point,
+      alignContent: AlignSimple,
+      alignItem: Align,
+      fill: Fill)(implicit ps: PointSwapper): Vector[T] = {
 
-    val withAlignInfo = alignItem.complex(ps._1(lineSize), ps, elementsToOrganize)
-    withAlignInfo
+    /**
+      * Necessary to do this prior to other to other operations,
+      * since some elements might take less space on the main axis
+      * when stretch align is used, and is stretched.
+      */
+    val preAlignContent = elementsToOrganize.map {
+      case a: Sizable[T @unchecked] =>
+        val maxSize = ps._2(lineSize).min(ps._2(a.sizing.maxSize))
+        val result2 = alignContent
+          .align(maxSize, ps._2(a.size), sizeChangeable = true)
+          .size
+          .max(ps._2(a.sizing.minSize))
+        val currentSize = ps._2(a.size)
+        if ((result2 > currentSize) || (result2 < currentSize))
+          a.size(ps._2Set(a.size, result2))
+        else a.size(a.size)
+
+      case a => a
+    }
+
+    val withAlignInfo = alignItem.complex(ps._1(lineSize), ps, preAlignContent)
+    val organized = withAlignInfo
       .foldLeft((ps._1(startPosition), Vector[T]()))((pp, cc) => {
-        val sizeSec = ps._2(cc._1.size)
-        val initPos = cc._1.position(ps._1Add(startPosition, cc._2.offset))
-        val sizedEl: T = initPos match {
-          case a: Sizable[T @unchecked] =>
-            val maxSize     = ps._2(lineSize).min(ps._2(a.sizing.maxSize))
-            val result      = alignContent.align(maxSize, sizeSec, sizeChangeable = true)
-            val result2     = result.size.max(ps._2(a.sizing.minSize))
-            val currentSize = ps._2(a.size)
-//            if ((result2 > currentSize && a.sizing.grow == Grow.Affinity) ||
-//              (result2 < currentSize && a.sizing.shrink == Shrink.Affinity))
-            if ((result2 > currentSize) || (result2 < currentSize))
-              a.size(ps._2Set(a.size, result2))
-            else a.size(a.size)
-          case a => a
-        }
-        val alignResult = alignContent.align(ps._2(lineSize), ps._2(sizedEl.size))
-        val positioned =
-          sizedEl.position(ps._2Set(sizedEl.position, alignResult.offset + ps._2(startPosition)))
+        val initPosition = cc.element.position(ps._1Add(startPosition, cc.offset))
+        val alignResult  = alignContent.align(ps._2(lineSize), ps._2(initPosition.size))
+        val positioned = initPosition.position(
+          ps._2Set(initPosition.position, alignResult.offset + ps._2(startPosition)))
         (pp._1 + ps._1(positioned.size), pp._2 ++ Vector[T](positioned))
       })
       ._2
+    if (getSummed_1(organized, ps) < lineSize._1)
+      grow(organized, fill, lineSize, ps)
+    else if (getSummed_1(organized, ps) > lineSize._1)
+      shrink(organized, fill, lineSize, ps)
+    else organized
+
+  }
+
+  case class GrowData(remainingWidth: Double, nonGrowable: Double, currentSpace: Double) {
+    def growableSpace: Double = remainingWidth - nonGrowable
+
+    /**
+      * @return If we have 0 (or less) space, we don't need to do anything
+      */
+    def shouldTryToGrow: Boolean = growableSpace - currentSpace > 0 && currentSpace > 0
+
+    def multiplier: Double = if (currentSpace <= 0) 1 else growableSpace / currentSpace
   }
 
   /**
@@ -110,10 +133,12 @@ object Organize {
     * @return the grown elements
     */
   @tailrec
-  def grow[T <: Material with Positionable[T]](elements: Vector[T],
-                                               fill: Fill,
-                                               lineSize: Point,
-                                               ps: PointSwapper): Vector[T] = {
+  def grow[T <: Material with Positionable[T]](
+      elements: Vector[T],
+      fill: Fill,
+      lineSize: Point,
+      ps: PointSwapper,
+      previousGrowData: Option[GrowData] = None): Vector[T] = {
 
     val sizables = elements.collect { case a: Sizable[_] => a }
     val remainingWidth: Double = ps._1(lineSize) -
@@ -122,23 +147,19 @@ object Organize {
     fill match {
       case No => elements
       case Equal =>
-        val (nonGrowable, currentSpace) = sizables.foldLeft((0.0, 0.0))((p, el) => {
+        val growData = sizables.foldLeft(GrowData(remainingWidth, 0, 0))((p, el) => {
           if (el.sizing.grow == Grow.No || ps._1(el.sizing.maxSize) <= ps._1(el.size))
-            (p._1 + ps._1(el.size), p._2)
-          else (p._1, p._2 + ps._1(el.size))
+            p.copy(nonGrowable = p.nonGrowable + ps._1(el.size))
+          else p.copy(currentSpace = p.currentSpace + ps._1(el.size))
         })
 
-        val growableSpace = remainingWidth - nonGrowable
-
-        //If we have 0 (or less) space, we don't need to do anything
-        if (growableSpace - currentSpace > 0 && currentSpace > 0) {
-          val multiplier = if (currentSpace <= 0) 1 else growableSpace / currentSpace
+        if (growData.shouldTryToGrow) {
           elements.foldLeft((false, Vector[T]()))((prev, current) => {
             current match {
               case x: Sizable[T @unchecked] if x.sizing.grow != Grow.No =>
                 val size    = ps._1(x.size)
                 val maxSize = ps._1(x.sizing.maxSize)
-                val ns      = size * multiplier
+                val ns      = size * growData.multiplier
                 (
                   ns >= maxSize || prev._1,
                   prev._2 ++ Vector[T](
@@ -147,8 +168,10 @@ object Organize {
               case a => (prev._1, prev._2 :+ a)
             }
           }) match {
-            case a if a._1 => grow(a._2, fill, lineSize, ps);
-            case a         => a._2
+            //Bail out if the grow data is the same as last time
+            case a if previousGrowData.contains(previousGrowData) => a._2
+            case a if a._1                                        => grow(a._2, fill, lineSize, ps, Some(growData));
+            case a                                                => a._2
           }
         } else elements
       case Largest  => ??? //Find the largest element and only stretch that
@@ -158,52 +181,71 @@ object Organize {
     }
   }
 
+  case class ShrinkData(remainingWidth: Double, nonShrinkable: Double, currentSpace: Double) {
+    def shrinkableSpace: Double = remainingWidth - nonShrinkable
+
+    /**
+      * @return If we have 0 (or more) space, we don't need to do anything
+      */
+    def shouldTryToShrink: Boolean = shrinkableSpace - currentSpace < 0
+
+    def multiplier: Double = if (currentSpace == 0) 1 else shrinkableSpace / currentSpace
+  }
+
   /**
     *
     * @param elements the elements to shrink
     * @param fill     how to shrink the elements
     * @param lineSize the size of the line where the elements need to shrink
     * @param ps       point swapper says which is the main axis
-    * @tparam T the type of the list, this function does not do anything if non of T has Sizable as subclass
+    * @param previousShrinkData the data from the last iteration, it's neccessery,
+    *                           to know when to bail out
+    * @tparam T the type of the list,
+    *           this function does not do anything if non of T has Sizable as subclass
     * @return the shrunk elements
     */
   @tailrec
-  def shrink[T <: Material with Positionable[T]](elements: Vector[T],
-                                                 fill: Fill,
-                                                 lineSize: Point,
-                                                 ps: PointSwapper): Vector[T] = {
+  def shrink[T <: Material with Positionable[T]](
+      elements: Vector[T],
+      fill: Fill,
+      lineSize: Point,
+      ps: PointSwapper,
+      previousShrinkData: Option[ShrinkData] = None): Vector[T] = {
     val sizables = elements.collect { case a: Sizable[_] => a }
     val remainingWidth: Double = ps._1(lineSize) -
       getSummed_1(elements.filter({ case _: Sizable[_] => false; case _ => true }), ps)
     fill match {
       case No => elements
       case Equal =>
-        val (nonShrinkable, currentSpace) = sizables.foldLeft((0.0, 0.0))((p, el) => {
-          if (el.sizing.shrink == Shrink.No || ps._1(el.sizing.minSize) >= ps._1(el.size))
-            (p._1 + ps._1(el.size), p._2)
-          else (p._1, p._2 + ps._1(el.size))
-        })
-        val shrinkableSpace = remainingWidth - nonShrinkable
+        val shrinkData =
+          sizables.foldLeft(ShrinkData(remainingWidth, 0, 0))((p, el) => {
+            if (el.sizing.shrink == Shrink.No || ps._1(el.sizing.minSize) >= ps._1(el.size))
+              p.copy(nonShrinkable = p.nonShrinkable + ps._1(el.size))
+            else p.copy(currentSpace = p.currentSpace + ps._1(el.size))
+          })
 
-        //If we have 0 (or more) space, we don't need to do anything
-        if (shrinkableSpace - currentSpace < 0) {
-          val multiplier = if (currentSpace == 0) 1 else shrinkableSpace / currentSpace
+        if (shrinkData.shouldTryToShrink) {
           elements.foldLeft((false, Vector[T]()))((prev, current) => {
             current match {
               case x: Sizable[T @unchecked] if x.sizing.shrink != Shrink.No =>
                 val size    = ps._1(x.size)
                 val minSize = ps._1(x.sizing.minSize)
-                val ns      = if (currentSpace == 0) minSize else size * multiplier
+                val ns =
+                  if (shrinkData.currentSpace == 0) minSize else size * shrinkData.multiplier
                 (
                   ns <= minSize || prev._1,
                   prev._2 ++ Vector[T](
                     x.size(ps._1Set(x.size, if (ns <= minSize) minSize else ns))))
-              //If there are elements that reaching maximum size, run layout again
+              //If there are elements that reaching minimum size, run layout again
               case a => (prev._1, prev._2 :+ a)
             }
           }) match {
-            case a if a._1 && shrinkableSpace > 0 => shrink(a._2, fill, lineSize, ps);
-            case a                                => a._2
+            //Bail if the last iteration yielded the same result
+            case a if previousShrinkData.contains(shrinkData) => a._2
+            //Recurse if we appear to have more space to shrink
+            case a if a._1 && shrinkData.shrinkableSpace > 0 =>
+              shrink(a._2, fill, lineSize, ps, Some(shrinkData));
+            case a => a._2
           }
         } else elements
       case Largest  => ??? //Find the largest element and only stretch that
@@ -355,8 +397,7 @@ object Organize {
           basePoint,
           layout.alignContent,
           layout.alignItem,
-          bounds,
-          ps
+          layout.fill
         )
       case Simple(alignContent, _, _) =>
         val lineGrow = organizeElementsToRows(elements, bounds, layout)
@@ -381,8 +422,7 @@ object Organize {
               basePoint._2Add(ln.offset_2 + wholeOffset),
               alignContent,
               layout.alignItem,
-              bounds,
-              ps
+              layout.fill
             )
           })
       case EqualLines(_, _, _) => ???
@@ -422,8 +462,9 @@ final case class Vertical(layout: Layout = Layout(), size: LayoutSizeConstraint 
   override def organize[T <: Positionable[T] with Material](elements: Vector[T],
                                                             offset: Point = Point.zero,
                                                             organizeToBounds: Option[Boolean] =
-                                                              None): Vector[T] =
-    Organize.wrapOrganize(
+                                                              None): Vector[T] = {
+
+    val org = Organize.wrapOrganize(
       elements,
       layout,
       PointSwapper.y,
@@ -436,7 +477,9 @@ final case class Vertical(layout: Layout = Layout(), size: LayoutSizeConstraint 
         case Bound(_)       => true
       })
     )
-
+    println("BRK")
+    org
+  }
 }
 
 /**
