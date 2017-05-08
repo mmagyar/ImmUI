@@ -23,8 +23,8 @@ object SizableGroup {
 
   val defaultLayout: Layout = Layout(
     wrap = Wrap
-      .Simple(Align.Stretch(Align.Center), stretchLinesToBounds = true, uniformLineSize = true),
-    alignContent = Align.Center)
+      .Simple(Align.Stretch(Align.Center()), stretchLinesToBounds = true, uniformLineSize = true),
+    alignContent = Align.Center())
 
   def apply(organize: Organize,
             elements: Vector[Shapey],

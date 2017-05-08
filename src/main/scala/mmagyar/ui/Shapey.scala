@@ -236,11 +236,10 @@ final case class MultilineText(
   private lazy val lineElements: Vector[Shapey] = linePositions.zipWithIndex.map(
     x =>
       Text(
-        Point(0, x._1.posY),
         x._1.text,
-        Sizing(Point(x._1.sizeX, x._1.sizeY)),
         looks,
         zOrder,
+        Point(0, x._1.posY),
         font,
         ShapeyId(id.symbol + "_text_line_" + x._2)))
 
@@ -265,31 +264,18 @@ final case class MultilineText(
 
 object Text {
   lazy val defaultFont: Font = FontManager.loadBdfFont("fonts/u_vga16.bdf")
-
-  def apply(text: String,
-            position: Point = Point.zero,
-            looks: Looks = Looks(Color.transparent, Color.grey),
-            zOrder: Double = 1,
-            font: Font = Text.defaultFont,
-            id: ShapeyId = ShapeyId()): Text = {
-    val stringSize = Point(font.getSizeForString(text))
-    val sizing     = Sizing(stringSize, stringSize, stringSize)
-    Text(position, text, sizing, looks, zOrder, font, id)
-  }
 }
 
 final case class Text(
-    position: Point,
     text: String,
-    sizing: Sizing,
-    looks: Looks,
-    zOrder: Double,
-    font: Font,
-    id: ShapeyId
+    looks: Looks = Looks(Color.transparent, Color.grey),
+    zOrder: Double = 1,
+    position: Point = Point.zero,
+    font: Font = Text.defaultFont,
+    id: ShapeyId = ShapeyId()
 ) extends Drawable
     with LookableShapey
     with LabelableShapey
-    with SizableShapey
     with PositionableShapey {
 
   override def looks(looks: Looks): Text = if (looks != this.looks) copy(looks = looks) else this
@@ -297,20 +283,13 @@ final case class Text(
   override def position(point: Point): Text =
     if (position != point) copy(position = point) else this
 
-  override def text(string: String): Text = text(string, recalculateSize = true)
-
-  def text(string: String, recalculateSize: Boolean = true): Text =
-    if (recalculateSize) {
-      val newSize = Point(font.getSizeForString(string))
-      copy(text = string, sizing = Sizing(newSize, newSize, newSize))
-    } else copy(text = string)
-
-  override def sizing(sizing: Sizing): Text = copy(sizing = sizing)
+  override def text(string: String): Text =
+    if (text == string) this else copy(text = string)
 
   override def customToString: String = s"text: $text"
 
-  if (size != boundingBox.size)
-    println((size, boundingBox.size, id))
+  override lazy val size: Point = Point(font.getSizeForString(text))
+
 }
 
 sealed trait BitmapFill
@@ -329,13 +308,13 @@ case object Clip extends BitmapFill
 
 object BitmapShapey {
 
-  def align(mod: Double , originalSize: Int, targetSize: Double, align1: Align): Double =
+  def align(mod: Double, originalSize: Int, targetSize: Double, align1: Align): Double =
     align(mod, originalSize.toDouble, targetSize, align1)
   def align(mod: Double = 1, originalSize: Double, targetSize: Double, align: Align): Double =
     align match {
-      case Right  => targetSize - (originalSize * mod)
-      case Center => (targetSize - (originalSize * mod)) / 2.0
-      case _      => 0
+      case Right()  => targetSize - (originalSize * mod)
+      case Center() => (targetSize - (originalSize * mod)) / 2.0
+      case _        => 0
     }
 
 //  def vertical(mod: Double = 1,
@@ -397,14 +376,14 @@ final case class BitmapShapey(
       case Clip =>
         pxPointRaw.sub(
           align.vertical match {
-            case Right  => size.y - bitmap.size._2
-            case Center => (size.y - bitmap.size._2) / 2.0
-            case _      => 0
+            case Right()  => size.y - bitmap.size._2
+            case Center() => (size.y - bitmap.size._2) / 2.0
+            case _        => 0
           },
           align.horizontal match {
-            case Right  => size.x - bitmap.size._1;
-            case Center => (size.x - bitmap.size._1) / 2.0
-            case _      => 0
+            case Right()  => size.x - bitmap.size._1;
+            case Center() => (size.x - bitmap.size._1) / 2.0
+            case _        => 0
           }
         )
 

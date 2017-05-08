@@ -1,8 +1,11 @@
 package mmagyar.layout
 
+import mmagyar.layout.Align.{Center, Left, Right, Stretch}
 import mmagyar.util.PointSwapper
 
 /** Magyar Máté 2017, all rights reserved */
+
+
 case class AlignResult(offset: Double, size: Double)
 case class AlignResultWithElement[T <: Material](offset: Double, size: Double, element: T)
 object AlignHelper {
@@ -24,12 +27,11 @@ case class AlignHelper[T <: Material](result: Vector[AlignResultWithElement[T]],
       minimumOffset = minimumOffset.min(nextOffset)
     )
 
-  def add(newElement: T, newSize: Double, space:Double = 0): AlignHelper[T] = new AlignHelper[T](
+  def add(newElement: T, newSize: Double, space: Double = 0): AlignHelper[T] = new AlignHelper[T](
     result :+ AlignResultWithElement(nextOffset, newSize, newElement),
     nextOffset = nextOffset + space + newSize,
     minimumOffset = minimumOffset.min(nextOffset)
   )
-
 
   def applyMinimumOffset: Vector[AlignResultWithElement[T]] =
     if (minimumOffset < 0) result.map(x => x.copy(offset = x.offset + minimumOffset.abs))
@@ -41,12 +43,21 @@ sealed trait Align {
                              elements: Vector[T]): Vector[AlignResultWithElement[T]]
 }
 
+sealed trait AlignNonSizing extends Align
+
 sealed trait AlignSimple extends Align {
   def align(maxSize: Double, elementSize: Double, sizeChangeable: Boolean = false): AlignResult
+
+  def getByCalculatedRightOffset(rightOffset: Double): Double = this match {
+    case Left()                 => 0
+    case Right()                => rightOffset.max(0)
+    case Center()               => rightOffset.max(0) / 2
+    case Stretch(forNonSizable) => forNonSizable.getByCalculatedRightOffset(rightOffset)
+  }
 }
 object Align {
 
-  final case object Left extends AlignSimple {
+  final case class Left() extends AlignSimple with AlignNonSizing {
     override def align(maxSize: Double,
                        elementSize: Double,
                        sizeChangeable: Boolean = false): AlignResult =
@@ -64,7 +75,7 @@ object Align {
     * when the size constraint is exceeded it behaves as left align
     * That means that there will be no elements with negative offset
     */
-  final case object Right extends AlignSimple {
+  final case class Right() extends AlignSimple with AlignNonSizing {
 
     override def align(maxSize: Double,
                        elementSize: Double,
@@ -74,8 +85,10 @@ object Align {
     def complex[T <: Material](maxSize: Double,
                                ps: PointSwapper,
                                elements: Vector[T]): Vector[AlignResultWithElement[T]] = {
+
       val total  = elements.foldLeft(0.0)((p, c) => p + ps._1(c.size))
       val offset = maxSize - total
+
       AlignHelper.process(elements, offset, ps)
     }
   }
@@ -85,7 +98,7 @@ object Align {
     * when the size constraint is exceeded it behaves as left align
     * That means that there will be no elements with negative offset
     */
-  final case object Center extends AlignSimple {
+  final case class Center() extends AlignSimple with AlignNonSizing {
 
     override def align(maxSize: Double,
                        elementSize: Double,
@@ -122,29 +135,47 @@ object Align {
 
   }
 
-  final case object SpaceBetween extends Align {
+  final case class SpaceBetween(spacing: Spacing = Spacing.Default,
+                                align: AlignSimple = Align.Left())
+      extends Align
+      with AlignNonSizing {
     def complex[T <: Material](maxSize: Double,
                                ps: PointSwapper,
                                elements: Vector[T]): Vector[AlignResultWithElement[T]] = {
-      val total = elements.foldLeft(0.0)((p, c) => p + ps._1(c.size))
-      val space = ((maxSize - total) / (elements.size - 1)).max(0)
+      val total           = elements.foldLeft(0.0)((p, c) => p + ps._1(c.size))
+      val spaceMultiplier = elements.size - 1
+      val totalSpace      = maxSize - total
+      val space           = spacing.modifyFillingSpace((totalSpace / spaceMultiplier).max(0))
 
-      elements.foldLeft(AlignHelper[T](0))((p,c)=> p.add(c, ps._1(c.size),space)).result
+      val rest   = totalSpace - (space * spaceMultiplier)
+      val offset = align.getByCalculatedRightOffset(rest)
+
+      elements.foldLeft(AlignHelper[T](offset))((p, c) => p.add(c, ps._1(c.size), space)).result
     }
   }
-//
-  final case object SpaceAround extends Align {
+
+  final case class SpaceAround(spacing: Spacing = Spacing.Default,
+                               align: AlignSimple = Align.Left())
+      extends Align
+      with AlignNonSizing {
 
     def complex[T <: Material](maxSize: Double,
                                ps: PointSwapper,
                                elements: Vector[T]): Vector[AlignResultWithElement[T]] = {
-      val total = elements.foldLeft(0.0)((p, c) => p + ps._1(c.size))
-      val space = ((maxSize - total) / (elements.size + 1)).max(0)
+      val total           = elements.foldLeft(0.0)((p, c) => p + ps._1(c.size))
+      val spaceMultiplier = elements.size + 1
+      val totalSpace      = maxSize - total
+      val space           = spacing.modifyFillingSpace((totalSpace / spaceMultiplier).max(0))
 
-      elements.foldLeft(AlignHelper[T](space))((p,c)=> p.add(c, ps._1(c.size),space)).result
+      val rest   = totalSpace - (space * spaceMultiplier)
+      val offset = align.getByCalculatedRightOffset(rest)
+
+      elements
+        .foldLeft(AlignHelper[T](space + offset))((p, c) => p.add(c, ps._1(c.size), space))
+        .result
     }
 
   }
 }
 
-case class Align2d(horizontal: Align = Align.Center, vertical: Align = Align.Center)
+case class Align2d(horizontal: Align = Align.Center(), vertical: Align = Align.Center())

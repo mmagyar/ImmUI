@@ -105,10 +105,11 @@ object Organize {
 //      })
 //      ._2
     val organized = preAlignContent
+    val summedSize = getSummed_1(organized, ps)
     val sizedElements =
-      if (getSummed_1(organized, ps) < lineSize._1)
+      if ( summedSize < lineSize._1)
         grow(organized, fill, lineSize, ps)
-      else if (getSummed_1(organized, ps) > lineSize._1)
+      else if (summedSize > lineSize._1)
         shrink(organized, fill, lineSize, ps)
       else organized
 

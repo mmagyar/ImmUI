@@ -48,26 +48,28 @@ object BuildContainer {
     new ScrollbarGroup(
       SizableGroup.scrollableWithBackground(
         Group(
-          ElementList(Vertical(
-            Layout(
-              Wrap.No,
-
+          ElementList(
+            Vertical(
+              Layout(
+                Wrap.No,
 //              alignItem = Align.Stretch(Align.Left),
-
-              //TODO growing when right aligning
-              alignItem = Align.SpaceBetween,
-              alignContent = Align.Stretch(Align.Center))),
-          MultilineText(
-            "SHOW DATA HERE, and this overlaps, way over",
-            id = ShapeyId("DEBUG_THIS")),
-          Text("Selected Id:"),
-          Text("", id = ShapeyId("SEL_ID_HERE")),
-          Text("\ndetail:"),
-          MultilineText("", id = ShapeyId("SEL_DETAIL_HERE"), minSize = Point(24, 8)),
-          Rect(
-            Sizing(Point.one, Grow.Until(Point(10000000000.0,10)), Shrink.Affinity),
-            looks = Looks(Color.lime, Color.olive, 1))
-        ),Point.zero,id = ShapeyId("CTRLGROUP")),
+                alignItem = Align.SpaceAround(Spacing.Maximum(20), Align.Center()),
+                alignContent = Align.Stretch(Align.Center())
+              )),
+            MultilineText(
+              "SHOW DATA HERE, and this overlaps, way over",
+              id = ShapeyId("DEBUG_THIS")),
+            Text("Selected Id:"),
+            Text("", id = ShapeyId("SEL_ID_HERE")),
+            Text("\ndetail:"),
+            MultilineText("", id = ShapeyId("SEL_DETAIL_HERE"), minSize = Point(24, 8)),
+            Rect(
+              Sizing(Point.one, Grow.Until(Point(10000000000.0, 10)), Shrink.Affinity),
+              looks = Looks(Color.lime, Color.olive, 1))
+          ),
+          Point.zero,
+          id = ShapeyId("CTRLGROUP")
+        ),
         Sizing(size),
         margin = Box(Point(6, 6))
       ),
@@ -87,21 +89,22 @@ object BuildContainer {
           Some(InjectedBehaviourAction((group: Group, tracker: Tracker) => {
             if (tracker.downElements.exists(_.shapey.id == controlPanelElement.id)) group
             else {
-              val gettr =group.get(_.id("CTRLGROUP"))
-              println(gettr)
               group.changeWhereParents(
                 x =>
                   (x.shapey.id("SEL_DETAIL_HERE") || x.shapey.id("SEL_ID_HERE")) && x.parents
                     .exists(_.id == controlPanelElement.id), {
                   case a: MultilineText =>
                     val text =
-                      tracker.downElements.headOption
-                        .map(y => y.shapey.toString)
-                        .getOrElse("NO DATE")
-                    val res = a.text(text)
-                    println(("past", a.size, a.sizing))
-                    println(("CURRENT", res.size, a.sizing))
-                    res
+                      if (tracker.downElements.headOption.exists(_.shapey match {
+                            case a: Group => a.get(_.id == controlPanelElement.id).nonEmpty
+                            case _        => false
+                          })) "ROOT - Not displayed due to recursive complexity"
+                      else
+                        tracker.downElements.headOption
+                          .map(y => y.shapey.toString)
+                          .getOrElse("NO DATE")
+                    a.text(text)
+
                   case a: Text =>
                     val text =
                       tracker.downElements.headOption

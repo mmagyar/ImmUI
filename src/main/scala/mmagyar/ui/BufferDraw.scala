@@ -177,14 +177,14 @@ class BufferDraw() {
               looks.stroke,
               looks.strokeLineWidth.toInt)
             DrawInstruction(position, constraint, pixels.pixelsArrayByte)
-          case Text(position, label, sizing, looks, _, font, _) =>
-            val fill   = ColorByte(looks.fill)
-            val stroke = ColorByte(looks.stroke)
+          case text: Text=>
+            val fill   = ColorByte(text.looks.fill)
+            val stroke = ColorByte(text.looks.stroke)
 
-            var bgFont = Vector.fill(sizing.size.x.toInt, sizing.size.y.toInt)(fill)
-            font match {
+            var bgFont = Vector.fill(text.size.x.toInt, text.size.y.toInt)(fill)
+            text.font match {
               case b: FontBitmap =>
-                val chars = b.organize(label)
+                val chars = b.organize(text.text)
                 chars.foreach(c => {
 
                   val offX = c.position._1
@@ -210,7 +210,7 @@ class BufferDraw() {
                 throw new Error("Only bitmap fonts are supported by the reference drawer")
             }
             DrawInstruction(
-              position,
+              text.position,
               constraint,
               ColorMap.nearestScaleArray(scale, bgFont, ColorByte.empty))
 

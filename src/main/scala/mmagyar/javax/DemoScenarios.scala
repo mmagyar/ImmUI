@@ -17,7 +17,7 @@ object DemoScenarios {
     //      Bitmap.testStripes(10, 60, Color.red, Color.green),
     Bitmap.fourColor(64, 64),
     StretchCover,
-    Align2d(horizontal = Align.Center, vertical = Align.Right)
+    Align2d(horizontal = Align.Center(), vertical = Align.Right())
   )
 
   lazy val g2: Group =
@@ -26,7 +26,7 @@ object DemoScenarios {
       Group(
         Relative(Point(20, 70)),
         Rect(Sizing(100, 100), Looks(fill = Color.white, stroke = Color.red, strokeLineWidth = 5), position = Point(0, 0)),
-        Text("This is A very long text to test if it's al right", Point(0, 0)),
+        Text("This is A very long text to test if it's al right",position = Point(0, 0)),
         Rect(Sizing(10, 10), Looks(fill = Color.green, stroke = Color.silver, strokeLineWidth = 1), zOrder = 3, Point(10, 0))
       ).copy(position = Point.zero, rotation = Degree(45)),
       bmp.copy(zOrder = 1.2)
@@ -38,7 +38,7 @@ object DemoScenarios {
     Group(
       Relative(Point(10, 170)),
       Rect(Sizing(100, 100), Looks(fill = Color.white, stroke = Color.red, strokeLineWidth = 5), position = Point(0, 0)),
-      Text("This is A very long text to test if it's al right", Point(0, 0), zOrder = 2)
+      Text("This is A very long text to test if it's al right", position = Point(0, 0), zOrder = 2)
 
       //        ,Rect(
       //          Point(10, 0),
@@ -107,12 +107,12 @@ object DemoScenarios {
       .position(Point(20, 20)),
     Rect(Sizing(15, 15), Looks(Color(0, 255, 0, 0.5)), 3, Point(13, 4)),
     SizableGroup(
-      Horizontal(Layout(Wrap.No, Fill.No, Align.Left)),
+      Horizontal(Layout(Wrap.No, Fill.No, Align.Left())),
       position = Point(20, 20),
       sizing = Sizing(160, 80),
       elements = Vector(
         Rect(Sizing(Point(80, 30), Grow( Point(150, 70)),Shrink.No)),
-        Text("HELLO", Point(40, 40)))
+        Text("HELLO",position = Point(40, 40)))
     )
   )
 
@@ -124,7 +124,7 @@ object DemoScenarios {
       Sizing(25, 100),
       Bitmap.fourColor(10, 90),
       StretchBoth,
-      Align2d(Align.Right, Align.Right)),
+      Align2d(Align.Right(), Align.Right())),
     Group(
       Dialogue(
         "ohh hacky, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
@@ -161,12 +161,12 @@ object DemoScenarios {
 //      Rect(Sizing(15, 15), Point(3, 3), Looks(Color(0, 0, 255, 0.5)), 3),
       Rect(Sizing(15, 15), Looks(Color(0, 255, 0, 0.5)), 4, Point(13, 4)),
       SizableGroup(
-        Horizontal(Layout(Wrap.No, Fill.No, Align.Left)),
+        Horizontal(Layout(Wrap.No, Fill.No, Align.Left())),
         position = Point(20, 20),
         sizing = Sizing(160, 80),
         elements = Vector(
           Rect(Sizing(Point(80, 30), Grow(Point(150, 70)),Shrink.No)),
-          Text("HELLO", Point(40, 40)))
+          Text("HELLO", position = Point(40, 40)))
       )
     ).scale(2)
       .position(Point(10, 10))

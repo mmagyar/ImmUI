@@ -9,6 +9,7 @@ import javafx.scene.input.{KeyEvent, MouseEvent, ScrollEvent}
 import javafx.scene.layout.Pane
 import javafx.stage.Stage
 
+import mmagyar.layout._
 import mmagyar.ui._
 import mmagyar.ui.interaction.{PointerAction, PointerState}
 import mmagyar.util._
@@ -74,6 +75,32 @@ class JavaFxTesting extends Application {
         needsUpdate = true
       case a: KeyEvent if a.getText == "b" =>
         benchmark()
+      case a: KeyEvent if a.getText == "d" =>
+        val grp = Group(
+          ElementList(
+            Vertical(
+              Layout(
+                Wrap.No,
+                //              alignItem = Align.Stretch(Align.Left),
+                alignItem = Align.SpaceAround(Spacing.Maximum(20), Align.Center()),
+                alignContent = Align.Stretch(Align.Center())
+              ),Bound(Point(160,240))),
+            MultilineText(
+              "SHOW DATA HERE, and this overlaps, way over",
+              id = ShapeyId("m1")),
+            Text("Selected Id:"),
+            Text("", id = ShapeyId("SEL_ID_HERE")),
+            Text("\ndetail:"),
+            MultilineText("", id = ShapeyId("SEL_DETAIL_HERE"), minSize = Point(24, 8)),
+            Rect(
+              Sizing(Point.one, Grow.Until(Point(10000000000.0, 10)), Shrink.Affinity),
+              looks = Looks(Color.lime, Color.olive, 1))
+          ),
+          Point.zero,
+          id = ShapeyId("CTRLGROUP")
+        )
+
+        println(grp)
 
       case a: KeyEvent if a.getText == "i" =>
         writeRenderTime = !writeRenderTime
