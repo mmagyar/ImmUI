@@ -181,9 +181,10 @@ object Organize {
             }
           }) match {
             //Bail out if the grow data is the same as last time
-            case a if previousGrowData.contains(previousGrowData) => a._2
-            case a if a._1                                        => grow(a._2, fill, lineSize, ps, Some(growData));
-            case a                                                => a._2
+            case a if previousGrowData.contains(growData) => a._2
+            case a if a._1 =>
+              grow(a._2, fill, lineSize, ps, Some(growData));
+            case a => a._2
           }
         } else elements
       case Largest  => ??? //Find the largest element and only stretch that
