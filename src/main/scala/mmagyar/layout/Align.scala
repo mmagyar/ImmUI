@@ -129,7 +129,7 @@ object Align {
       val total = elements.foldLeft(0.0)((p, c) => p + ps._1(c.size))
       val space = ((maxSize - total) / (elements.size - 1)).max(0)
 
-      elements.foldLeft(AlignHelper[T](space))((p,c)=> p.add(c, ps._1(c.size),space)).result
+      elements.foldLeft(AlignHelper[T](0))((p,c)=> p.add(c, ps._1(c.size),space)).result
     }
   }
 //

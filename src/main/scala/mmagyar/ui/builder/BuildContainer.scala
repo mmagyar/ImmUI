@@ -55,7 +55,7 @@ object BuildContainer {
 //              alignItem = Align.Stretch(Align.Left),
 
               //TODO growing when right aligning
-              alignItem = Align.Center,
+              alignItem = Align.SpaceBetween,
               alignContent = Align.Stretch(Align.Center))),
           MultilineText(
             "SHOW DATA HERE, and this overlaps, way over",
