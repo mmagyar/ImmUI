@@ -1,6 +1,7 @@
 package mmagyar.layout
 
 import mmagyar.layout.Align.{Center, Left, Right, Stretch}
+import mmagyar.layout.Spacing._
 import mmagyar.util.PointSwapper
 
 /** Magyar Máté 2017, all rights reserved */
@@ -44,6 +45,7 @@ sealed trait Align {
     elements.foldLeft(0.0)((p: Double, c: T) => p + ps._1(c.size))
 
   def addedSpace[T <: Material](maxSize: Double, ps: PointSwapper, elements: Vector[T]): Double
+  def minimumRequireSpace[T <: Material](elements: Vector[T]): Double
 
   case class SpacingCalculation(offset: Double, space: Double)
   def calculateSpacing(numberOfElements: Int,
@@ -63,15 +65,16 @@ sealed trait AlignSimple extends Align {
   def align(maxSize: Double, elementSize: Double, sizeChangeable: Boolean = false): AlignResult
 
   def getByCalculatedRightOffset(rightOffset: Double): Double = this match {
-    case Left        => 0
-    case Right                => rightOffset.max(0)
-    case Center               => rightOffset.max(0) / 2
+    case Left                   => 0
+    case Right                  => rightOffset.max(0)
+    case Center                 => rightOffset.max(0) / 2
     case Stretch(forNonSizable) => forNonSizable.getByCalculatedRightOffset(rightOffset)
   }
 
   override def addedSpace[T <: Material](maxSize: Double,
                                          ps: PointSwapper,
                                          elements: Vector[T]): Double = 0
+  override def minimumRequireSpace[T <: Material](elements: Vector[T]): Double = 0
 }
 object Align {
 
@@ -171,10 +174,17 @@ object Align {
                                            elements: Vector[T]): Double =
       calculateSpacing(elements.size - 1, spacing, maxSize - sumElements(elements, ps), align).space * (elements.size - 1)
 
+    override def minimumRequireSpace[T <: Material](elements: Vector[T]): Double =
+      (spacing match {
+        case Default        => 0
+        case Minimum(value) => value
+        case Set(value)     => value
+        case Maximum(_)     => 0
+        case MinMax(min, _) => min
+      }) * (elements.size - 1)
   }
 
-  final case class SpaceAround(spacing: Spacing = Spacing.Default,
-                               align: AlignSimple = Align.Left)
+  final case class SpaceAround(spacing: Spacing = Spacing.Default, align: AlignSimple = Align.Left)
       extends Align
       with AlignNonSizing {
 
@@ -195,6 +205,15 @@ object Align {
       val elementNum = elements.size + 1
       calculateSpacing(elementNum, spacing, maxSize - sumElements(elements, ps), align).space * elementNum
     }
+
+    override def minimumRequireSpace[T <: Material](elements: Vector[T]): Double =
+      (spacing match {
+        case Default        => 0
+        case Minimum(value) => value
+        case Set(value)     => value
+        case Maximum(_)     => 0
+        case MinMax(min, _) => min
+      }) * (elements.size + 1)
   }
 }
 

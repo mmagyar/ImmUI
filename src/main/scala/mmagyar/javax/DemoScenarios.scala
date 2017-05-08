@@ -133,13 +133,13 @@ object DemoScenarios {
     Group(
       Group(
         Horizontal(
-          Layout(Wrap.Simple(), alignItem = Align.SpaceAround(Spacing.Set(20))),
-          Bound(Point(180, 80))),
+          Layout(Wrap.Simple(), alignItem = Align.SpaceBetween(Spacing.MinMax(1,20),Align.Center)),
+          Bound(Point(151.9, 80))),
         Vector(
           Rect(Sizing(50, 50), Looks(Color.green)),
           Rect(Sizing(50, 50), Looks(Color.blue)),
           Rect(Sizing(50, 50), Looks(Color.red)),
-          Rect(Sizing(50, 50), Looks(Color.olive)),
+          Rect(Sizing(49, 50), Looks(Color.olive)),
           Rect(Sizing(50, 50), Looks(Color.amber)),
           Rect(Sizing(50, 50), Looks(Color.lime)),
           Rect(Sizing(50, 50), Looks(Color.fuchsia)),

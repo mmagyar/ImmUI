@@ -269,15 +269,19 @@ object Organize {
     }
   }
 
-  private case class LineSummer[T](lineSize: Point, elements: Vector[T], offset_2: Double)
+  private case class LineSummer[T](lineSize: Point,
+                                   elements: Vector[T],
+                                   offset_2: Double,
+                                   lastSpacingValue: Double = 0)
 
   private case class LineGrow[T](lines: Vector[LineSummer[T]] = Vector(),
                                  longestLineLength: Double = 0,
                                  previousOffset: Double = 0)
-  private def partitionLines[T <: Material](ps: PointSwapper,
-                                            bounds: Point,
-                                            p: Vector[LineSummer[T]],
-                                            cr: T): Vector[LineSummer[T]] = {
+  private def partitionLines[T <: Material](
+      bounds: Point,
+      alignNonSizing: AlignNonSizing,
+      p: Vector[LineSummer[T]],
+      cr: T)(implicit ps: PointSwapper): Vector[LineSummer[T]] = {
     val last = if (p.nonEmpty) p.last else LineSummer(Point.zero, Vector[T](), 0.0)
     //Resize elements to their original size,
     //this helps keeping the ui elements more consistent on multiple layout runs.
@@ -286,16 +290,20 @@ object Organize {
         a.size(a.baseSize)
       case a => a
     }
-    val lineSize = ps._1(last.lineSize) + ps._1(c.size)
+
+    val minimalSpaceSize = alignNonSizing.minimumRequireSpace(last.elements :+ c) - last.lastSpacingValue
+
+    val lineSize = ps._1(last.lineSize) + ps._1(c.size) + minimalSpaceSize
     if ((lineSize > ps._1(bounds) && ps._1(last.lineSize) != 0) || p.isEmpty)
-      p :+ LineSummer(c.size, Vector(c), last.offset_2 + ps._2(last.lineSize))
+      p :+ LineSummer(c.size, Vector(c), last.offset_2 + ps._2(last.lineSize), minimalSpaceSize)
     else
       p.updated(
         p.size - 1,
         LineSummer(
           ps._1Set(ps._2Set(c.size, ps._2(c.size).max(ps._2(last.lineSize))), lineSize),
           last.elements :+ c,
-          last.offset_2))
+          last.offset_2,
+          minimalSpaceSize))
 
   }
 
@@ -364,7 +372,15 @@ object Organize {
       elements: Vector[T],
       bounds: Point,
       layout: Layout)(implicit ps: PointSwapper): LineGrow[T] = {
-    val linesRaw = elements.foldLeft(Vector[LineSummer[T]]())(partitionLines(ps, bounds, _, _))
+
+    /**
+      * What we have to do for the spacing to work
+      *
+      * Partition elements into lines
+      * Add spacing to each line when checking if the line overlaps to the next line
+      */
+    val linesRaw =
+      elements.foldLeft(Vector[LineSummer[T]]())(partitionLines(bounds, layout.alignItem, _, _))
 
     val linesWUniform_2 =
       if (layout.wrap.uniformLineSize) uniformLineSize(ps, linesRaw) else linesRaw

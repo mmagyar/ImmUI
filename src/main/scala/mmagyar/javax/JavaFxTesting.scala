@@ -83,8 +83,8 @@ class JavaFxTesting extends Application {
         val grp = Group(Group(
           ElementList(
             Horizontal(
-              Layout(Wrap.Simple(), alignItem = Align.SpaceAround(Spacing.Set(20))),
-              Bound(Point(180, 80))),
+              Layout(Wrap.Simple(), alignItem = Align.SpaceAround(Spacing.MinMax(1,20))),
+              Bound(Point(158, 80))),
             Rect(Sizing(50, 50), Looks(Color.green)),
             Rect(Sizing(50, 50), Looks(Color.blue)),
             Rect(Sizing(50, 50), Looks(Color.red)),

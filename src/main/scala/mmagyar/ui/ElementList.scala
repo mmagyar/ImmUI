@@ -47,9 +47,8 @@ class ElementList(_elements: Vector[Shapey],
                   val organize: Organize,
                   val organizeToBounds: Option[Boolean] = None,
                   val offsetElements: Point = Point.zero,
-                  //I'm not sure how good idea this parameter really is,
-                  // it made me debug for an hour...
-                  passLayoutConstraintToChildGroup: Boolean = true)
+                  //HAHAHWHAHEHAWA this value name is a complete sentence
+                  passLayoutConstraintToChildGroupIfItHasDynamicBounds: Boolean = true)
     extends ElementListable {
 
   private val positionable: Vector[PositionableShapey] = _elements.collect {
@@ -67,7 +66,7 @@ class ElementList(_elements: Vector[Shapey],
   val elements: Vector[Shapey] =
     (organize
       .organize[PositionableShapey](positionable, offsetElements, organizeToBounds) ++ static match {
-      case a if passLayoutConstraintToChildGroup =>
+      case a if passLayoutConstraintToChildGroupIfItHasDynamicBounds =>
         a.map { case b: Group => b.setBoundToDynamic(organize.size); case b => b }
       case a => a
     }).sortWith(_.zOrder > _.zOrder)
