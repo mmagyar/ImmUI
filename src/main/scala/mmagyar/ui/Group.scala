@@ -59,7 +59,8 @@ final case class Group(elementList: ElementList,
 
   private val boundingBoxProto: BoundingBox = preRotationBbox.rotatedBBox(rotation)
 
-  //This is required for the reference drawer, might need to find a better solution in the future
+  //This is required for the reference drawer and interactions,
+  // might need to find a better solution in the future
   val rotationPositionCorrection: Point = boundingBoxProto.position * scale
 
   val unRotatedBbox: BoundingBox =

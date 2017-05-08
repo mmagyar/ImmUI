@@ -48,11 +48,13 @@ object BuildContainer {
     new ScrollbarGroup(
       SizableGroup.scrollableWithBackground(
         Group(
-          Vertical(
+          ElementList(Vertical(
             Layout(
               Wrap.No,
 //              alignItem = Align.Stretch(Align.Left),
-              alignItem = Align.Left,
+
+              //TODO growing when right aligning
+              alignItem = Align.Right,
               alignContent = Align.Stretch(Align.Left))),
           MultilineText(
             "SHOW DATA HERE, and this overlaps, way over",
@@ -64,7 +66,7 @@ object BuildContainer {
           Rect(
             Sizing(Point.one, Grow.Affinity, Shrink.Affinity),
             looks = Looks(Color.lime, Color.olive, 1))
-        ),
+        ),Point.zero,id = ShapeyId("CTRLGROUP")),
         Sizing(size),
         margin = Box(Point(6, 6))
       ),
@@ -84,6 +86,8 @@ object BuildContainer {
           Some(InjectedBehaviourAction((group: Group, tracker: Tracker) => {
             if (tracker.downElements.exists(_.shapey.id == controlPanelElement.id)) group
             else {
+              val gettr =group.get(_.id("CTRLGROUP"))
+              println(gettr)
               group.changeWhereParents(
                 x =>
                   (x.shapey.id("SEL_DETAIL_HERE") || x.shapey.id("SEL_ID_HERE")) && x.parents

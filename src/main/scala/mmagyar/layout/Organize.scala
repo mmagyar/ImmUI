@@ -94,8 +94,26 @@ object Organize {
       case a => a
     }
 
-    val withAlignInfo = alignItem.complex(ps._1(lineSize), ps, preAlignContent)
-    val organized = withAlignInfo
+//    val withAlignInfo = alignItem.complex(ps._1(lineSize), ps, preAlignContent)
+//    val organized = withAlignInfo
+//      .foldLeft((ps._1(startPosition), Vector[T]()))((pp, cc) => {
+//        val initPosition = cc.element.position(ps._1Add(startPosition, cc.offset))
+//        val alignResult  = alignContent.align(ps._2(lineSize), ps._2(initPosition.size))
+//        val positioned = initPosition.position(
+//          ps._2Set(initPosition.position, alignResult.offset + ps._2(startPosition)))
+//        (pp._1 + ps._1(positioned.size), pp._2 ++ Vector[T](positioned))
+//      })
+//      ._2
+    val organized = preAlignContent
+    val sizedElements =
+      if (getSummed_1(organized, ps) < lineSize._1)
+        grow(organized, fill, lineSize, ps)
+      else if (getSummed_1(organized, ps) > lineSize._1)
+        shrink(organized, fill, lineSize, ps)
+      else organized
+
+    alignItem
+      .complex(ps._1(lineSize), ps, sizedElements)
       .foldLeft((ps._1(startPosition), Vector[T]()))((pp, cc) => {
         val initPosition = cc.element.position(ps._1Add(startPosition, cc.offset))
         val alignResult  = alignContent.align(ps._2(lineSize), ps._2(initPosition.size))
@@ -104,12 +122,6 @@ object Organize {
         (pp._1 + ps._1(positioned.size), pp._2 ++ Vector[T](positioned))
       })
       ._2
-    if (getSummed_1(organized, ps) < lineSize._1)
-      grow(organized, fill, lineSize, ps)
-    else if (getSummed_1(organized, ps) > lineSize._1)
-      shrink(organized, fill, lineSize, ps)
-    else organized
-
   }
 
   case class GrowData(remainingWidth: Double, nonGrowable: Double, currentSpace: Double) {

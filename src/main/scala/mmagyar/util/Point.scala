@@ -122,7 +122,7 @@ case class Point(x: Double, y: Double) {
   def union(proc: (Double, PointSwapper) => Double): Point =
     Point(proc(this.x, PointSwapper.x), proc(this.y, PointSwapper.y))
 
-  def abs(): Point = {
+  def abs: Point = {
     if (this.x < 0 || this.y < 0) Point(Math.abs(this.x), Math.abs(this.y))
     else this
   }
