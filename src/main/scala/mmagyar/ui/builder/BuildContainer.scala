@@ -52,9 +52,8 @@ object BuildContainer {
             Vertical(
               Layout(
                 Wrap.No,
-//              alignItem = Align.Stretch(Align.Left),
-                alignItem = Align.SpaceAround(Spacing.Maximum(20), Align.Center()),
-                alignContent = Align.Stretch(Align.Center())
+                alignItem = Align.SpaceAround(Spacing.Set(14), Align.Center),
+                alignContent = Align.Stretch(Align.Center)
               )),
             MultilineText(
               "SHOW DATA HERE, and this overlaps, way over",
@@ -64,7 +63,7 @@ object BuildContainer {
             Text("\ndetail:"),
             MultilineText("", id = ShapeyId("SEL_DETAIL_HERE"), minSize = Point(24, 8)),
             Rect(
-              Sizing(Point.one, Grow.Until(Point(10000000000.0, 10)), Shrink.Affinity),
+              Sizing(Point.one, Grow.Until(Point(10000000000.0, 1029)), Shrink.Affinity),
               looks = Looks(Color.lime, Color.olive, 1))
           ),
           Point.zero,

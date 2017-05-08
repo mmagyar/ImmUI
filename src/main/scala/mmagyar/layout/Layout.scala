@@ -4,15 +4,15 @@ package mmagyar.layout
 object Layout {
   val centered: Layout = Layout(
     Wrap
-      .Simple(Align.Stretch(Align.Center()), stretchLinesToBounds = true, uniformLineSize = true),
+      .Simple(Align.Stretch(Align.Center), stretchLinesToBounds = true, uniformLineSize = true),
     Fill.Equal,
-    Align.Center(),
+    Align.Center,
     Align.SpaceAround())
 
   val centeredDown: Layout = Layout(
     wrap = Wrap
-      .Simple(Align.Right(), stretchLinesToBounds = true, uniformLineSize = true),
-    alignContent = Align.Center())
+      .Simple(Align.Right, stretchLinesToBounds = true, uniformLineSize = true),
+    alignContent = Align.Center)
 
   val left: Layout = Layout(Wrap.Simple())
 }
@@ -28,5 +28,5 @@ object Layout {
   */
 case class Layout(wrap: Wrap = Wrap.default,
                   fill: Fill = Fill.Equal,
-                  alignContent: AlignSimple = Align.Left(),
+                  alignContent: AlignSimple = Align.Left,
                   alignItem: AlignNonSizing = Align.SpaceAround())

@@ -17,7 +17,7 @@ object DemoScenarios {
     //      Bitmap.testStripes(10, 60, Color.red, Color.green),
     Bitmap.fourColor(64, 64),
     StretchCover,
-    Align2d(horizontal = Align.Center(), vertical = Align.Right())
+    Align2d(horizontal = Align.Center, vertical = Align.Right)
   )
 
   lazy val g2: Group =
@@ -107,7 +107,7 @@ object DemoScenarios {
       .position(Point(20, 20)),
     Rect(Sizing(15, 15), Looks(Color(0, 255, 0, 0.5)), 3, Point(13, 4)),
     SizableGroup(
-      Horizontal(Layout(Wrap.No, Fill.No, Align.Left())),
+      Horizontal(Layout(Wrap.No, Fill.No, Align.Left)),
       position = Point(20, 20),
       sizing = Sizing(160, 80),
       elements = Vector(
@@ -124,7 +124,7 @@ object DemoScenarios {
       Sizing(25, 100),
       Bitmap.fourColor(10, 90),
       StretchBoth,
-      Align2d(Align.Right(), Align.Right())),
+      Align2d(Align.Right, Align.Right)),
     Group(
       Dialogue(
         "ohh hacky, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
@@ -161,7 +161,7 @@ object DemoScenarios {
 //      Rect(Sizing(15, 15), Point(3, 3), Looks(Color(0, 0, 255, 0.5)), 3),
       Rect(Sizing(15, 15), Looks(Color(0, 255, 0, 0.5)), 4, Point(13, 4)),
       SizableGroup(
-        Horizontal(Layout(Wrap.No, Fill.No, Align.Left())),
+        Horizontal(Layout(Wrap.No, Fill.No, Align.Left)),
         position = Point(20, 20),
         sizing = Sizing(160, 80),
         elements = Vector(

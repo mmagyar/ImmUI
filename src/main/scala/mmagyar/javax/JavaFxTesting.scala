@@ -82,8 +82,8 @@ class JavaFxTesting extends Application {
               Layout(
                 Wrap.No,
                 //              alignItem = Align.Stretch(Align.Left),
-                alignItem = Align.SpaceAround(Spacing.Maximum(20), Align.Center()),
-                alignContent = Align.Stretch(Align.Center())
+                alignItem = Align.SpaceAround(Spacing.Maximum(20), Align.Center),
+                alignContent = Align.Stretch(Align.Center)
               ),Bound(Point(160,240))),
             MultilineText(
               "SHOW DATA HERE, and this overlaps, way over",

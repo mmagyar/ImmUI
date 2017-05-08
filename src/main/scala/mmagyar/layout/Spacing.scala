@@ -15,6 +15,9 @@ sealed trait Spacing {
 
 object Spacing {
 
+  /**
+    * Default spacing, usually means `fill it up with as much space as possible`
+    */
   case object Default extends Spacing
 
   /**

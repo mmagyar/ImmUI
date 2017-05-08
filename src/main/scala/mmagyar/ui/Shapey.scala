@@ -312,8 +312,8 @@ object BitmapShapey {
     align(mod, originalSize.toDouble, targetSize, align1)
   def align(mod: Double = 1, originalSize: Double, targetSize: Double, align: Align): Double =
     align match {
-      case Right()  => targetSize - (originalSize * mod)
-      case Center() => (targetSize - (originalSize * mod)) / 2.0
+      case Right  => targetSize - (originalSize * mod)
+      case Center => (targetSize - (originalSize * mod)) / 2.0
       case _        => 0
     }
 
@@ -376,13 +376,13 @@ final case class BitmapShapey(
       case Clip =>
         pxPointRaw.sub(
           align.vertical match {
-            case Right()  => size.y - bitmap.size._2
-            case Center() => (size.y - bitmap.size._2) / 2.0
+            case Right  => size.y - bitmap.size._2
+            case Center => (size.y - bitmap.size._2) / 2.0
             case _        => 0
           },
           align.horizontal match {
-            case Right()  => size.x - bitmap.size._1;
-            case Center() => (size.x - bitmap.size._1) / 2.0
+            case Right  => size.x - bitmap.size._1;
+            case Center => (size.x - bitmap.size._1) / 2.0
             case _        => 0
           }
         )

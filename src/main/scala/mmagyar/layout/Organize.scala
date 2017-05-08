@@ -104,13 +104,15 @@ object Organize {
 //        (pp._1 + ps._1(positioned.size), pp._2 ++ Vector[T](positioned))
 //      })
 //      ._2
-    val organized = preAlignContent
-    val summedSize = getSummed_1(organized, ps)
+    val organized            = preAlignContent
+    val summedSize           = getSummed_1(organized, ps)
+    val spacingSize          = alignItem.addedSpace(lineSize._1, ps, organized)
+    val lineSizeMinusSpacing = lineSize._1(lineSize._1 - spacingSize)
     val sizedElements =
-      if ( summedSize < lineSize._1)
-        grow(organized, fill, lineSize, ps)
-      else if (summedSize > lineSize._1)
-        shrink(organized, fill, lineSize, ps)
+      if (summedSize < lineSize._1 - spacingSize)
+        grow(organized, fill, lineSizeMinusSpacing)
+      else if (summedSize > lineSize._1 - spacingSize)
+        shrink(organized, fill, lineSizeMinusSpacing)
       else organized
 
     alignItem
@@ -150,8 +152,7 @@ object Organize {
       elements: Vector[T],
       fill: Fill,
       lineSize: Point,
-      ps: PointSwapper,
-      previousGrowData: Option[GrowData] = None): Vector[T] = {
+      previousGrowData: Option[GrowData] = None)(implicit ps: PointSwapper): Vector[T] = {
 
     val sizables = elements.collect { case a: Sizable[_] => a }
     val remainingWidth: Double = ps._1(lineSize) -
@@ -184,7 +185,7 @@ object Organize {
             //Bail out if the grow data is the same as last time
             case a if previousGrowData.contains(growData) => a._2
             case a if a._1 =>
-              grow(a._2, fill, lineSize, ps, Some(growData));
+              grow(a._2, fill, lineSize, Some(growData));
             case a => a._2
           }
         } else elements
@@ -223,8 +224,7 @@ object Organize {
       elements: Vector[T],
       fill: Fill,
       lineSize: Point,
-      ps: PointSwapper,
-      previousShrinkData: Option[ShrinkData] = None): Vector[T] = {
+      previousShrinkData: Option[ShrinkData] = None)(implicit ps: PointSwapper): Vector[T] = {
     val sizables = elements.collect { case a: Sizable[_] => a }
     val remainingWidth: Double = ps._1(lineSize) -
       getSummed_1(elements.filter({ case _: Sizable[_] => false; case _ => true }), ps)
@@ -258,7 +258,7 @@ object Organize {
             case a if previousShrinkData.contains(shrinkData) => a._2
             //Recurse if we appear to have more space to shrink
             case a if a._1 && shrinkData.shrinkableSpace > 0 =>
-              shrink(a._2, fill, lineSize, ps, Some(shrinkData));
+              shrink(a._2, fill, lineSize, Some(shrinkData));
             case a => a._2
           }
         } else elements
@@ -377,8 +377,8 @@ object Organize {
     linesWUniform_2.foldLeft(LineGrow[T]())((p, c) => {
       val currentWidth = getSummed_1(c.elements, ps)
       val elements =
-        if (currentWidth > bounds._1) shrink(c.elements, layout.fill, bounds, ps)
-        else grow(c.elements, layout.fill, bounds, ps)
+        if (currentWidth > bounds._1) shrink(c.elements, layout.fill, bounds)
+        else grow(c.elements, layout.fill, bounds)
 
       val lineL   = getSummed_1(elements, ps)
       val tallest = getMax_2(elements, ps).max(c.lineSize._2) + additional

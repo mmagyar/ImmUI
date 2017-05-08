@@ -39,7 +39,7 @@ object Wrap {
       extends Wrap {
 
     /** This value is ignored when using this wrap type **/
-    val alignContent: AlignSimple = Align.Stretch(Align.Left())
+    val alignContent: AlignSimple = Align.Stretch(Align.Left)
 
     val uniformLineSize:Boolean = false
     val stretchLinesToBounds: Boolean = true
@@ -50,7 +50,7 @@ object Wrap {
   }
 
   /** Wraps the elements to a next line, in case of an overflow*/
-  final case class Simple(                          alignContent: AlignSimple = Align.Left(),
+  final case class Simple(                          alignContent: AlignSimple = Align.Left,
                           stretchLinesToBounds: Boolean = false,
                           uniformLineSize: Boolean = false)
       extends Wrap {
@@ -63,7 +63,7 @@ object Wrap {
 
   /** Tries to place the same width/ amount of elements on each line, using the least possible amount of lines and lest possible amount of stretch*/
   final case class EqualLines(
-                              alignContent: AlignSimple = Align.Left(),
+                              alignContent: AlignSimple = Align.Left,
                               stretchLinesToBounds: Boolean = false,
                               uniformLineSize: Boolean = false)
       extends Wrap {
