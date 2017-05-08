@@ -10,6 +10,9 @@ object Group {
   def apply(organize: Organize, elements: Shapey*): Group =
     Group(ElementList(organize, elements: _*), Point.zero)
 
+  def apply(organize: Organize, elements: Vector[Shapey], position: Point): Group =
+    Group(ElementList(organize, elements: _*), position = position)
+
   def apply(organize: Organize, behaviour: Behaviour[Group], elements: Shapey*): Group =
     Group(ElementList(organize, elements: _*), Point.zero, behaviour = behaviour)
 
@@ -52,7 +55,7 @@ final case class Group(elementList: ElementList,
     extends GenericGroupExternallyModifiable[Group]
     with RotatableShapey
     with PositionableShapey {
-
+  if (id("TEST_1")) println(("CREATING TEST_1", elementList.organize))
   val preRotationBbox: BoundingBox = this.elements
     .foldLeft(BoundingBox.zero)((p, c) =>
       BoundingBox(Point.zero, p.size max c.boundingBox.addSize(c.boundingBox.position).size))
@@ -88,6 +91,15 @@ final case class Group(elementList: ElementList,
 
   override def mapElements(map: (Shapey) => Shapey): Group = setElements(elementList.map(map))
 
-  def setBounds(layoutSizeConstraint: LayoutSizeConstraint): Group =
-    setElements(elementList.copy(organize = elementList.organize.setSize(layoutSizeConstraint)))
+  def setBoundToDynamic(layoutSizeConstraint: LayoutSizeConstraint): Group =
+    elementList.organize.size match {
+      case _: Dynamic =>
+        setElements(
+          elementList.copy(organize = elementList.organize.setSize(layoutSizeConstraint match {
+            case b: Dynamic => b
+            case b          => Dynamic(b)
+          })))
+      case _ => this
+    }
+
 }

@@ -47,6 +47,8 @@ class ElementList(_elements: Vector[Shapey],
                   val organize: Organize,
                   val organizeToBounds: Option[Boolean] = None,
                   val offsetElements: Point = Point.zero,
+                  //I'm not sure how good idea this parameter really is,
+                  // it made me debug for an hour...
                   passLayoutConstraintToChildGroup: Boolean = true)
     extends ElementListable {
 
@@ -66,13 +68,13 @@ class ElementList(_elements: Vector[Shapey],
     (organize
       .organize[PositionableShapey](positionable, offsetElements, organizeToBounds) ++ static match {
       case a if passLayoutConstraintToChildGroup =>
-        a.map { case b: Group => b.setBounds(organize.size); case b => b }
+        a.map { case b: Group => b.setBoundToDynamic(organize.size); case b => b }
       case a => a
     }).sortWith(_.zOrder > _.zOrder)
 
   def map(fn: (Shapey) => Shapey): ElementList = _elements.map(fn) match {
     case a if a == _elements => this
-    case a                  => copy(a)
+    case a                   => copy(a)
   }
 
   def copy(elements: Vector[Shapey] = _elements,

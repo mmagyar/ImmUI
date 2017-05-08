@@ -21,7 +21,7 @@ object JavaFxTesting {
 }
 
 class JavaFxTesting extends Application {
-  val size: Point     = Point(640, 480)
+  val size: Point     = Point(800, 480)
   val width: Int      = size.x.toInt
   val height: Int     = size.y.toInt
   val multiplier: Double = 1
@@ -43,8 +43,8 @@ class JavaFxTesting extends Application {
   // Get the graphics context of the canvas
   val gc: GraphicsContext = canvas.getGraphicsContext2D
 
-  private var document: Document =
-    Document(root = DemoScenarios.analysed(size), transform = Transform(scale = Point(1, 1)))
+  def baseDoc = Document(root = DemoScenarios.analysed(size), transform = Transform(scale = Point(1, 1)))
+  private var document: Document =baseDoc
 //  private var document: Document =
 //    Document(root = DemoScenarios.negative, transform = Transform(scale = Point(2, 2)))
   val bufferDraw = new BufferDraw()
@@ -75,6 +75,30 @@ class JavaFxTesting extends Application {
         needsUpdate = true
       case a: KeyEvent if a.getText == "b" =>
         benchmark()
+      case a: KeyEvent if a.getText == "r" =>
+        println("RELOADING mainDemo")
+        document(baseDoc)
+      case a: KeyEvent if a.getText == "x" =>
+
+        val grp = Group(Group(
+          ElementList(
+            Horizontal(
+              Layout(Wrap.Simple(), alignItem = Align.SpaceAround(Spacing.Set(20))),
+              Bound(Point(180, 80))),
+            Rect(Sizing(50, 50), Looks(Color.green)),
+            Rect(Sizing(50, 50), Looks(Color.blue)),
+            Rect(Sizing(50, 50), Looks(Color.red)),
+            Rect(Sizing(50, 50), Looks(Color.olive)),
+            Rect(Sizing(50, 50), Looks(Color.amber)),
+            Rect(Sizing(50, 50), Looks(Color.lime)),
+            Rect(Sizing(50, 50), Looks(Color.fuchsia)),
+            Rect(Sizing(50, 50), Looks(Color.maroon))
+          ),
+          Point(10, 300),
+          id = ShapeyId("TEST_1")
+        ))
+
+        println(grp)
       case a: KeyEvent if a.getText == "d" =>
         val grp = Group(
           ElementList(

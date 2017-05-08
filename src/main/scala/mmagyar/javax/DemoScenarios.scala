@@ -25,9 +25,16 @@ object DemoScenarios {
       Relative(Point(200, 10)),
       Group(
         Relative(Point(20, 70)),
-        Rect(Sizing(100, 100), Looks(fill = Color.white, stroke = Color.red, strokeLineWidth = 5), position = Point(0, 0)),
-        Text("This is A very long text to test if it's al right",position = Point(0, 0)),
-        Rect(Sizing(10, 10), Looks(fill = Color.green, stroke = Color.silver, strokeLineWidth = 1), zOrder = 3, Point(10, 0))
+        Rect(
+          Sizing(100, 100),
+          Looks(fill = Color.white, stroke = Color.red, strokeLineWidth = 5),
+          position = Point(0, 0)),
+        Text("This is A very long text to test if it's al right", position = Point(0, 0)),
+        Rect(
+          Sizing(10, 10),
+          Looks(fill = Color.green, stroke = Color.silver, strokeLineWidth = 1),
+          zOrder = 3,
+          Point(10, 0))
       ).copy(position = Point.zero, rotation = Degree(45)),
       bmp.copy(zOrder = 1.2)
     ).copy(position = Point.zero, rotation = Degree(-12), zOrder = 2)
@@ -37,7 +44,10 @@ object DemoScenarios {
     g2,
     Group(
       Relative(Point(10, 170)),
-      Rect(Sizing(100, 100), Looks(fill = Color.white, stroke = Color.red, strokeLineWidth = 5), position = Point(0, 0)),
+      Rect(
+        Sizing(100, 100),
+        Looks(fill = Color.white, stroke = Color.red, strokeLineWidth = 5),
+        position = Point(0, 0)),
       Text("This is A very long text to test if it's al right", position = Point(0, 0), zOrder = 2)
 
       //        ,Rect(
@@ -55,7 +65,9 @@ object DemoScenarios {
       Layout(),
       Rect(Sizing(30, 40)),
       Rect(Sizing(30, 60), looks = Looks(Color.white, Color.blue, 2)),
-      Rect(Sizing(Point(50, 50), Grow.Affinity, Shrink.No), looks = Looks(Color.green, Color.silver, 10))
+      Rect(
+        Sizing(Point(50, 50), Grow.Affinity, Shrink.No),
+        looks = Looks(Color.green, Color.silver, 10))
     )
 
   lazy val simpleGroup2: Group = Group(
@@ -111,20 +123,41 @@ object DemoScenarios {
       position = Point(20, 20),
       sizing = Sizing(160, 80),
       elements = Vector(
-        Rect(Sizing(Point(80, 30), Grow( Point(150, 70)),Shrink.No)),
-        Text("HELLO",position = Point(40, 40)))
+        Rect(Sizing(Point(80, 30), Grow(Point(150, 70)), Shrink.No)),
+        Text("HELLO", position = Point(40, 40)))
     )
   )
 
-  lazy val mainDemo: Group = Group(
+
+  def rects: Group =
+    Group(
+      Group(
+        Horizontal(
+          Layout(Wrap.Simple(), alignItem = Align.SpaceAround(Spacing.Set(20))),
+          Bound(Point(180, 80))),
+        Vector(
+          Rect(Sizing(50, 50), Looks(Color.green)),
+          Rect(Sizing(50, 50), Looks(Color.blue)),
+          Rect(Sizing(50, 50), Looks(Color.red)),
+          Rect(Sizing(50, 50), Looks(Color.olive)),
+          Rect(Sizing(50, 50), Looks(Color.amber)),
+          Rect(Sizing(50, 50), Looks(Color.lime)),
+          Rect(Sizing(50, 50), Looks(Color.fuchsia)),
+          Rect(Sizing(50, 50), Looks(Color.maroon))
+        ),
+        //    sizing = Sizing(200,200),
+        position = Point(0, 0)
+      ))
+  def mainDemo: Group = Group(
     Relative(),
     Rect(Sizing(150, 15), zOrder = -8, position = Point(4, 4)),
     BitmapShapey(
       (5, 20),
-      Sizing(25, 100),
+      Sizing(20, 180),
       Bitmap.fourColor(10, 90),
       StretchBoth,
       Align2d(Align.Right, Align.Right)),
+rects.position(Point(10,300)),
     Group(
       Dialogue(
         "ohh hacky, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
@@ -136,7 +169,8 @@ object DemoScenarios {
           DialogueOption("MAYBE"),
           DialogueOption("NOT ENOUGH")
         )
-      )(Style())).copy(id = ShapeyId("HEY"), position = Point(30, 30), zOrder = 4,scale = Point(1.789,1.789))
+      )(Style()))
+      .copy(id = ShapeyId("HEY"), position = Point(30, 30), zOrder = 4, scale = Point(2, 2))
   )
 
   lazy val dialogue: Group = Group(
@@ -152,7 +186,7 @@ object DemoScenarios {
     )(Style())
   )
 
-  lazy val testA: Group = Group(
+  def testA: Group = Group(
     Rect(Sizing(5, 5)),
     Rect(Sizing(10, 10), zOrder = 20, position = Point(10, 10)),
     Group(
@@ -165,14 +199,14 @@ object DemoScenarios {
         position = Point(20, 20),
         sizing = Sizing(160, 80),
         elements = Vector(
-          Rect(Sizing(Point(80, 30), Grow(Point(150, 70)),Shrink.No)),
+          Rect(Sizing(Point(80, 30), Grow(Point(150, 70)), Shrink.No)),
           Text("HELLO", position = Point(40, 40)))
       )
     ).scale(2)
       .position(Point(10, 10))
   )
 
-  lazy val rotationDemo: Group = Group(
+  def rotationDemo: Group = Group(
     Relative(),
     Rect(Sizing(5, 5)),
     Rect(Sizing(90, 90), looks = Looks(Color(0, 0, 0)), zOrder = -2),
@@ -188,16 +222,16 @@ object DemoScenarios {
       .copy(zOrder = 22, id = ShapeyId("HEY"))
   )
 
-  lazy val interactionDev: Group = Group(
+  def interactionDev: Group = Group(
     Relative(),
 //    Rect(Sizing(5, 5)),
 //    Rect(Sizing(90, 90), zOrder = -2, looks = Looks(Color(0, 0, 0))),
 //    Rect(Sizing(10, 10), Point(10, 10)),
     Group(
       Relative(),
-      Rect(Sizing(50, 50),  Looks(Color(255, 0, 0)), 3).copy(id = ShapeyId("TOP RECT")),
+      Rect(Sizing(50, 50), Looks(Color(255, 0, 0)), 3).copy(id = ShapeyId("TOP RECT")),
       Group(Rect(Sizing(25, 25), looks = Looks(Color(0, 255, 0)), zOrder = 4).copy(id =
-              ShapeyId("INSIDE RECT")))
+        ShapeyId("INSIDE RECT")))
         .copy(
           zOrder = 4,
           behaviour = BehaviourBasic(click = Some(InjectedBehaviourAction((x, y) => {
@@ -217,7 +251,7 @@ object DemoScenarios {
       }))), zOrder = 22, id = ShapeyId("ROTATED GROUP")) //behaviour = InjectedBehaviourAction())
   )
 
-  lazy val negative : Group = Group(Relative(), Rect(Sizing(40,40), position = Point(-1,-1)))
+  def negative: Group = Group(Relative(), Rect(Sizing(40, 40), position = Point(-1, -1)))
 
-  def analysed(maxSize:Point):Group = BuildContainer.builder(maxSize, Group(mainDemo))
+  def analysed(maxSize: Point): Group = BuildContainer.builder(maxSize, mainDemo)
 }

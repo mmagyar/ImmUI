@@ -23,6 +23,10 @@ object LayoutSizeConstraint {
 
 sealed trait LayoutSizeConstraint { def constraintSize: Point }
 
+case class Dynamic(current: LayoutSizeConstraint = Unbound()) extends LayoutSizeConstraint {
+  val constraintSize: Point = current.constraintSize
+}
+
 case class Unbound() extends LayoutSizeConstraint { val constraintSize: Point = Point.large }
 case class BoundWidth(constraint: Double) extends LayoutSizeConstraint {
   def constraintSize: Point = Point(constraint, Point.large.y)

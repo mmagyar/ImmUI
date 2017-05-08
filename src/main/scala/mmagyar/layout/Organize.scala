@@ -447,8 +447,18 @@ object Organize {
 
 }
 
-final case class Horizontal(layout: Layout = Layout(), size: LayoutSizeConstraint = Unbound())
+final case class Horizontal(layout: Layout = Layout(), size: LayoutSizeConstraint = Dynamic())
     extends Organize {
+
+  private def isOrganizeToBounds(constraint: LayoutSizeConstraint): Boolean = {
+    constraint match {
+      case Dynamic(a)     => isOrganizeToBounds(a)
+      case Unbound()      => false
+      case BoundWidth(_)  => false
+      case BoundHeight(_) => true
+      case Bound(_)       => true
+    }
+  }
 
   override def organize[T <: Positionable[T] with Material](elements: Vector[T],
                                                             offset: Point = Point.zero,
@@ -460,18 +470,23 @@ final case class Horizontal(layout: Layout = Layout(), size: LayoutSizeConstrain
       PointSwapper.x,
       offset,
       size.constraintSize,
-      organizeToBounds.getOrElse(organizeToBounds.getOrElse(size match {
-        case Unbound()      => false
-        case BoundWidth(_)  => false
-        case BoundHeight(_) => true
-        case Bound(_)       => true
-      }))
+      organizeToBounds.getOrElse(organizeToBounds.getOrElse(isOrganizeToBounds(size)))
     )
 
 }
 
-final case class Vertical(layout: Layout = Layout(), size: LayoutSizeConstraint = Unbound())
+final case class Vertical(layout: Layout = Layout(), size: LayoutSizeConstraint = Dynamic())
     extends Organize {
+
+  private def isOrganizeToBounds(constraint: LayoutSizeConstraint): Boolean = {
+    constraint match {
+      case Dynamic(a)     => isOrganizeToBounds(a)
+      case Unbound()      => false
+      case BoundWidth(_)  => true
+      case BoundHeight(_) => false
+      case Bound(_)       => true
+    }
+  }
 
   override def organize[T <: Positionable[T] with Material](elements: Vector[T],
                                                             offset: Point = Point.zero,
@@ -484,12 +499,7 @@ final case class Vertical(layout: Layout = Layout(), size: LayoutSizeConstraint 
       PointSwapper.y,
       offset,
       size.constraintSize,
-      organizeToBounds.getOrElse(size match {
-        case Unbound()      => false
-        case BoundWidth(_)  => true
-        case BoundHeight(_) => false
-        case Bound(_)       => true
-      })
+      organizeToBounds.getOrElse(isOrganizeToBounds(size))
     )
     org
   }
@@ -500,7 +510,7 @@ final case class Vertical(layout: Layout = Layout(), size: LayoutSizeConstraint 
   */
 case class FreeForm() extends Organize {
   val layout: Layout             = Layout()
-  val size: LayoutSizeConstraint = Unbound()
+  val size: LayoutSizeConstraint = Dynamic()
 
   //  def size(point:Point):FreeForm     =  copy(size.)
   override def organize[T <: Positionable[T] with Material](elements: Vector[T],
@@ -520,7 +530,7 @@ object Relative {
 }
 case class Relative(position: Point) extends Organize {
 
-  val size: LayoutSizeConstraint = Unbound()
+  val size: LayoutSizeConstraint = Dynamic()
 
   override def organize[T <: Positionable[T] with Material](elements: Vector[T],
                                                             offset: Point,
@@ -541,10 +551,18 @@ case object StretchToLargest    extends UnionLayoutSetting
   * @note might want to make this sizable
   *       (although the handling of over sized elements leave a lot of questions
   */
-case class Union(size: LayoutSizeConstraint = Unbound(),
+case class Union(size: LayoutSizeConstraint = Dynamic(),
                  stretchType: UnionLayoutSetting = StretchToConstraint)
     extends Organize {
 
+  def sizeFromConstraint(constraint: LayoutSizeConstraint, largest: Point): Point =
+    constraint match {
+      case Dynamic(a)               => sizeFromConstraint(a, largest)
+      case Unbound()                => largest
+      case BoundWidth(constraintW)  => Point(constraintW, largest.y)
+      case BoundHeight(constraintH) => Point(largest.x, constraintH)
+      case Bound(constraintSize)    => constraintSize
+    }
   override def organize[T <: Positionable[T] with Material](elements: Vector[T],
                                                             offset: Point = Point.zero,
                                                             organizeToBounds: Option[Boolean] =
@@ -553,14 +571,8 @@ case class Union(size: LayoutSizeConstraint = Unbound(),
     val largest = elements.foldLeft(Point.zero)((p, c) => p.max(c.size))
 
     val newSize = stretchType match {
-      case StretchToConstraint =>
-        size match {
-          case Unbound()               => largest
-          case BoundWidth(constraint)  => Point(constraint, largest.y)
-          case BoundHeight(constraint) => Point(largest.x, constraint)
-          case Bound(constraintSize)   => constraintSize
-        }
-      case StretchToLargest => largest
+      case StretchToConstraint => sizeFromConstraint(size, largest)
+      case StretchToLargest    => largest
     }
 
     elements.map {

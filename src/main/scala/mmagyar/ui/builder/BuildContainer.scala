@@ -83,7 +83,7 @@ object BuildContainer {
     val controlPanelElement = controlPanel(Point(180, maxSize.y))
     Group(
       Group(
-        Horizontal(Layout(Wrap.No), Bound(maxSize)),
+        Horizontal(Layout(Wrap.No,Fill.No, alignItem = Align.Left), Bound(maxSize)),
         BehaviourBasic(
           Some(InjectedBehaviourAction((group: Group, tracker: Tracker) => {
             if (tracker.downElements.exists(_.shapey.id == controlPanelElement.id)) group
