@@ -15,15 +15,15 @@ import mmagyar.ui.interaction.{PointerAction, PointerState}
 import mmagyar.util._
 
 object JavaFxTesting {
-  def main(args: Array[String]) :Unit = {
+  def main(args: Array[String]): Unit = {
     Application.launch(classOf[JavaFxTesting], args: _*)
   }
 }
 
 class JavaFxTesting extends Application {
-  val size: Point     = Point(800, 480)
-  val width: Int      = size.x.toInt
-  val height: Int     = size.y.toInt
+  val size: Point        = Point(800, 480)
+  val width: Int         = size.x.toInt
+  val height: Int        = size.y.toInt
   val multiplier: Double = 1
 
   var writeRenderTime: Boolean = false
@@ -32,24 +32,37 @@ class JavaFxTesting extends Application {
   //  val canvas = new Canvas(width, height)
 
   val scaledSize = Point(width * multiplier, height * multiplier)
-  val canvas = new Canvas(scaledSize.x,scaledSize.y)
+  val canvas     = new Canvas(scaledSize.x, scaledSize.y)
   canvas.setWidth(scaledSize.x)
   canvas.setHeight(scaledSize.y)
-//  canvas.setScaleX(multiplier)
-//  canvas.setScaleY(multiplier)
-//  canvas.setTranslateX(width)
-//  canvas.setTranslateY(height)
+  //  canvas.setScaleX(multiplier)
+  //  canvas.setScaleY(multiplier)
+  //  canvas.setTranslateX(width)
+  //  canvas.setTranslateY(height)
 
   // Get the graphics context of the canvas
   val gc: GraphicsContext = canvas.getGraphicsContext2D
+//
+//  def baseDoc =
+//    Document(
+//      root = Group(
+//        Relative(),
+//        Group(
+//          Relative(),
+//          Rect(Sizing(10, 10), position = Point(-11, -11)),
+//          Rect(Sizing(10, 10), position = Point(0, 0)),
+//          Rect(Sizing(10, 10), position = Point(900, 900))).position(Point(40,40))
+//      ),
+//      transform = Transform(scale = Point(1, 1))
+//    )
 
-  def baseDoc = Document(root = DemoScenarios.analysed(size), transform = Transform(scale = Point(1, 1)))
-  private var document: Document =baseDoc
-//  private var document: Document =
-//    Document(root = DemoScenarios.negative, transform = Transform(scale = Point(2, 2)))
+    def baseDoc = Document(root = DemoScenarios.analysed(size), transform = Transform(scale = Point(1, 1)))
+  private var document: Document = baseDoc
+
   val bufferDraw = new BufferDraw()
 
   var lastDoc: Document = document
+
   def testBufferDraw(): Array[Array[ColorByte]] = {
     val timing = Timing()
     val td     = document
@@ -64,11 +77,11 @@ class JavaFxTesting extends Application {
   var needsUpdate: Boolean = true
   val actions              = new PointerAction()
 
-  def start(stage: Stage) :Unit = {
+  def start(stage: Stage): Unit = {
     val root = new Pane
 
     root.getChildren.add(canvas)
-//    root.getChildren.add(img)
+    //    root.getChildren.add(img)
     val scene = new Scene(root)
     scene.setOnKeyPressed {
       case a: KeyEvent if a.getText == " " =>
@@ -79,24 +92,24 @@ class JavaFxTesting extends Application {
         println("RELOADING mainDemo")
         document(baseDoc)
       case a: KeyEvent if a.getText == "x" =>
-
-        val grp = Group(Group(
-          ElementList(
-            Horizontal(
-              Layout(Wrap.Simple(), alignItem = Align.SpaceAround(Spacing.MinMax(1,20))),
-              Bound(Point(158, 80))),
-            Rect(Sizing(50, 50), Looks(Color.green)),
-            Rect(Sizing(50, 50), Looks(Color.blue)),
-            Rect(Sizing(50, 50), Looks(Color.red)),
-            Rect(Sizing(50, 50), Looks(Color.olive)),
-            Rect(Sizing(50, 50), Looks(Color.amber)),
-            Rect(Sizing(50, 50), Looks(Color.lime)),
-            Rect(Sizing(50, 50), Looks(Color.fuchsia)),
-            Rect(Sizing(50, 50), Looks(Color.maroon))
-          ),
-          Point(10, 300),
-          id = ShapeyId("TEST_1")
-        ))
+        val grp = Group(
+          Group(
+            ElementList(
+              Horizontal(
+                Layout(Wrap.Simple(), alignItem = Align.SpaceAround(Spacing.MinMax(1, 20))),
+                Bound(Point(158, 80))),
+              Rect(Sizing(50, 50), Looks(Color.green)),
+              Rect(Sizing(50, 50), Looks(Color.blue)),
+              Rect(Sizing(50, 50), Looks(Color.red)),
+              Rect(Sizing(50, 50), Looks(Color.olive)),
+              Rect(Sizing(50, 50), Looks(Color.amber)),
+              Rect(Sizing(50, 50), Looks(Color.lime)),
+              Rect(Sizing(50, 50), Looks(Color.fuchsia)),
+              Rect(Sizing(50, 50), Looks(Color.maroon))
+            ),
+            Point(10, 300),
+            id = ShapeyId("TEST_1")
+          ))
 
         println(grp)
       case a: KeyEvent if a.getText == "d" =>
@@ -108,10 +121,10 @@ class JavaFxTesting extends Application {
                 //              alignItem = Align.Stretch(Align.Left),
                 alignItem = Align.SpaceAround(Spacing.Maximum(20), Align.Center),
                 alignContent = Align.Stretch(Align.Center)
-              ),Bound(Point(160,240))),
-            MultilineText(
-              "SHOW DATA HERE, and this overlaps, way over",
-              id = ShapeyId("m1")),
+              ),
+              Bound(Point(160, 240))
+            ),
+            MultilineText("SHOW DATA HERE, and this overlaps, way over", id = ShapeyId("m1")),
             Text("Selected Id:"),
             Text("", id = ShapeyId("SEL_ID_HERE")),
             Text("\ndetail:"),
@@ -139,7 +152,7 @@ class JavaFxTesting extends Application {
       case a: KeyEvent if a.getText.toLowerCase() == "t" =>
         val root = document.root.change(_.id("HEY"), {
           case xx: Group => xx.rotation(Degree(xx.rotation.value + (if (a.isShiftDown) -3 else 3)))
-//          case a=> a
+          //          case a=> a
         })
         document(document.copy(root = root))
       case a => println("UNKNOWN KEY:" + a)
@@ -183,7 +196,8 @@ class JavaFxTesting extends Application {
     stage.setScene(scene)
     stage.setTitle("Shapey Reference")
     stage.setY(0)
-        stage.setX(2890)
+    println(stage.getMaxWidth)
+    //        stage.setX(2890)
     //    stage.setX(1620)
     stage.show()
     //    stage.setResizable(false)
@@ -211,8 +225,8 @@ class JavaFxTesting extends Application {
 
   private val pw = gc.getPixelWriter
 
-//  private implicit val ec: ExecutionContextExecutor =
-//    ExecutionContext.fromExecutor(Executors.newFixedThreadPool(16))
+  //  private implicit val ec: ExecutionContextExecutor =
+  //    ExecutionContext.fromExecutor(Executors.newFixedThreadPool(16))
 
   def update(): Unit = buffDraw(source = testBufferDraw())
 
@@ -222,10 +236,10 @@ class JavaFxTesting extends Application {
     val buf = source
 
     if (!printToScreen) return
-    var x      = 0
-    var y      = 0
-    val w      = buf.length
-    val h      = buf.head.length
+    var x = 0
+    var y = 0
+    val w = buf.length
+    val h = buf.head.length
 
     val arg = new Array[Int](w * (h + 1))
     while (x < w) {

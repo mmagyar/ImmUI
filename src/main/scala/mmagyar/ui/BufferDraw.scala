@@ -1,6 +1,5 @@
 package mmagyar.ui
 
-
 import mmagyar.util.{BoundingBox, Point, _}
 
 import scala.collection.mutable.ArrayBuffer
@@ -56,7 +55,7 @@ class BufferDraw() {
 
   }
 
-  val maxBlendSize :Point = Point(Int.MaxValue/ 2,Int.MaxValue/ 2)
+  val maxBlendSize: Point = Point(Int.MaxValue / 2, Int.MaxValue / 2)
 
   def blendToBuffer(offset: Point,
                     source: Array[Array[ColorByte]],
@@ -79,17 +78,19 @@ class BufferDraw() {
     val ySize = targetBuffer.headOption.map(_.length).getOrElse(0)
 
     val w = if (source.length + offX > xSize) xSize - offX else source.length
+
     while (x < w) {
       val yArr    = source(x)
       val h       = if (yArr.length + offY > ySize) ySize - offY else yArr.length
       val resultY = targetBuffer(x + offX)
       while (y < h) {
-          val clr = yArr(y)
-          if (clr.alpha != 0 && constrain.inside(Point(x + offX, y + offY)))
-            resultY.update(
-              y + offY,
-              if (clr.alpha == 255) clr
-              else resultY(y + offY).alphaComposition(clr))
+        val clr = yArr(y)
+        if (clr.alpha != 0 && constrain.inside(
+              Point((x + offX).toDouble + 0.5, (y + offY).toDouble + 0.5)))
+          resultY.update(
+            y + offY,
+            if (clr.alpha == 255) clr
+            else resultY(y + offY).alphaComposition(clr))
 
         y += 1
       }
@@ -113,14 +114,17 @@ class BufferDraw() {
     val constraint = outerConstraint.intersection(BoundingBox(offset, scaled))
 
     elements.foreach((x) => {
-      val buffer = getBuffer(x, rotate, constraint, buffersToBlit)
+      if (!x.boundingBox.scale(scale).addPosition(offset).intersect(constraint)) {
+//        println(("BALIED ON: ", x.id,x.getClass.getCanonicalName))
+      } else {
+        val buffer = getBuffer(x, rotate, constraint, buffersToBlit)
 
-      val cp = (buffer.position * scale) + offset
+        val cp = (buffer.position * scale) + offset
 
-      if (buffer.pixels.nonEmpty) {
-        buffersToBlit.append(buffer.copy(cp))
+        if (buffer.pixels.nonEmpty) {
+          buffersToBlit.append(buffer.copy(cp))
+        }
       }
-
     })
     constraint
   }
@@ -168,7 +172,7 @@ class BufferDraw() {
         DrawInstruction(a.position, res, Array.empty)
       case drawable: Drawable =>
         drawable match {
-          case Rect(sizing,  looks, _ ,position, _) =>
+          case Rect(sizing, looks, _, position, _) =>
             val scaled = sizing.size * scale
             val pixels = new ColorBorderMap(
               scaled.x.toInt,
@@ -177,7 +181,7 @@ class BufferDraw() {
               looks.stroke,
               looks.strokeLineWidth.toInt)
             DrawInstruction(position, constraint, pixels.pixelsArrayByte)
-          case text: Text=>
+          case text: Text =>
             val fill   = ColorByte(text.looks.fill)
             val stroke = ColorByte(text.looks.stroke)
 

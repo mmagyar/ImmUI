@@ -287,6 +287,21 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
     BoundingBox(this.position, this.size.sub(point))
   }
 
+
+  def scaleSize(point: Point): BoundingBox = {
+    BoundingBox(this.position, this.size * point)
+  }
+
+
+  def scalePosition(point: Point): BoundingBox = {
+    BoundingBox(this.position * point, this.size)
+  }
+
+
+  def scale(point: Point): BoundingBox = {
+    BoundingBox(this.position * point, this.size  * point)
+  }
+
   def positionToSize: BoundingBox = BoundingBox(Point.zero, size + position.abs)
 //  def toZero:BoundingBox = this.addPosition((position - position.abs) /2)
 

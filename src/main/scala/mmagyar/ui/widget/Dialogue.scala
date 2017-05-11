@@ -30,12 +30,14 @@ class Dialogue private (updateReason: UpdateReason,
                         val position: Point,
                         val sizing: Sizing,
                         val options: Vector[DialogueOption],
-                        val zOrder: Double = 1,
-                        val id: ShapeyId = ShapeyId.apply(),
-                        val currentSelection: Option[DialogueOption] = None,
+                        val zOrder: Double ,
+                        val id: ShapeyId ,
+                        val currentSelection: Option[DialogueOption] ,
                         _elementList: ElementList = ElementList.empty)(implicit style: Style)
     extends ComplexWidgetBase[Dialogue](_elementList, updateReason)
     with SizableShapey {
+
+  def warningSilancer():String = zOrder + id.toString + currentSelection
 
   /**
     * This method needs to manage the element list.
