@@ -88,6 +88,7 @@ class JavaFxTesting extends Application {
         needsUpdate = true
       case a: KeyEvent if a.getText == "b" =>
         benchmark()
+      case a :KeyEvent if a.getText == "[" =>
       case a: KeyEvent if a.getText == "r" =>
         println("RELOADING mainDemo")
         document(baseDoc)
@@ -196,8 +197,8 @@ class JavaFxTesting extends Application {
     stage.setScene(scene)
     stage.setTitle("Shapey Reference")
     stage.setY(0)
-    println(stage.getMaxWidth)
-    //        stage.setX(2890)
+
+            stage.setX(2890)
     //    stage.setX(1620)
     stage.show()
     //    stage.setResizable(false)

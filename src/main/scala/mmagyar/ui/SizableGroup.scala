@@ -3,6 +3,7 @@ package mmagyar.ui
 import mmagyar.layout._
 import mmagyar.ui.interaction._
 import mmagyar.util.{BoundingBox, Box, Color, Point}
+
 object SizableGroup {
 
   case class ScrollWheelBehaviour(divider: Double = 8) extends BehaviourAction[SizableGroup] {
@@ -17,7 +18,8 @@ object SizableGroup {
   }
 
   case object ScrollBehaviour extends EmptyBehaviour[SizableGroup] {
-    override def drag: Option[BehaviourAction[SizableGroup]]   = Some(ScrollDragBehaviour)
+    override def drag: Option[BehaviourAction[SizableGroup]] = Some(ScrollDragBehaviour)
+
     override def scroll: Option[BehaviourAction[SizableGroup]] = Some(ScrollWheelBehaviour())
   }
 
@@ -150,37 +152,24 @@ object SizableGroup {
   }
 }
 
-/**
-  *
-  *
-  * The organization class must be either Horizontal or Vertical.
-  * Only organized groups can have a set size
-  *
-  * @param elements  ElementList
-  * @param sizing    Sizing
-  * @param zOrder    Double
-  * @param id        ShapeyId
-  * @param behaviour Behaviour
-  */
-class SizableGroup(elements: ElementList,
-                   val sizing: Sizing,
-                   val position: Point = Point.zero,
-                   val zOrder: Double = 1,
-                   val id: ShapeyId = ShapeyId(),
-                   val margin: Box = Box.zero,
-                   val behaviour: Behaviour[SizableGroup] = BehaviourBasic(),
-                   _offset: Point = Point.zero)
-    extends GenericGroupExternallyModifiable[SizableGroup]
+trait GenericSizable[T <: GenericSizable[T]]
+    extends GenericGroupExternallyModifiable[T]
     with PositionableShapey
-    with SizableShapey {
+    with SizableShapey { this: T =>
 
-  def processElementList(elements: ElementList, offset: Point): ElementList = {
+  def margin: Box
+
+  protected def _offset: Point
+
+  def _elements: ElementList
+
+  final def processElementList(elements: ElementList, offset: Point): ElementList = {
     elements.copy(
       elements = elements.elements,
       organize = elements.organize match {
-        case a: Horizontal => a.copy(size = Bound(sizing.size - margin.pointSum))
-        case a: Vertical   => a.copy(size = Bound(sizing.size - margin.pointSum))
-        case a: Union      => a.copy(size = Bound(sizing.size - margin.pointSum))
+        case a: Horizontal => a.copy(size = Bound((sizing: Sizing).size - margin.pointSum))
+        case a: Vertical   => a.copy(size = Bound((sizing: Sizing).size - margin.pointSum))
+        case a: Union      => a.copy(size = Bound((sizing: Sizing).size - margin.pointSum))
         case a             => a
         //          System.err.println(
         //            "Sizable group needs a Bounded size organizer, defaulting to horizontal layout")
@@ -191,10 +180,10 @@ class SizableGroup(elements: ElementList,
     )
   }
 
-  private val preOffset: Point = _offset.max(Point.zero)
-  private val processed        = processElementList(elements, preOffset)
+  private lazy val preOffset: Point = _offset.max(Point.zero)
+  private lazy val processed        = processElementList(_elements, preOffset)
 
-  private val childrenSize = processed.elements
+  private lazy val childrenSize = processed.elements
     .foldLeft(BoundingBox.zero)(
       (p, c) =>
         BoundingBox(
@@ -205,37 +194,90 @@ class SizableGroup(elements: ElementList,
     .size
 
   private val diff = (childrenSize + margin.pointSum) - size
-  val offset: Point =
+  final lazy val offset: Point =
     preOffset.union((x, ps) => {
-      val df = ps._1(diff); if (x > df && df > 0) df else if (x < 0 || df <= 0) 0 else x
+      val df = ps._1(diff)
+      if (x > df && df > 0) df else if (x < 0 || df <= 0) 0 else x
     })
 
-  lazy val totalScrollSize: Point = childrenSize + margin.pointSum
+  final lazy val totalScrollSize: Point = childrenSize + margin.pointSum
 
   /**
     * The percentage of the scroll, ranges from 0-1
     */
-  lazy val scrollPercent: Point = diff.union((x, ps) => if (x <= 0) 0 else ps._1(offset) / x)
+  final lazy val scrollPercent: Point = diff.union((x, ps) => if (x <= 0) 0 else ps._1(offset) / x)
 
-  val canOffset: (Boolean, Boolean) = (diff.x > 0, diff.y > 0)
+  final lazy val canOffset: (Boolean, Boolean) = (diff.x > 0, diff.y > 0)
 
-  override val elementList: ElementList =
+  final override lazy val elementList: ElementList =
     if (offset != preOffset) processElementList(processed, offset) else processed
 
-  override def setElements(elementList: ElementList): SizableGroup =
+  final override def setElements(elementList: ElementList): T =
     if (elementList == this.elementList) this else copy(elementList)
 
-  override def mapElements(map: (Shapey) => Shapey): SizableGroup =
+  final override def mapElements(map: (Shapey) => Shapey): T =
     setElements(elementList.map(map))
 
-  override def sizing(sizing: Sizing): SizableGroup =
-    if (sizing == this.sizing) this else copy(sizing = sizing)
+  final override def sizing(sizing: Sizing): T =
+    copy(sizing = sizing)
 
-  override def position(point: Point): SizableGroup =
-    if (point == position) this else copy(position = point)
+  /**
+    * @todo
+    * if any problem occurs with sizable group, possibly this is the culprit
+    * @param point new position
+    * @return
+    */
+  final override def position(point: Point): T =
+    if (point == (this.position: Point)) this else copy(position = point)
 
-  def offset(point: Point): SizableGroup =
+  final def offset(point: Point): T =
     if (point == offset) this else copy(offset = point)
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case a: GenericSizable[_] =>
+      a.elementList == elementList &&
+        a.offset == offset &&
+        (a.sizing: Sizing) == (sizing: Sizing) &&
+        (a.position: Point) == (position: Point) &&
+        a.id == id &&
+        a.zOrder == zOrder &&
+        a.margin == margin &&
+        a.behaviour == behaviour
+    case _ => false
+  }
+
+  def copy(elementList: ElementList = elementList,
+           position: Point = position,
+           sizing: Sizing = sizing,
+           zOrder: Double = zOrder,
+           id: ShapeyId = id,
+           margin: Box = margin,
+           offset: Point = offset,
+           behaviour: Behaviour[T] = behaviour): T
+
+}
+
+/**
+  *
+  *
+  * The organization class must be either Horizontal or Vertical.
+  * Only organized groups can have a set size
+  *
+  * @param _elements ElementList
+  * @param sizing    Sizing
+  * @param zOrder    Double
+  * @param id        ShapeyId
+  * @param behaviour Behaviour
+  */
+class SizableGroup(val _elements: ElementList,
+                   val sizing: Sizing,
+                   val position: Point = Point.zero,
+                   val zOrder: Double = 1,
+                   val id: ShapeyId = ShapeyId(),
+                   val margin: Box = Box.zero,
+                   val behaviour: Behaviour[SizableGroup] = BehaviourBasic(),
+                   val _offset: Point = Point.zero)
+    extends GenericSizable[SizableGroup] {
 
   def copy(elementList: ElementList = elementList,
            position: Point = position,
@@ -245,6 +287,15 @@ class SizableGroup(elements: ElementList,
            margin: Box = margin,
            offset: Point = offset,
            behaviour: Behaviour[SizableGroup] = behaviour): SizableGroup =
-    new SizableGroup(elementList, sizing, position, zOrder, id, margin, behaviour, offset)
+    if (this.elementList == elementList &&
+        this.offset == offset &&
+        (this.sizing: Sizing) == (sizing: Sizing) &&
+        (this.position: Point) == (position: Point) &&
+        this.id == id &&
+        this.zOrder == zOrder &&
+        this.margin == margin &&
+        this.behaviour == behaviour) this
+    else
+      new SizableGroup(elementList, sizing, position, zOrder, id, margin, behaviour, offset)
 
 }
