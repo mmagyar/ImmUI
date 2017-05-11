@@ -175,7 +175,8 @@ class ScrollbarGroup(val child2: SizableGroup,
         child =
           if (scrollProvider.id == cChild.id) cChild.offset(offset)
           else
-            cChild.change(_.id == scrollProvider.id, { case a: SizableGroup => a.offset(offset) }))
+            cChild
+              .change({ case a: SizableGroup if a.id == scrollProvider.id => a.offset(offset) }))
 
   override def position(point: Point): PositionableShapey =
     if (point == this.position) this else copyInternal(point)
@@ -217,9 +218,7 @@ class ScrollbarGroup(val child2: SizableGroup,
 
     if (resizeProviderWhenChangingSizing && input.id != providerId)
       input
-        .change(_.id == providerId, {
-          case a: SizableGroup => a.sizing(newSizing)
-        })
+        .change({ case a: SizableGroup if a.id == providerId => a.sizing(newSizing) })
         .sizing(newSizing)
     else input.sizing(newSizing)
   }

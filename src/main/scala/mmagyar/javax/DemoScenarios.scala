@@ -4,7 +4,7 @@ import mmagyar.layout._
 import mmagyar.ui._
 import mmagyar.ui.builder.BuildContainer
 import mmagyar.ui.interaction.{BehaviourBasic, InjectedBehaviourAction}
-import mmagyar.ui.widget.{Dialogue, DialogueOption}
+import mmagyar.ui.widget.{Dialogue, DialogueOption, DialogueState}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Bitmap, Color, Degree, Point}
 
@@ -159,17 +159,18 @@ object DemoScenarios {
       Align2d(Align.Right, Align.Right)),
 rects.position(Point(10,300)),
     Group(
-      Dialogue(
+      Dialogue.generate(
         "ohh hacky, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
-        Point.zero,
+//        Point.zero,
         Sizing(Point(240, 110)),
+        DialogueState(
         Vector(
           DialogueOption("OK"),
           DialogueOption("CANCEL"),
           DialogueOption("MAYBE"),
           DialogueOption("NOT ENOUGH")
         )
-      )(Style()))
+        ))(Style()))
       .copy(id = ShapeyId("HEY"), position = Point(30, 30), zOrder = 4, scale = Point(2, 2))
   )
 

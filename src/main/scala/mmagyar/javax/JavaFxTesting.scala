@@ -144,15 +144,14 @@ class JavaFxTesting extends Application {
         writeRenderTime = !writeRenderTime
 
       case a: KeyEvent if a.getText == "rzx" =>
-        val root = document.root.change(_.id('AHOY), {
-          case b: Group => b.copy(position = Point.zero, rotation = Degree(b.rotation.value + 5))
-          case b        => b
+        val root = document.root.change( {
+          case b: Group if b.id("AHOY") => b.copy(position = Point.zero, rotation = Degree(b.rotation.value + 5))
         })
         document(document.copy(root = root))
       //        println(document.root)
       case a: KeyEvent if a.getText.toLowerCase() == "t" =>
-        val root = document.root.change(_.id("HEY"), {
-          case xx: Group => xx.rotation(Degree(xx.rotation.value + (if (a.isShiftDown) -3 else 3)))
+        val root = document.root.change( {
+          case xx: Group if xx.id("HEY") => xx.rotation(Degree(xx.rotation.value + (if (a.isShiftDown) -3 else 3)))
           //          case a=> a
         })
         document(document.copy(root = root))

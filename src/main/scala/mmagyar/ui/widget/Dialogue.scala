@@ -8,12 +8,8 @@ import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Point}
 
 /** Magyar Máté 2017, all rights reserved */
-object DialogueOption {
-  def apply(text: String): DialogueOption = DialogueOption(text, Symbol(text))
-}
-case class DialogueOption(text: String, id: Symbol)
-
 object Dialogue {
+
   def apply(text: String,
             position: Point,
             sizing: Sizing,
@@ -24,20 +20,88 @@ object Dialogue {
     new Dialogue(UpdateReason.New, text, position, sizing, options, zOrder, id, currentSelection)
 
   }
+
+  def generate(text: String, sizing: Sizing, state: DialogueState, id: ShapeyId = ShapeyId())(
+      implicit style: Style): DecoratedSizableGroup[DialogueState] = {
+    val size        = sizing.size
+    val margin: Box = style.defaultGroupMargin
+
+    val buttons = state.options.map(
+      x =>
+        Button(
+          Point.zero,
+          x.text,
+          id = ShapeyId(x.id),
+          isActive = state.currentSelection.contains(x),
+          behaviour = BehaviourBasic.empty))
+
+    val textSize = Point(size.x - style.scrollBar.x, 10) //margin.ySum+1)
+
+    val multiText =
+      SizableGroup.scrollableTextBox(
+        text,
+        Sizing(textSize, Point(textSize.x, 1), grow = Grow.Affinity),
+        style.fontLooks,
+        Point.zero,
+        margin,
+        id = ShapeyId(id.symbol.name + "_TEXT_BOX"))
+
+    val wrapText = ScrollbarGroup(multiText)
+
+    val buttonsGr: SizableGroup =
+      SizableGroup.selfSizedHorizontal(
+        size.x,
+        buttons,
+        margin,
+        Layout.centeredDown,
+        id = ShapeyId("test_2"))
+    val innards =
+      ElementList(Vertical(Layout.centered, Bound(size)), wrapText, buttonsGr)
+
+    val list = ElementList(
+      Rect(Sizing(size), looks = style.groupLooks, zOrder = -2),
+      new SizableGroup(innards, Sizing(size), Point.zero))
+
+    //TODO button select
+    def select(option: Option[DialogueOption],
+               in: DecoratedSizableGroup[DialogueState]): DecoratedSizableGroup[DialogueState] =
+      in.data(in.data.copy(currentSelection = option))
+    val behaviour: Behaviour[DecoratedSizableGroup[DialogueState]] =
+      BehaviourBasic(Some(InjectedBehaviourAction((el, t) => {
+        println("pre: " + el.data.currentSelection)
+
+        val clickedOption = t.downElements
+          .find(x => state.options.exists(y => x.shapey.id(y.id)))
+          .flatMap(x => state.options.find(y => x.shapey.id(y.id)))
+        val res =clickedOption.map(x => select(Some(x), el).change({case a:MultilineText => a.text("EHHLLLO")})).getOrElse(el)
+
+        println("post: " + res.data.currentSelection)
+        res
+      })))
+
+    new DecoratedSizableGroup[DialogueState](list, sizing, state, id = id, behaviour = behaviour)
+  }
 }
+case class DialogueState(options: Vector[DialogueOption],
+                         currentSelection: Option[DialogueOption] = None)
+object DialogueOption {
+  def apply(text: String): DialogueOption = DialogueOption(text, Symbol(text))
+}
+case class DialogueOption(text: String, id: Symbol)
+
 class Dialogue private (updateReason: UpdateReason,
                         val text: String,
                         val position: Point,
                         val sizing: Sizing,
                         val options: Vector[DialogueOption],
-                        val zOrder: Double ,
-                        val id: ShapeyId ,
-                        val currentSelection: Option[DialogueOption] ,
+                        val zOrder: Double,
+                        val id: ShapeyId,
+                        val currentSelection: Option[DialogueOption],
                         _elementList: ElementList = ElementList.empty)(implicit style: Style)
     extends ComplexWidgetBase[Dialogue](_elementList, updateReason)
     with SizableShapey {
 
-  def warningSilancer():String = zOrder + id.toString + currentSelection
+  def warningSilancer(): String = zOrder + id.toString + currentSelection
 
   /**
     * This method needs to manage the element list.
@@ -95,8 +159,8 @@ class Dialogue private (updateReason: UpdateReason,
       case Content | Behaviour =>
         elementList.copy(elements = elementList.elements.map({
           case x: GenericGroup[_] =>
-            x.change(y => options.exists(z => y.id(z.id)), {
-              case a: Button => a.copy(isActive = currentSelection.exists(_.id == a.id.symbol))
+            x.change({
+              case a: Button if options.exists(z => a.id(z.id)) => a.copy(isActive = currentSelection.exists(_.id == a.id.symbol))
               case a         => a
             })
           case x => x

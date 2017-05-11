@@ -116,18 +116,18 @@ trait GroupableWithBehaveableChildren[A <: Groupable[A]] extends Groupable[A] { 
   }
 
   /**
+    * NEVER declare this case in your partial function if you want recursion:
+    * `case a => a` because that will stop recursion.
     *
     * Change method is neccessery, since this is the way behaviour can act on it's children
-    * If the element is being changed by this, it will NOT be mapped over recursively
+    * If the element is being changed by this, it will NOT be mapped over recursively.
     */
-  def change[K <: Shapey](where: (Shapey) => Boolean,
-                          change: PartialFunction[Shapey, K],
-                          recursive: Boolean = true): A = mapElements {
-    case a if where(a) && change.isDefinedAt(a) => change(a)
-    case a: GroupableWithBehaveableChildren[_] if recursive =>
-      a.change(where, change, recursive)
-    case a => a
-  }
+  def change[K <: Shapey](changePf: PartialFunction[Shapey, K], recursive: Boolean = true): A =
+    mapElements {
+      case a if changePf.isDefinedAt(a)                       => changePf(a)
+      case a: GroupableWithBehaveableChildren[_] if recursive => a.change(changePf, recursive)
+      case a                                                  => a
+    }
 }
 
 trait PositionableShapey extends Shapey with Positionable[PositionableShapey]
@@ -314,7 +314,7 @@ object BitmapShapey {
     align match {
       case Right  => targetSize - (originalSize * mod)
       case Center => (targetSize - (originalSize * mod)) / 2.0
-      case _        => 0
+      case _      => 0
     }
 
 //  def vertical(mod: Double = 1,
@@ -378,12 +378,12 @@ final case class BitmapShapey(
           align.vertical match {
             case Right  => size.y - bitmap.size._2
             case Center => (size.y - bitmap.size._2) / 2.0
-            case _        => 0
+            case _      => 0
           },
           align.horizontal match {
             case Right  => size.x - bitmap.size._1;
             case Center => (size.x - bitmap.size._1) / 2.0
-            case _        => 0
+            case _      => 0
           }
         )
 
