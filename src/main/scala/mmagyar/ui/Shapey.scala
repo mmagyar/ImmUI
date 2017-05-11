@@ -26,6 +26,14 @@ case class ShapeyId(symbol: Symbol) {
   def apply(string: Symbol): Boolean = symbol == string
   def apply(string: String): Boolean = symbol.name == string
 
+  /**
+    * Use this to generate ID's for widget sub elements
+    * @param postFix postfix test
+    * @return
+    */
+  def append(postFix:String):ShapeyId = ShapeyId(symbol.name + postFix)
+  def append(midFix:String, postFix:Symbol):ShapeyId = ShapeyId(symbol.name + midFix + postFix.name)
+
   override def toString: String = symbol.name
 }
 

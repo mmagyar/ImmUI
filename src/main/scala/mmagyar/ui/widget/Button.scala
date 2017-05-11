@@ -34,7 +34,7 @@ case class Button(position: Point,
   private val textElPre = Text(
     text,
     if (isActive) style.fontLooksActive else style.fontLooks,
-    position = style.defaultButtonTextMargin.topLeft + margin.topLeft)
+    position = style.defaultButtonTextMargin.topLeft + margin.topLeft,id = id.append("_TEXT"))
 
   private val minSizeDiff = minWidth - textElPre.size.x
 
@@ -50,7 +50,7 @@ case class Button(position: Point,
     Rect(
       Sizing(rectSize),
       if (isActive) style.buttonLooksActive else style.buttonLooks,
-      position = margin.topLeft)
+      position = margin.topLeft, id = id.append("_BG"))
 
   override val elementList: ElementList = ElementList(textEl, bg)
 

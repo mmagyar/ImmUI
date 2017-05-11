@@ -26,16 +26,17 @@ object Dialogue {
     val size        = sizing.size
     val margin: Box = style.defaultGroupMargin
 
-    val buttons = state.options.map(
-      x =>
-        Button(
-          Point.zero,
-          x.text,
-          id = ShapeyId(x.id),
-          isActive = state.currentSelection.contains(x),
-          behaviour = BehaviourBasic.empty))
+    def buttons(stateForButtons: DialogueState, id: ShapeyId) =
+      stateForButtons.options.map(
+        x =>
+          Button(
+            Point.zero,
+            x.text,
+            id = id.append("_STATUS_", x.id),
+            isActive = stateForButtons.currentSelection.contains(x),
+            behaviour = BehaviourBasic.empty))
 
-    val textSize = Point(size.x - style.scrollBar.x, 10) //margin.ySum+1)
+    val textSize = Point(size.x - style.scrollBar.x, 10)
 
     val multiText =
       SizableGroup.scrollableTextBox(
@@ -44,23 +45,23 @@ object Dialogue {
         style.fontLooks,
         Point.zero,
         margin,
-        id = ShapeyId(id.symbol.name + "_TEXT_BOX"))
+        id = id.append("_TEXT_BOX"))
 
-    val wrapText = ScrollbarGroup(multiText)
+    val wrapText = ScrollbarGroup(multiText, id = id.append("_SBC"))
 
-    val buttonsGr: SizableGroup =
+    def buttonsGr(state: DialogueState, id: ShapeyId): SizableGroup =
       SizableGroup.selfSizedHorizontal(
         size.x,
-        buttons,
+        buttons(state, id),
         margin,
         Layout.centeredDown,
-        id = ShapeyId("test_2"))
+        id = id.append("_BUTTON_CTR"))
     val innards =
-      ElementList(Vertical(Layout.centered, Bound(size)), wrapText, buttonsGr)
+      ElementList(Vertical(Layout.centered, Bound(size)), wrapText, buttonsGr(state, id))
 
     val list = ElementList(
       Rect(Sizing(size), looks = style.groupLooks, zOrder = -2),
-      new SizableGroup(innards, Sizing(size), Point.zero))
+      new SizableGroup(innards, Sizing(size), Point.zero, id = id.append("_SUB_CTR")))
 
     //TODO button select
     def select(option: Option[DialogueOption],
@@ -71,11 +72,17 @@ object Dialogue {
         println("pre: " + el.data.currentSelection)
 
         val clickedOption = t.downElements
-          .find(x => state.options.exists(y => x.shapey.id(y.id)))
-          .flatMap(x => state.options.find(y => x.shapey.id(y.id)))
-        val res =clickedOption.map(x => select(Some(x), el).change({case a:MultilineText => a.text("EHHLLLO")})).getOrElse(el)
+          .find(x => state.options.exists(y => x.shapey.id == id.append("_STATUS_", y.id)))
+          .flatMap(x => state.options.find(y => x.shapey.id == id.append("_STATUS_", y.id)))
+        val res = clickedOption
+          .map(x =>
+            select(Some(x), el).change({
+              case a: SizableGroup if a.id == id.append("_BUTTON_CTR") =>
+                buttonsGr(state.copy(currentSelection = Some(x)), id)
+            }))
+          .getOrElse(el)
 
-        println("post: " + res.data.currentSelection)
+        println("post: " + res.data.currentSelection + " OPT:" + clickedOption)
         res
       })))
 
@@ -160,8 +167,9 @@ class Dialogue private (updateReason: UpdateReason,
         elementList.copy(elements = elementList.elements.map({
           case x: GenericGroup[_] =>
             x.change({
-              case a: Button if options.exists(z => a.id(z.id)) => a.copy(isActive = currentSelection.exists(_.id == a.id.symbol))
-              case a         => a
+              case a: Button if options.exists(z => a.id(z.id)) =>
+                a.copy(isActive = currentSelection.exists(_.id == a.id.symbol))
+              case a => a
             })
           case x => x
         }))
