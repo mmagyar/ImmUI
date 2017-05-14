@@ -74,7 +74,15 @@ object Dialogue {
               .flatMap(y => el.data.buttons.find(_.button.id == y.shapey.id).map(_.option))
               .headOption
               .map(x => select(Some(x), el))
-              .getOrElse(el))))
+              .getOrElse(el))),
+      drag = Some(BehaviourAction((el, tracker) => {
+
+        if (tracker.downElements.headOption.exists(x => x.shapey.id("AUTO_GEN_ID: 11_SUB_CTR"))) {
+          el.sizing(el.sizing.size(el.sizing.size - tracker.drag))
+        } else
+          el
+      }))
+    )
 
   def apply(text: String, sizing: Sizing, state: DialogueState, id: ShapeyId = ShapeyId())(
       implicit style: Style): Dialogue = {
@@ -89,8 +97,9 @@ object Dialogue {
       margin,
       id = id.append("_TEXT_BOX"))
 
-    val buttonsEl = Button
-      .unifyButtonSize[OptionButton](buttons(state, id), _.button, (x, b) => x.copy(button = b))
+    val buttonsEl = //buttons(state,id)
+      Button
+        .unifyButtonSize[OptionButton](buttons(state, id), _.button, (x, b) => x.copy(button = b))
     val buttonGroups = buttonsGroup(buttonsEl.map(x => x.button), id)
     val innards = ElementList(
       Vertical(Layout(Wrap.No, alignContent = Align.Stretch(Align.Center)), Bound(size)),
@@ -99,19 +108,21 @@ object Dialogue {
     )
 
     //TODO test resizability
-    val list = ElementList(Union(),
+    val list = ElementList(
+      Union(),
       Rect(Sizing.dynamic(), looks = style.groupLooks, zOrder = -2),
       new SizableGroup(
         innards,
         //TODO this should also work when base size is 1
-        Sizing.dynamic(size),
+        Sizing.dynamic(),
         Point.zero,
         margin = margin,
-        id = id.append("_SUB_CTR")))
+        id = id.append("_SUB_CTR"))
+    )
 
     val data = DialogueWidgetState(state, buttonsEl, buttonGroups)
 
-     new DecoratedSizableGroup[DialogueWidgetState](
+    new DecoratedSizableGroup[DialogueWidgetState](
       list,
       sizing,
       data,

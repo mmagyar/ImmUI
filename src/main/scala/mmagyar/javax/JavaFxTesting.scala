@@ -22,7 +22,7 @@ object JavaFxTesting {
 }
 
 class JavaFxTesting extends Application {
-  val size: Point        = Point(800, 480)
+  val size: Point        = Point(1280,720)//Point(800, 480)
   val width: Int         = size.x.toInt
   val height: Int        = size.y.toInt
   val multiplier: Double = 1

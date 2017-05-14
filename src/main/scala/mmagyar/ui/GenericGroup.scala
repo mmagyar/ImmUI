@@ -77,6 +77,8 @@ trait GenericGroupExternallyModifiable[T <: GenericGroupExternallyModifiable[T]]
     extends GenericGroup[T] { this: T =>
   def setElements(elementList: ElementList): T
 
+  def setElements(elements: Vector[Shapey]): T = setElements(this.elementList.setElements(elements))
+
   def replace[K <: Shapey, L <: Shapey](oldElement: K, newElement: L): T =
     setElements(elementList.copy(elements.map {
       case a if a == oldElement                   => newElement

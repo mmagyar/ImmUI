@@ -183,7 +183,9 @@ object Organize {
             }
           }) match {
             //Bail out if the grow data is the same as last time
-            case a if previousGrowData.contains(growData) => a._2
+            case a if previousGrowData.contains(growData) =>
+              System.err.println("Bail on grow")
+              a._2
             case a if a._1 =>
               grow(a._2, fill, lineSize, Some(growData));
             case a => a._2
@@ -255,7 +257,9 @@ object Organize {
             }
           }) match {
             //Bail if the last iteration yielded the same result
-            case a if previousShrinkData.contains(shrinkData) => a._2
+            case a if previousShrinkData.contains(shrinkData) =>
+              System.err.println("Bail on grow")
+              a._2
             //Recurse if we appear to have more space to shrink
             case a if a._1 && shrinkData.shrinkableSpace > 0 =>
               shrink(a._2, fill, lineSize, Some(shrinkData));

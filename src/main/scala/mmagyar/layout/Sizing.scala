@@ -91,4 +91,6 @@ final case class Sizing(
     case Grow.Affinity           => Point.large
     case Grow.Until(maximumSize) => maximumSize
   }
+
+  def size(size:Point):Sizing = if(size == this.size) this else copy(size =size)
 }

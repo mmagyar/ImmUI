@@ -70,16 +70,16 @@ class ElementList(_elements: Vector[Shapey],
       static match {
       case a if passLayoutConstraintToChildGroupIfItHasDynamicBounds =>
         a.map {
-          case b: Group => b.setBoundToDynamic(organize.size);
+          case b: Group             => b.setBoundToDynamic(organize.size);
           case b: GenericSizable[_] => b.setBoundToDynamic(organize.size);
-          case b => b
+          case b                    => b
         }
       case a => a
     }
 
   def map(fn: (Shapey) => Shapey): ElementList = elements.map(fn) match {
     case a if a == elements => this
-    case a                   => copy(a)
+    case a                  => copy(a)
   }
 
   def copy(elements: Vector[Shapey] = elements,
@@ -114,4 +114,6 @@ class ElementList(_elements: Vector[Shapey],
     case _ => false
   }
 
+  def setElements(elements: Vector[Shapey]): ElementList =
+    if (elements == this.elements) this else this.copy(elements = elements)
 }

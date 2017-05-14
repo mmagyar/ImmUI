@@ -103,6 +103,7 @@ case class Tracker(switch: Boolean,
       lastMove = transform(lastMove),
       upPos = transform(upPos))
 
+  def drag: Point = lastMove - currentPosition
 }
 
 case class PointerState(

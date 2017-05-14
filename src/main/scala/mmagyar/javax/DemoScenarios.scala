@@ -246,38 +246,4 @@ object DemoScenarios {
 
   def analysed(maxSize: Point): Group = BuildContainer.builder(maxSize, mainDemo)
 
-  def specificScrollBug: Group = {
-    val size = Point(220, 110)
-    val multiText = SizableGroup.scrollableTextBox(
-      "THIS IS A LONG TEST TEXT HELLOW YOU THERE THIS IS A LOREM IPSUM OR WHATEVER LIKE IT",
-      Sizing.grow(),
-      Style().fontLooks,
-      Point.zero,
-      id = ShapeyId("_TEXT_BOX")
-    )
-
-    val innards = ElementList(
-      Vertical(Layout(Wrap.No, alignContent = Align.Stretch(Align.Center)), Dynamic(Bound(size))),
-      multiText,
-      Rect(Sizing(40, 48), Looks(Color.silver))
-    )
-
-    val res = Group(
-      ElementList(
-        new SizableGroup(
-          innards,
-          Sizing(size),
-          Point.zero,
-          margin = Box(Point(10, 10)),
-          id = ShapeyId("_SUB_CTR"))))
-
-    println(res.get(_.id("_TEXT_BOX")))
-    res.changeWhereParents(_.shapey match {
-      case a: GenericGroup[_] =>
-        println("GROUPABLE: " + a.id)
-        if (a.elementList.organize.size.constraintSize.y == 62) println(a)
-        false; case _               => false
-    }, { case a if a.zOrder > 99999 => a })
-    res
-  }
 }

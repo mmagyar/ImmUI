@@ -103,7 +103,7 @@ class PointerAction(
 
     val currentPoint = rotate.foldLeft(point)((p, c) => c.transformReverse(p))
 
-    (elements collect {
+    (elements.sortWith(_.zOrder > _.zOrder) collect {
       case a: Groupable[_] if a.boundingBox.inside(currentPoint, -1) =>
         sense(
           a.elements,

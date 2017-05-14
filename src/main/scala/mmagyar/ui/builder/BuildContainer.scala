@@ -3,7 +3,7 @@ package mmagyar.ui.builder
 import mmagyar.layout._
 import mmagyar.ui._
 import mmagyar.ui.interaction._
-import mmagyar.ui.widget.ScrollbarGroup
+import mmagyar.ui.widget.{Accord, Accordian, ScrollbarGroup}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Color, Point, TriState}
 
@@ -61,7 +61,15 @@ object BuildContainer {
             Text("Selected Id:"),
             Text("", id = ShapeyId("SEL_ID_HERE")),
             Text("\ndetail:"),
-            MultilineText("", id = ShapeyId("SEL_DETAIL_HERE"), minSize = Point(24, 8)),
+            Accordian(
+              Vector(
+                Accord(Text("HEADER_1"), Text("DETAIL_1")),
+                Accord(Text("HEADER_2"), Text("DETAIL_2")))),
+            MultilineText(
+              "",
+              id = ShapeyId("SEL_DETAIL_HERE"),
+              looks = Looks(fill = Color.transparent, stroke = Color.white),
+              minSize = Point(24, 8)),
             Rect(
               Sizing(Point.one, Grow.Until(Point(10000000000.0, 1029)), Shrink.Affinity),
               looks = Looks(Color.lime, Color.olive, 1))
@@ -80,10 +88,10 @@ object BuildContainer {
     )(Style())
 
   def builder(maxSize: Point, toAnalyse: Groupable[_]): Group = {
-    val controlPanelElement = controlPanel(Point(180, maxSize.y))
+    val controlPanelElement = controlPanel(Point(480, maxSize.y))
     Group(
       Group(
-        Horizontal(Layout(Wrap.No,Fill.No, alignItem = Align.Left), Bound(maxSize)),
+        Horizontal(Layout(Wrap.No, Fill.No, alignItem = Align.Left), Bound(maxSize)),
         BehaviourBasic(
           Some(InjectedBehaviourAction((group: Group, tracker: Tracker) => {
             if (tracker.downElements.exists(_.shapey.id == controlPanelElement.id)) group
