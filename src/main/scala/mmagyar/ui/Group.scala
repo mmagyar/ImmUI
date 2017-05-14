@@ -46,7 +46,7 @@ object Group {
   * @param behaviour   Behaviour
   */
 final case class Group(elementList: ElementList,
-                       position: Point,
+                       position: Point = Point.zero,
                        rotation: Degree = Degree(0),
                        scale: Point = Point.one,
                        zOrder: Double = 1,
@@ -55,7 +55,7 @@ final case class Group(elementList: ElementList,
     extends GenericGroupExternallyModifiable[Group]
     with RotatableShapey
     with PositionableShapey {
-  if (id("TEST_1")) println(("CREATING TEST_1", elementList.organize))
+
   val preRotationBbox: BoundingBox = this.elements
     .foldLeft(BoundingBox.zero)((p, c) =>
       BoundingBox(Point.zero, p.size max c.boundingBox.addSize(c.boundingBox.position).size))

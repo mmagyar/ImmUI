@@ -72,15 +72,16 @@ class PointerAction(
           case PointedElement(a, b: Behaveable[_]) if b.behaviour.canBehave(tracker) =>
             PointedElement(a, b)
         }
-      group.copy(
+      val a  = group.copy(
         root = behavables.foldLeft(group.root)(
           (p, c) =>
             p.change({
-              case a: Behaveable[_] if a.id == c.shapey.id =>
+              case a: Behaveable[_] if a.id == c.shapey.id  =>
                 a.behave(tracker.transform(c.transformations.foldLeft(_)((p, c) =>
                   c.transformReverse(p))))
             })
         ))
+      a
     } else group
 
   }

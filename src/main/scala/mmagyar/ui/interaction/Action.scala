@@ -5,6 +5,9 @@ import mmagyar.ui.interaction.State._
 import mmagyar.util.Point
 
 /** Magyar Máté 2017, all rights reserved */
+object BehaviourAction {
+  def apply[T <: Shapey](act: (T, Tracker) => T):BehaviourAction[T] = InjectedBehaviourAction[T](act)
+}
 trait BehaviourAction[T <: Shapey] {
   def action(in: T, tracker: Tracker): T
 

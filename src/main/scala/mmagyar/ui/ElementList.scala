@@ -37,10 +37,15 @@ trait ElementListable {
            organize: Organize = organize,
            organizeToBounds: Option[Boolean] = None): ElementListable
 
+  def toString(nest: Int): String =
+    s"(ElementList: (organize: $organize),elements:\n" + elements
+      .map(x => x.elementsPrint(nest))
+      .foldLeft("")((p, c) => p + (if (p.nonEmpty) "\n" else "") + c) + ")"
+
   override def toString: String =
     s"\n(ElementList: (organize: $organize),\nelements:\n" + elements
       .map(x => x.elementsPrint(1))
-      .foldLeft("")((p, c) => p + (if (p.nonEmpty) "\n" else "") + c) + ")\n"
+      .foldLeft("")((p, c) => p + (if (p.nonEmpty) "\n" else "") + c) + ")"
 }
 
 class ElementList(_elements: Vector[Shapey],
@@ -59,24 +64,25 @@ class ElementList(_elements: Vector[Shapey],
     case a if !a.isInstanceOf[PositionableShapey] => a
   }
 
-  /**
-    * Only use this when displaying elements, do not reuse this value when re organizing, it will change the order of items
-    * @todo, maybe sort by zOrder in the renderer only?
-    */
   val elements: Vector[Shapey] =
-    (organize
-      .organize[PositionableShapey](positionable, offsetElements, organizeToBounds) ++ static match {
+    organize
+      .organize[PositionableShapey](positionable, offsetElements, organizeToBounds) ++
+      static match {
       case a if passLayoutConstraintToChildGroupIfItHasDynamicBounds =>
-        a.map { case b: Group => b.setBoundToDynamic(organize.size); case b => b }
+        a.map {
+          case b: Group => b.setBoundToDynamic(organize.size);
+          case b: GenericSizable[_] => b.setBoundToDynamic(organize.size);
+          case b => b
+        }
       case a => a
-    }).sortWith(_.zOrder > _.zOrder)
+    }
 
-  def map(fn: (Shapey) => Shapey): ElementList = _elements.map(fn) match {
-    case a if a == _elements => this
+  def map(fn: (Shapey) => Shapey): ElementList = elements.map(fn) match {
+    case a if a == elements => this
     case a                   => copy(a)
   }
 
-  def copy(elements: Vector[Shapey] = _elements,
+  def copy(elements: Vector[Shapey] = elements,
            organize: Organize = organize,
            organizeToBounds: Option[Boolean] = organizeToBounds): ElementList =
     if (elements == this.elements && organize == this.organize && organizeToBounds == this.organizeToBounds)

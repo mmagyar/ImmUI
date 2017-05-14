@@ -41,10 +41,14 @@ object Sizing {
     * @param baseSize the actual and base size
     * @return Sizing
     */
- def apply(baseSize: Point): Sizing = Sizing(baseSize, baseSize, Grow.No, Shrink.No)
+  def apply(baseSize: Point): Sizing = Sizing(baseSize, baseSize, Grow.No, Shrink.No)
 
-  def grow (baseSize:Point):Sizing = Sizing(baseSize,baseSize, Grow.Affinity, Shrink.No)
-  def shrink (baseSize:Point):Sizing = Sizing(baseSize,baseSize, Grow.No, Shrink.Affinity)
+  def grow(baseSize: Point = Point.one): Sizing =
+    Sizing(baseSize, baseSize, Grow.Affinity, Shrink.No)
+  def shrink(baseSize: Point): Sizing = Sizing(baseSize, baseSize, Grow.No, Shrink.Affinity)
+
+  def dynamic(baseSize: Point = Point.one): Sizing =
+    Sizing(baseSize, baseSize, Grow.Affinity, Shrink.Affinity)
 }
 
 /**

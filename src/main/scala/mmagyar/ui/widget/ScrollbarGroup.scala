@@ -160,7 +160,7 @@ class ScrollbarGroup(val child2: SizableGroup,
     copyInternal(child = map(cChild) match {
       case a: SizableGroup => a
       case _ =>
-        System.err.println("""when mapping a scrollbar group,
+        println("""when mapping a scrollbar group,
             | the element must retain
             |  it's original type of Sizable group.
             |  Ignoring result.""".stripMargin)
@@ -200,6 +200,7 @@ class ScrollbarGroup(val child2: SizableGroup,
 
   override lazy val sizing: Sizing =
     Sizing(
+      cChild.baseSize + scrollBarSize,
       cChild.size + scrollBarSize,
       cChild.sizing.grow.changeSize(_ + scrollBarSize),
       cChild.sizing.shrink.changeSize(_ + scrollBarSize)
@@ -233,5 +234,4 @@ class ScrollbarGroup(val child2: SizableGroup,
     case a: ScrollbarGroup => a.cChild == cChild
     case _                 => false
   }
-
 }

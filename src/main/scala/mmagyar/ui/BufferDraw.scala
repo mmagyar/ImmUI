@@ -113,7 +113,7 @@ class BufferDraw() {
 
     val constraint = outerConstraint.intersection(BoundingBox(offset, scaled))
 
-    elements.foreach((x) => {
+    elements.sortWith(_.zOrder > _.zOrder).foreach((x) => {
       if (!x.boundingBox.scale(scale).addPosition(offset).intersect(constraint)) {
 //        println(("BALIED ON: ", x.id,x.getClass.getCanonicalName))
       } else {

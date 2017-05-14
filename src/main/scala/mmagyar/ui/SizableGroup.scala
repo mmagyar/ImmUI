@@ -2,14 +2,15 @@ package mmagyar.ui
 
 import mmagyar.layout._
 import mmagyar.ui.interaction._
+import mmagyar.util.number.RationalAboveZero
 import mmagyar.util.{BoundingBox, Box, Color, Point}
 
 object SizableGroup {
 
-  case class ScrollWheelBehaviour(divider: Double = 8) extends BehaviourAction[SizableGroup] {
-    override def action(in: SizableGroup, tracker: Tracker): SizableGroup = {
-      in.copy(offset = in.offset - (tracker.scroll / divider))
-    }
+  case class ScrollWheelBehaviour(divider: RationalAboveZero = RationalAboveZero.two)
+      extends BehaviourAction[SizableGroup] {
+    override def action(in: SizableGroup, tracker: Tracker): SizableGroup =
+      in.copy(offset = in.offset - (tracker.scroll / divider.v))
   }
 
   case object ScrollDragBehaviour extends BehaviourAction[SizableGroup] {
@@ -34,8 +35,15 @@ object SizableGroup {
               Sizing(Point(64, 64), Point(64, 64), shrink = Shrink.Affinity, grow = Grow.Affinity),
             position: Point = Point.zero,
             margin: Box = Box.zero,
-            zOrder: Double = 1): SizableGroup =
-    new SizableGroup(ElementList(elements, organize), sizing, position, zOrder, margin = margin)
+            zOrder: Double = 1,
+            id: ShapeyId = ShapeyId()): SizableGroup =
+    new SizableGroup(
+      ElementList(elements, organize),
+      sizing,
+      position,
+      zOrder,
+      margin = margin,
+      id = id)
 
   def apply(organize: Organize, elements: Shapey*): SizableGroup =
     SizableGroup(organize, elements.toVector)
@@ -141,7 +149,7 @@ object SizableGroup {
                  zOrder: Double = 1,
                  id: ShapeyId = ShapeyId()): SizableGroup = {
     new SizableGroup(
-      ElementList(Union(LayoutSizeConstraint.fromSize(sizing.size)), inner),
+      ElementList(Union(Dynamic(LayoutSizeConstraint.fromSize(sizing.size))), inner),
       sizing,
       position,
       zOrder,
@@ -152,7 +160,7 @@ object SizableGroup {
   }
 }
 
-trait GenericSizable[T <: GenericSizable[T]]
+abstract class GenericSizable[T <: GenericSizable[T]](_elements: ElementList)
     extends GenericGroupExternallyModifiable[T]
     with PositionableShapey
     with SizableShapey { this: T =>
@@ -161,8 +169,6 @@ trait GenericSizable[T <: GenericSizable[T]]
 
   protected def _offset: Point
 
-  def _elements: ElementList
-
   final def processElementList(elements: ElementList, offset: Point): ElementList = {
     elements.copy(
       elements = elements.elements,
@@ -170,10 +176,11 @@ trait GenericSizable[T <: GenericSizable[T]]
         case a: Horizontal => a.copy(size = Bound((sizing: Sizing).size - margin.pointSum))
         case a: Vertical   => a.copy(size = Bound((sizing: Sizing).size - margin.pointSum))
         case a: Union      => a.copy(size = Bound((sizing: Sizing).size - margin.pointSum))
-        case a             => a
-        //          System.err.println(
-        //            "Sizable group needs a Bounded size organizer, defaulting to horizontal layout")
-        //          Horizontal(Layout.left, BoundWidthAndHeight(sizing.size))
+        case a =>
+          System.err.println(
+            s"Sizable group needs a Bounded size organizer ${a.getClass.getCanonicalName} given, defaulting to horizontal layout")
+          a
+//          Horizontal(Layout(), Bound((sizing: Sizing).size - margin.pointSum))
       },
       organizeToBounds = Some(true),
       offset = margin.topLeft + offset.invert
@@ -193,7 +200,8 @@ trait GenericSizable[T <: GenericSizable[T]]
             .size))
     .size
 
-  private val diff = (childrenSize + margin.pointSum) - size
+  private lazy val diff = (childrenSize + margin.pointSum) - size
+
   final lazy val offset: Point =
     preOffset.union((x, ps) => {
       val df = ps._1(diff)
@@ -213,7 +221,9 @@ trait GenericSizable[T <: GenericSizable[T]]
     if (offset != preOffset) processElementList(processed, offset) else processed
 
   final override def setElements(elementList: ElementList): T =
-    if (elementList == this.elementList) this else copy(elementList)
+    if (elementList == this.elementList) this
+    else
+      copy(elementList)
 
   final override def mapElements(map: (Shapey) => Shapey): T =
     setElements(elementList.map(map))
@@ -229,6 +239,7 @@ trait GenericSizable[T <: GenericSizable[T]]
     */
   final override def position(point: Point): T =
     if (point == (this.position: Point)) this else copy(position = point)
+//  copy(position = point)
 
   final def offset(point: Point): T =
     if (point == offset) this else copy(offset = point)
@@ -255,6 +266,17 @@ trait GenericSizable[T <: GenericSizable[T]]
            offset: Point = offset,
            behaviour: Behaviour[T] = behaviour): T
 
+  def setBoundToDynamic(layoutSizeConstraint: LayoutSizeConstraint): T =
+    elementList.organize.size match {
+      case _: Dynamic =>
+        setElements(
+          elementList.copy(organize = elementList.organize.setSize(layoutSizeConstraint match {
+            case b: Dynamic => b
+            case b          => Dynamic(b)
+          })))
+      case _ => this
+    }
+
 }
 
 /**
@@ -269,7 +291,7 @@ trait GenericSizable[T <: GenericSizable[T]]
   * @param id        ShapeyId
   * @param behaviour Behaviour
   */
-class SizableGroup(val _elements: ElementList,
+class SizableGroup(_elements: ElementList,
                    val sizing: Sizing,
                    val position: Point = Point.zero,
                    val zOrder: Double = 1,
@@ -277,7 +299,7 @@ class SizableGroup(val _elements: ElementList,
                    val margin: Box = Box.zero,
                    val behaviour: Behaviour[SizableGroup] = BehaviourBasic(),
                    val _offset: Point = Point.zero)
-    extends GenericSizable[SizableGroup] {
+    extends GenericSizable[SizableGroup](_elements) {
 
   def copy(elementList: ElementList = elementList,
            position: Point = position,

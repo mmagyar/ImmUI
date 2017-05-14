@@ -12,6 +12,7 @@ import javafx.stage.Stage
 import mmagyar.layout._
 import mmagyar.ui._
 import mmagyar.ui.interaction.{PointerAction, PointerState}
+
 import mmagyar.util._
 
 object JavaFxTesting {
@@ -56,7 +57,11 @@ class JavaFxTesting extends Application {
 //      transform = Transform(scale = Point(1, 1))
 //    )
 
-    def baseDoc = Document(root = DemoScenarios.analysed(size), transform = Transform(scale = Point(1, 1)))
+  def getRoot: Group =
+//    DemoScenarios.specificScrollBug
+  DemoScenarios.analysed(size)
+  def baseDoc =
+    Document(root = getRoot, transform = Transform(scale = Point(1, 1)))
   private var document: Document = baseDoc
 
   val bufferDraw = new BufferDraw()
@@ -88,7 +93,7 @@ class JavaFxTesting extends Application {
         needsUpdate = true
       case a: KeyEvent if a.getText == "b" =>
         benchmark()
-      case a :KeyEvent if a.getText == "[" =>
+      case a: KeyEvent if a.getText == "[" =>
       case a: KeyEvent if a.getText == "r" =>
         println("RELOADING mainDemo")
         document(baseDoc)
@@ -144,14 +149,16 @@ class JavaFxTesting extends Application {
         writeRenderTime = !writeRenderTime
 
       case a: KeyEvent if a.getText == "rzx" =>
-        val root = document.root.change( {
-          case b: Group if b.id("AHOY") => b.copy(position = Point.zero, rotation = Degree(b.rotation.value + 5))
+        val root = document.root.change({
+          case b: Group if b.id("AHOY") =>
+            b.copy(position = Point.zero, rotation = Degree(b.rotation.value + 5))
         })
         document(document.copy(root = root))
       //        println(document.root)
       case a: KeyEvent if a.getText.toLowerCase() == "t" =>
-        val root = document.root.change( {
-          case xx: Group if xx.id("HEY") => xx.rotation(Degree(xx.rotation.value + (if (a.isShiftDown) -3 else 3)))
+        val root = document.root.change({
+          case xx: Group if xx.id("HEY") =>
+            xx.rotation(Degree(xx.rotation.value + (if (a.isShiftDown) -3 else 3)))
           //          case a=> a
         })
         document(document.copy(root = root))
@@ -197,7 +204,7 @@ class JavaFxTesting extends Application {
     stage.setTitle("Shapey Reference")
     stage.setY(0)
 
-            stage.setX(2890)
+    stage.setX(2890)
     //    stage.setX(1620)
     stage.show()
     //    stage.setResizable(false)

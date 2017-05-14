@@ -2,250 +2,121 @@ package mmagyar.ui.widget
 
 import mmagyar.layout._
 import mmagyar.ui._
-import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction}
-import mmagyar.ui.widget.UpdateReason.{Text => _, _}
+import mmagyar.ui.interaction.{Behaviour, BehaviourAction, BehaviourBasic}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Point}
 
 /** Magyar Máté 2017, all rights reserved */
-object Dialogue {
-
-  def apply(text: String,
-            position: Point,
-            sizing: Sizing,
-            options: Vector[DialogueOption],
-            zOrder: Double = 1,
-            id: ShapeyId = ShapeyId.apply(),
-            currentSelection: Option[DialogueOption] = None)(implicit style: Style): Dialogue = {
-    new Dialogue(UpdateReason.New, text, position, sizing, options, zOrder, id, currentSelection)
-
-  }
-
-  def generate(text: String, sizing: Sizing, state: DialogueState, id: ShapeyId = ShapeyId())(
-      implicit style: Style): DecoratedSizableGroup[DialogueState] = {
-    val size        = sizing.size
-    val margin: Box = style.defaultGroupMargin
-
-    def buttons(stateForButtons: DialogueState, id: ShapeyId) =
-      stateForButtons.options.map(
-        x =>
-          Button(
-            Point.zero,
-            x.text,
-            id = id.append("_STATUS_", x.id),
-            isActive = stateForButtons.currentSelection.contains(x),
-            behaviour = BehaviourBasic.empty))
-
-    val textSize = Point(size.x - style.scrollBar.x, 10)
-
-    val multiText =
-      SizableGroup.scrollableTextBox(
-        text,
-        Sizing(textSize, Point(textSize.x, 1), grow = Grow.Affinity),
-        style.fontLooks,
-        Point.zero,
-        margin,
-        id = id.append("_TEXT_BOX"))
-
-    val wrapText = ScrollbarGroup(multiText, id = id.append("_SBC"))
-
-    def buttonsGr(state: DialogueState, id: ShapeyId): SizableGroup =
-      SizableGroup.selfSizedHorizontal(
-        size.x,
-        buttons(state, id),
-        margin,
-        Layout.centeredDown,
-        id = id.append("_BUTTON_CTR"))
-    val innards =
-      ElementList(Vertical(Layout.centered, Bound(size)), wrapText, buttonsGr(state, id))
-
-    val list = ElementList(
-      Rect(Sizing(size), looks = style.groupLooks, zOrder = -2),
-      new SizableGroup(innards, Sizing(size), Point.zero, id = id.append("_SUB_CTR")))
-
-    //TODO button select
-    def select(option: Option[DialogueOption],
-               in: DecoratedSizableGroup[DialogueState]): DecoratedSizableGroup[DialogueState] =
-      in.data(in.data.copy(currentSelection = option))
-    val behaviour: Behaviour[DecoratedSizableGroup[DialogueState]] =
-      BehaviourBasic(Some(InjectedBehaviourAction((el, t) => {
-        println("pre: " + el.data.currentSelection)
-
-        val clickedOption = t.downElements
-          .find(x => state.options.exists(y => x.shapey.id == id.append("_STATUS_", y.id)))
-          .flatMap(x => state.options.find(y => x.shapey.id == id.append("_STATUS_", y.id)))
-        val res = clickedOption
-          .map(x =>
-            select(Some(x), el).change({
-              case a: SizableGroup if a.id == id.append("_BUTTON_CTR") =>
-                buttonsGr(state.copy(currentSelection = Some(x)), id)
-            }))
-          .getOrElse(el)
-
-        println("post: " + res.data.currentSelection + " OPT:" + clickedOption)
-        res
-      })))
-
-    new DecoratedSizableGroup[DialogueState](list, sizing, state, id = id, behaviour = behaviour)
-  }
-}
 case class DialogueState(options: Vector[DialogueOption],
                          currentSelection: Option[DialogueOption] = None)
 object DialogueOption {
   def apply(text: String): DialogueOption = DialogueOption(text, Symbol(text))
 }
 case class DialogueOption(text: String, id: Symbol)
+case class OptionButton(button: Button, option: DialogueOption)
+case class DialogueWidgetState(state: DialogueState,
+                               buttons: Vector[OptionButton],
+                               buttonContainer: Group)
+object Dialogue {
 
-class Dialogue private (updateReason: UpdateReason,
-                        val text: String,
-                        val position: Point,
-                        val sizing: Sizing,
-                        val options: Vector[DialogueOption],
-                        val zOrder: Double,
-                        val id: ShapeyId,
-                        val currentSelection: Option[DialogueOption],
-                        _elementList: ElementList = ElementList.empty)(implicit style: Style)
-    extends ComplexWidgetBase[Dialogue](_elementList, updateReason)
-    with SizableShapey {
+  def createButtonId(parentId: ShapeyId, dialogueOption: DialogueOption): ShapeyId =
+    parentId.append("_STATUS_", dialogueOption.id)
 
-  def warningSilancer(): String = zOrder + id.toString + currentSelection
+  type Dialogue = DecoratedSizableGroup[DialogueWidgetState]
+//  def buttonContainerId(parentId: ShapeyId): ShapeyId = parentId.append("_BUTTON_CTR")
 
-  /**
-    * This method needs to manage the element list.
-    * Update the elements to reflect the current state
-    * Or recreate the whole internal graph if the given list is corrupted
-    *
-    * @param elementList ElementList
-    * @return
-    */
-  override def updateElementList(elementList: ElementList,
-                                 updateReason: UpdateReason): ElementList = {
-
-    updateReason match {
-      case New | Size | UpdateReason.Text =>
-        val size        = sizing.size
-        val margin: Box = style.defaultGroupMargin
-
-        val buttons = options.map(
-          x =>
-            Button(
-              Point.zero,
-              x.text,
-              id = ShapeyId(x.id),
-              isActive = currentSelection.contains(x),
-              behaviour = BehaviourBasic.empty))
-
-        val textSize = Point(size.x - style.scrollBar.x, 10) //margin.ySum+1)
-
-        val multiText =
-          SizableGroup.scrollableTextBox(
-            text,
-            Sizing(textSize, Point(textSize.x, 1), grow = Grow.Affinity),
-            style.fontLooks,
+  def buttons(stateForButtons: DialogueState, id: ShapeyId)(
+      implicit style: Style): Vector[OptionButton] =
+    stateForButtons.options.map(
+      x =>
+        OptionButton(
+          Button(
             Point.zero,
-            margin,
-            id = ShapeyId(id.symbol.name + "_TEXT_BOX"))
+            x.text,
+            id = createButtonId(id, x),
+            active = stateForButtons.currentSelection.contains(x),
+            behaviour = BehaviourBasic.empty),
+          x))
 
-        val wrapText = ScrollbarGroup(multiText)
+  def buttonsGroup(buttons: Vector[Button], id: ShapeyId): Group =
+    Group(
+      ElementList(
+        buttons,
+        Horizontal(
+          Layout(
+            wrap = Wrap.Simple(),
+            alignItem = Align.Left //SpaceAround(Spacing.Default)
+          ))
+      ),
+      id = id.append("_BUTTON_CTR")
+    )
 
-        val buttonsGr: SizableGroup =
-          SizableGroup.selfSizedHorizontal(
-            size.x,
-            buttons,
-            margin,
-            Layout.centeredDown,
-            id = ShapeyId("test_2"))
-        val innards =
-          ElementList(Vertical(Layout.centered, Bound(size)), wrapText, buttonsGr)
+  def select(option: Option[DialogueOption], in: Dialogue): Dialogue =
+    in.data(in.data.copy(state = in.data.state.copy(currentSelection = option)))
+      .change({
+        case a: Group if a.id == in.data.buttonContainer.id =>
+          a mapElements {
+            case b: Button =>
+              in.data.buttons
+                .find(_.button.id == b.id)
+                .map(y => b.active(option.contains(y.option)))
+                .getOrElse(b)
+            case b => b
+          }
+      })
 
-        val list = ElementList(
-          Rect(Sizing(size), looks = style.groupLooks, zOrder = -2),
-          new SizableGroup(innards, Sizing(size), Point.zero))
-        list
-      case Position => elementList
-      case Content | Behaviour =>
-        elementList.copy(elements = elementList.elements.map({
-          case x: GenericGroup[_] =>
-            x.change({
-              case a: Button if options.exists(z => a.id(z.id)) =>
-                a.copy(isActive = currentSelection.exists(_.id == a.id.symbol))
-              case a => a
-            })
-          case x => x
-        }))
-      case _: Other => elementList
-    }
-  }
+  val behaviour: Behaviour[Dialogue] =
+    BehaviourBasic(
+      Some(
+        BehaviourAction(
+          (el, tracker) =>
+            tracker.downElements
+              .flatMap(y => el.data.buttons.find(_.button.id == y.shapey.id).map(_.option))
+              .headOption
+              .map(x => select(Some(x), el))
+              .getOrElse(el))))
 
-  override val behaviour: Behaviour[Dialogue] =
-    BehaviourBasic(Some(InjectedBehaviourAction((el, t) => {
-      val clickedOption = t.downElements
-        .find(x => options.exists(y => x.shapey.id(y.id)))
-        .flatMap(x => options.find(y => x.shapey.id(y.id)))
-      clickedOption.map(el.select).getOrElse(el)
-    })))
+  def apply(text: String, sizing: Sizing, state: DialogueState, id: ShapeyId = ShapeyId())(
+      implicit style: Style): Dialogue = {
+    val size        = sizing.size
+    val margin: Box = style.defaultGroupMargin
 
-  override def position(point: Point): Dialogue =
-    if (point == position) this
-    else copyInternal(UpdateReason.Position, position = point)
+    val multiText = SizableGroup.scrollableTextBox(
+      text,
+      Sizing.grow(),
+      style.fontLooks,
+      Point.zero,
+      margin,
+      id = id.append("_TEXT_BOX"))
 
-  def select(dialogueOption: DialogueOption): Dialogue = {
-    if (options.contains(dialogueOption) && !currentSelection.contains(dialogueOption))
-      copyInternal(UpdateReason.Content, currentSelection = Some(dialogueOption))
-    else this
-  }
-  override def mapElements(map: (Shapey) => Shapey): Dialogue = elementList.map(map) match {
-    case a if a == elementList => this
-    case mappedElements        => copyInternal(UpdateReason.Content, elementListNew = mappedElements)
-  }
+    val buttonsEl = Button
+      .unifyButtonSize[OptionButton](buttons(state, id), _.button, (x, b) => x.copy(button = b))
+    val buttonGroups = buttonsGroup(buttonsEl.map(x => x.button), id)
+    val innards = ElementList(
+      Vertical(Layout(Wrap.No, alignContent = Align.Stretch(Align.Center)), Bound(size)),
+      ScrollbarGroup(multiText, id = id.append("_SBC")),
+      buttonGroups
+    )
 
-  def copy(text: String = text,
-           position: Point = position,
-           sizing: Sizing = sizing,
-           options: Vector[DialogueOption] = options,
-           zOrder: Double = zOrder,
-           id: ShapeyId = id,
-           currentSelection: Option[DialogueOption] = currentSelection): Dialogue =
-    new Dialogue(UpdateReason.New, text, position, sizing, options, zOrder, id, currentSelection)
+    //TODO test resizability
+    val list = ElementList(Union(),
+      Rect(Sizing.dynamic(), looks = style.groupLooks, zOrder = -2),
+      new SizableGroup(
+        innards,
+        //TODO this should also work when base size is 1
+        Sizing.dynamic(size),
+        Point.zero,
+        margin = margin,
+        id = id.append("_SUB_CTR")))
 
-  private def copyInternal(
-      updateReason: UpdateReason,
-      text: String = text,
-      position: Point = position,
-      sizing: Sizing = sizing,
-      options: Vector[DialogueOption] = options,
-      zOrder: Double = zOrder,
-      id: ShapeyId = id,
-      currentSelection: Option[DialogueOption] = currentSelection,
-      elementListNew: ElementList = elementList
-  ): Dialogue = {
-    if (text == this.text && position == this.position &&
-        sizing == this.sizing && options == this.options &&
-        id == this.id && currentSelection == this.currentSelection
-        && elementListNew == this.elementList)
-      this
-    else
-      new Dialogue(
-        updateReason,
-        text,
-        position,
-        sizing,
-        options,
-        zOrder,
-        id,
-        currentSelection,
-        elementListNew)
+    val data = DialogueWidgetState(state, buttonsEl, buttonGroups)
 
-  }
-  override def sizing(sizing: Sizing): SizableShapey =
-    copyInternal(UpdateReason.Size, sizing = sizing)
+     new DecoratedSizableGroup[DialogueWidgetState](
+      list,
+      sizing,
+      data,
+      id = id,
+      behaviour = behaviour)
 
-  override def equals(obj: scala.Any): Boolean = obj match {
-    case a: Dialogue =>
-      a.text == this.text && a.position == this.position &&
-        a.sizing == this.sizing && a.options == this.options &&
-        a.id == this.id && a.currentSelection == this.currentSelection &&
-        a.elementList == this.elementList
-    case _ => false
   }
 }

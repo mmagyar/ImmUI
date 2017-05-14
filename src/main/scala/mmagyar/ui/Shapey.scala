@@ -37,6 +37,10 @@ case class ShapeyId(symbol: Symbol) {
   override def toString: String = symbol.name
 }
 
+
+object Shapey {
+
+}
 sealed trait Shapey extends Material {
 
   //  def inside(point: Point): Boolean
@@ -57,11 +61,8 @@ sealed trait Shapey extends Material {
   final def elementsString(nest: Int): String = {
     this match {
       case a: Groupable[_] =>
-        (if (nest < 2) s"\n${prepend(nest).dropRight(3)}└─┬──elements(\n"
-         else s"\n${prepend(nest).dropRight(4)}├┴─┬──elements(\n") +
-          a.elementList.elements
-            .map(x => x.elementsPrint(nest))
-            .foldLeft("")((p, c) => p + (if (p.nonEmpty) "\n" else "") + c) + ")"
+        if (nest < 2) s"\n${prepend(nest).dropRight(3)}└─┬──${a.elementList.toString(nest)}"
+        else s"\n${prepend(nest).dropRight(4)}├┴─┬──${a.elementList.toString(nest)}"
       case _ => ""
     }
   }
@@ -69,9 +70,10 @@ sealed trait Shapey extends Material {
   final private def prepend(nest: Int): String =
     (1 to (nest * 3)).foldLeft("")((p, c) => p + (if (c % 3 == 0) "│" else " "))
 
+  def printSize:String = size.toString
   final def elementsPrint(nest: Int = 0): String =
     prepend(nest) +
-      s"$stringName(id: ${id.symbol} pos: $position size: $size${customToString match {
+      s"$stringName(id: ${id.symbol} pos: $position size: $printSize${customToString match {
         case "" => ""
         case a  => s", $a"
       }})" +
@@ -140,7 +142,9 @@ trait GroupableWithBehaveableChildren[A <: Groupable[A]] extends Groupable[A] { 
 
 trait PositionableShapey extends Shapey with Positionable[PositionableShapey]
 
-trait SizableShapey extends Shapey with Sizable[SizableShapey]
+trait SizableShapey extends Shapey with Sizable[SizableShapey]{
+  override def printSize: String = sizing.toString
+}
 
 trait LookableShapey extends Shapey with Lookable[LookableShapey]
 
@@ -294,7 +298,7 @@ final case class Text(
   override def text(string: String): Text =
     if (text == string) this else copy(text = string)
 
-  override def customToString: String = s"text: $text"
+  override def customToString: String = s"text: ${text.replace("\n" , "\\n")}"
 
   override lazy val size: Point = Point(font.getSizeForString(text))
 

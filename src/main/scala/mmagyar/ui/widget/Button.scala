@@ -17,6 +17,17 @@ object Button {
     override def click: Option[BehaviourAction[Button]] = Some(ToggleButtonBehaviourAction())
   }
 
+  def unifyButtonSize(buttons: Vector[Button]): Vector[Button] = {
+    val largest = buttons.foldLeft(0.0)((p, c) => c.rectSize.x.max(p))
+    buttons.map(_.minWidth(largest))
+  }
+
+  def unifyButtonSize[T](buttons: Vector[T],
+                         buttonGetter: (T) => Button,
+                         buttonSetter: (T,Button) => T): Vector[T] = {
+    val largest = buttons.foldLeft(0.0)((p, c) => buttonGetter(c).rectSize.x.max(p))
+    buttons.map(x => buttonSetter(x,buttonGetter(x).minWidth(largest)))
+  }
 }
 
 case class Button(position: Point,
@@ -24,7 +35,7 @@ case class Button(position: Point,
                   minWidth: Double = 16,
                   zOrder: Double = 1,
                   id: ShapeyId = ShapeyId(),
-                  isActive: Boolean = false,
+                  active: Boolean = false,
                   behaviour: Behaviour[Button] = DefaultBehaviour())(implicit style: Style)
     extends Groupable[Button]
     with Behaveable[Button]
@@ -33,8 +44,9 @@ case class Button(position: Point,
   private val margin = style.buttonMargin
   private val textElPre = Text(
     text,
-    if (isActive) style.fontLooksActive else style.fontLooks,
-    position = style.defaultButtonTextMargin.topLeft + margin.topLeft,id = id.append("_TEXT"))
+    if (active) style.fontLooksActive else style.fontLooks,
+    position = style.defaultButtonTextMargin.topLeft + margin.topLeft,
+    id = id.append("_TEXT"))
 
   private val minSizeDiff = minWidth - textElPre.size.x
 
@@ -49,18 +61,22 @@ case class Button(position: Point,
   private val bg: Rect =
     Rect(
       Sizing(rectSize),
-      if (isActive) style.buttonLooksActive else style.buttonLooks,
-      position = margin.topLeft, id = id.append("_BG"))
+      if (active) style.buttonLooksActive else style.buttonLooks,
+      position = margin.topLeft,
+      id = id.append("_BG"))
 
   override val elementList: ElementList = ElementList(textEl, bg)
 
   override def position(point: Point): Button =
     if (position == point) this else copy(position = point)
 
-  def toggle: Button = copy(isActive = !isActive)
+  def toggle: Button = active(!active)
 
-  override def customToString: String = s"isActive: $isActive"
+  def active(value: Boolean): Button = if (value == active) this else copy(active = value)
 
+  override def customToString: String = s"isActive: $active"
+
+  def minWidth(value: Double): Button = if (minWidth == value) this else copy(minWidth = value)
 //  override val behaviour: Behaviour[Button] =
 //    BehaviourBasic(Some(InjectedBehaviourAction((el, t) => {
 //      el.toggle

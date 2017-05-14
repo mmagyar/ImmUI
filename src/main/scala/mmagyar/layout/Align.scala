@@ -73,7 +73,7 @@ sealed trait AlignSimple extends Align {
 
   override def addedSpace[T <: Material](maxSize: Double,
                                          ps: PointSwapper,
-                                         elements: Vector[T]): Double = 0
+                                         elements: Vector[T]): Double          = 0
   override def minimumRequireSpace[T <: Material](elements: Vector[T]): Double = 0
 }
 object Align {
@@ -153,7 +153,7 @@ object Align {
     }
   }
 
-  final case class SpaceBetween(spacing: Spacing = Spacing.Default,
+  final case class SpaceBetween(spacing: Spacing = Spacing.Maximum(20),
                                 align: AlignSimple = Align.Left)
       extends Align
       with AlignNonSizing {
@@ -184,7 +184,8 @@ object Align {
       }) * (elements.size - 1)
   }
 
-  final case class SpaceAround(spacing: Spacing = Spacing.Default, align: AlignSimple = Align.Left)
+  final case class SpaceAround(spacing: Spacing = Spacing.Maximum(20),
+                               align: AlignSimple = Align.Left)
       extends Align
       with AlignNonSizing {
 

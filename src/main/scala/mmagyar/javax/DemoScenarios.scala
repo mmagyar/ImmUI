@@ -6,7 +6,7 @@ import mmagyar.ui.builder.BuildContainer
 import mmagyar.ui.interaction.{BehaviourBasic, InjectedBehaviourAction}
 import mmagyar.ui.widget.{Dialogue, DialogueOption, DialogueState}
 import mmagyar.ui.widgetHelpers.Style
-import mmagyar.util.{Bitmap, Color, Degree, Point}
+import mmagyar.util._
 
 /** Magyar Máté 2017, all rights reserved */
 object DemoScenarios {
@@ -128,12 +128,13 @@ object DemoScenarios {
     )
   )
 
-
   def rects: Group =
     Group(
       Group(
         Horizontal(
-          Layout(Wrap.Simple(), alignItem = Align.SpaceBetween(Spacing.MinMax(1,20),Align.Center)),
+          Layout(
+            Wrap.Simple(),
+            alignItem = Align.SpaceBetween(Spacing.MinMax(1, 20), Align.Center)),
           Bound(Point(151.9, 80))),
         Vector(
           Rect(Sizing(50, 50), Looks(Color.green)),
@@ -157,34 +158,23 @@ object DemoScenarios {
       Bitmap.fourColor(10, 90),
       StretchBoth,
       Align2d(Align.Right, Align.Right)),
-rects.position(Point(10,300)),
+    rects.position(Point(10, 300)),
     Group(
-      Dialogue.generate(
+      Dialogue(
         "ohh hacky, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
 //        Point.zero,
         Sizing(Point(240, 110)),
         DialogueState(
-        Vector(
-          DialogueOption("OK"),
-          DialogueOption("CANCEL"),
-          DialogueOption("MAYBE"),
-          DialogueOption("NOT ENOUGH")
+          Vector(
+            DialogueOption("OK"),
+            DialogueOption("CANCEL"),
+            DialogueOption("MAYBE"),
+            DialogueOption("NOT ENOUGH")
+          ),
+          Some(DialogueOption("OK"))
         )
-        ))(Style()))
+      )(Style()))
       .copy(id = ShapeyId("HEY"), position = Point(30, 30), zOrder = 4, scale = Point(2, 2))
-  )
-
-  lazy val dialogue: Group = Group(
-    Relative(),
-    Dialogue(
-      "text",
-      Point(30, 30),
-      Sizing(Point(240, 110)),
-      Vector(
-//        DialogueOption("OK")
-      ),
-      4
-    )(Style())
   )
 
   def testA: Group = Group(
@@ -255,4 +245,39 @@ rects.position(Point(10,300)),
   def negative: Group = Group(Relative(), Rect(Sizing(40, 40), position = Point(-1, -1)))
 
   def analysed(maxSize: Point): Group = BuildContainer.builder(maxSize, mainDemo)
+
+  def specificScrollBug: Group = {
+    val size = Point(220, 110)
+    val multiText = SizableGroup.scrollableTextBox(
+      "THIS IS A LONG TEST TEXT HELLOW YOU THERE THIS IS A LOREM IPSUM OR WHATEVER LIKE IT",
+      Sizing.grow(),
+      Style().fontLooks,
+      Point.zero,
+      id = ShapeyId("_TEXT_BOX")
+    )
+
+    val innards = ElementList(
+      Vertical(Layout(Wrap.No, alignContent = Align.Stretch(Align.Center)), Dynamic(Bound(size))),
+      multiText,
+      Rect(Sizing(40, 48), Looks(Color.silver))
+    )
+
+    val res = Group(
+      ElementList(
+        new SizableGroup(
+          innards,
+          Sizing(size),
+          Point.zero,
+          margin = Box(Point(10, 10)),
+          id = ShapeyId("_SUB_CTR"))))
+
+    println(res.get(_.id("_TEXT_BOX")))
+    res.changeWhereParents(_.shapey match {
+      case a: GenericGroup[_] =>
+        println("GROUPABLE: " + a.id)
+        if (a.elementList.organize.size.constraintSize.y == 62) println(a)
+        false; case _               => false
+    }, { case a if a.zOrder > 99999 => a })
+    res
+  }
 }

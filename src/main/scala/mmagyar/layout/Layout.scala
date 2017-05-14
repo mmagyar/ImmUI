@@ -7,7 +7,7 @@ object Layout {
       .Simple(Align.Stretch(Align.Center), stretchLinesToBounds = true, uniformLineSize = true),
     Fill.Equal,
     Align.Center,
-    Align.SpaceAround())
+    Align.Center)
 
   val centeredDown: Layout = Layout(
     wrap = Wrap
@@ -29,4 +29,4 @@ object Layout {
 case class Layout(wrap: Wrap = Wrap.default,
                   fill: Fill = Fill.Equal,
                   alignContent: AlignSimple = Align.Left,
-                  alignItem: AlignNonSizing = Align.SpaceAround())
+                  alignItem: AlignNonSizing = Align.Left)
