@@ -7,8 +7,8 @@ import mmagyar.ui.interaction.{Behaviour, BehaviourAction, BehaviourBasic}
 /** Magyar Máté 2017, all rights reserved */
 case class Accord(header: Shapey, content: Shapey)
 object Accordian {
-
-  type Accordian = DecoratedSizableGroup[Vector[Accord]]
+  type Accords   = Vector[Accord]
+  type Accordian = DecoratedSizableGroup[Accords]
 
   def collapse(accordian: Accordian): Accordian = {
     accordian.setElements(accordian.elementList.copy(accordian.elementList.elements.filter(x =>
@@ -16,7 +16,8 @@ object Accordian {
   }
   def apply(inputData: Vector[Accord],
             sizing: Sizing = Sizing.dynamic(),
-            organize: Organize = Vertical()): Accordian = {
+            organize: Organize = Vertical(),
+            id: ShapeyId = ShapeyId()): Accordian = {
     val behaviour: Behaviour[Accordian] = BehaviourBasic[Accordian](
       click = Some(BehaviourAction((el, tracker) => {
         tracker.downElements
@@ -43,6 +44,7 @@ object Accordian {
       ElementList(inputData.map(x => x.header), organize),
       sizing,
       inputData,
+      id = id,
       behaviour = behaviour)
   }
 

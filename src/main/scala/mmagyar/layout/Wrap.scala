@@ -32,7 +32,7 @@ sealed trait Wrap {
 
 object Wrap {
 
-  val default = Simple()
+  val default = Wrap.No
 
   /** No wrap happens, just overflows, does this even make sense?*/
   final case object No

@@ -64,12 +64,9 @@ object BuildContainer {
             Accordian(
               Vector(
                 Accord(Text("HEADER_1"), Text("DETAIL_1")),
-                Accord(Text("HEADER_2"), Text("DETAIL_2")))),
-            MultilineText(
-              "",
-              id = ShapeyId("SEL_DETAIL_HERE"),
-              looks = Looks(fill = Color.transparent, stroke = Color.white),
-              minSize = Point(24, 8)),
+                Accord(Text("HEADER_2"), Text("DETAIL_2"))),
+              Sizing.dynamic(Point(200,200)),
+              id = ShapeyId("DETAC")),
             Rect(
               Sizing(Point.one, Grow.Until(Point(10000000000.0, 1029)), Shrink.Affinity),
               looks = Looks(Color.lime, Color.olive, 1))
@@ -98,19 +95,44 @@ object BuildContainer {
             else {
               group.changeWhereParents(
                 x =>
-                  (x.shapey.id("SEL_DETAIL_HERE") || x.shapey.id("SEL_ID_HERE")) && x.parents
+                  (x.shapey.id("DETAC") || x.shapey.id("SEL_ID_HERE")) && x.parents
                     .exists(_.id == controlPanelElement.id), {
-                  case a: MultilineText =>
-                    val text =
-                      if (tracker.downElements.headOption.exists(_.shapey match {
-                            case a: Group => a.get(_.id == controlPanelElement.id).nonEmpty
-                            case _        => false
-                          })) "ROOT - Not displayed due to recursive complexity"
-                      else
-                        tracker.downElements.headOption
-                          .map(y => y.shapey.toString)
-                          .getOrElse("NO DATE")
-                    a.text(text)
+                  case a: DecoratedSizableGroup[_] =>
+                    //NOTE this ridicules matching is to make it fully safe,
+                    //this is the only way i know to match against generics
+                    a.data match {
+                      case b: Vector[_] =>
+                        if (b.nonEmpty) b.head match {
+                          case _: Accord =>
+
+
+                            val isRoot = tracker.downElements.headOption.exists(_.shapey match {
+                              case a: Group => a.get(_.id == controlPanelElement.id).nonEmpty
+                              case _        => false
+                            })
+
+                            val look = Looks(stroke = Color.white)
+                            def shapeyToAccord(shapey: Shapey): Vector[Accord] = {
+                              (shapey match {
+                                case b: GenericGroup[_] =>
+                                  b.elementList.elements.flatMap(shapeyToAccord)
+                                case _ => Vector.empty
+                              }) :+
+                                Accord(
+                                  Text("ID: " + shapey.id, looks = look),
+                                  MultilineText(shapey.stringToWithoutChild))
+                            }
+
+                            val ress = tracker.downElements.headOption.toVector
+                              .flatMap(y => shapeyToAccord(y.shapey))
+                            Accordian(ress, a.sizing, a.elementList.organize, a.id)
+                          case _         => a
+                        } else a
+
+                      case b =>
+                        println("NOT ACCORD: " + b.getClass.getCanonicalName)
+                        a
+                    }
 
                   case a: Text =>
                     val text =

@@ -71,6 +71,12 @@ sealed trait Shapey extends Material {
     (1 to (nest * 3)).foldLeft("")((p, c) => p + (if (c % 3 == 0) "│" else " "))
 
   def printSize:String = size.toString
+
+  def stringToWithoutChild:String  = s"$stringName(id: ${id.symbol} pos: $position size: $printSize${customToString match {
+    case "" => ""
+    case a  => s", $a"
+  }})"
+
   final def elementsPrint(nest: Int = 0): String =
     prepend(nest) +
       s"$stringName(id: ${id.symbol} pos: $position size: $printSize${customToString match {

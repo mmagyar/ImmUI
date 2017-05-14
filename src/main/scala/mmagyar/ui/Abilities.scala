@@ -18,7 +18,7 @@ trait Strokable[A <: Fillable[A]] { this: A =>
 
 object Looks {
   def apply(): Looks = new Looks(Color.transparent,Color.transparent)}
-case class Looks(fill: Color ,
+case class Looks(fill: Color =Color.transparent,
                  stroke: Color = Color.transparent,
                  strokeLineWidth: Double = 0)
 
