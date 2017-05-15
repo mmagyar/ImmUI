@@ -1,6 +1,6 @@
 package mmagyar.ui.widget
 
-import mmagyar.layout.{Organize, Sizing, Vertical}
+import mmagyar.layout._
 import mmagyar.ui._
 import mmagyar.ui.interaction.{Behaviour, BehaviourAction, BehaviourBasic}
 
@@ -16,7 +16,7 @@ object Accordian {
   }
   def apply(inputData: Vector[Accord],
             sizing: Sizing = Sizing.dynamic(),
-            organize: Organize = Vertical(),
+            organize: Organize = Vertical(Layout(alignContent = Align.Stretch(Align.Left))),
             id: ShapeyId = ShapeyId()): Accordian = {
     val behaviour: Behaviour[Accordian] = BehaviourBasic[Accordian](
       click = Some(BehaviourAction((el, tracker) => {
@@ -39,7 +39,7 @@ object Accordian {
           })
           .getOrElse(el)
       }))
-    )
+    ).combine(GenericSizable.ScrollBehaviour())
     new DecoratedSizableGroup[Vector[Accord]](
       ElementList(inputData.map(x => x.header), organize),
       sizing,

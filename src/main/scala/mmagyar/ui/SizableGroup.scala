@@ -7,23 +7,6 @@ import mmagyar.util.{BoundingBox, Box, Color, Point}
 
 object SizableGroup {
 
-  case class ScrollWheelBehaviour(divider: RationalAboveZero = RationalAboveZero.two)
-      extends BehaviourAction[SizableGroup] {
-    override def action(in: SizableGroup, tracker: Tracker): SizableGroup =
-      in.copy(offset = in.offset - (tracker.scroll / divider.v))
-  }
-
-  case object ScrollDragBehaviour extends BehaviourAction[SizableGroup] {
-    override def action(in: SizableGroup, tracker: Tracker): SizableGroup =
-      in.copy(offset = in.offset + (tracker.lastMove - tracker.currentPosition))
-  }
-
-  case object ScrollBehaviour extends EmptyBehaviour[SizableGroup] {
-    override def drag: Option[BehaviourAction[SizableGroup]] = Some(ScrollDragBehaviour)
-
-    override def scroll: Option[BehaviourAction[SizableGroup]] = Some(ScrollWheelBehaviour())
-  }
-
   val defaultLayout: Layout = Layout(
     wrap = Wrap
       .Simple(Align.Stretch(Align.Center), stretchLinesToBounds = true, uniformLineSize = true),
@@ -155,11 +138,29 @@ object SizableGroup {
       zOrder,
       id,
       margin,
-      behaviour = SizableGroup.ScrollBehaviour)
+      behaviour = GenericSizable.ScrollBehaviour())
 
   }
 }
+object GenericSizable{
+  case class ScrollWheelBehaviour[T <: GenericSizable[T]](divider: RationalAboveZero = RationalAboveZero.two)
+    extends BehaviourAction[T] {
+    override def action(in: T, tracker: Tracker): T =
+      in.copy(offset = in.offset - (tracker.scroll / divider.v))
+  }
 
+  case class ScrollDragBehaviour[T <: GenericSizable[T]]() extends BehaviourAction[T] {
+    override def action(in: T, tracker: Tracker): T =
+      in.copy(offset = in.offset + (tracker.lastMove - tracker.currentPosition))
+  }
+
+  case class ScrollBehaviour[T <: GenericSizable[T]]() extends EmptyBehaviour[T] {
+    override def drag: Option[BehaviourAction[T]] = Some(ScrollDragBehaviour())
+
+    override def scroll: Option[BehaviourAction[T]] = Some(ScrollWheelBehaviour())
+  }
+
+}
 abstract class GenericSizable[T <: GenericSizable[T]](_elements: ElementList)
     extends GenericGroupExternallyModifiable[T]
     with PositionableShapey

@@ -61,12 +61,12 @@ object BuildContainer {
             Text("Selected Id:"),
             Text("", id = ShapeyId("SEL_ID_HERE")),
             Text("\ndetail:"),
-            Accordian(
+            ScrollbarGroup(Accordian(
               Vector(
                 Accord(Text("HEADER_1"), Text("DETAIL_1")),
                 Accord(Text("HEADER_2"), Text("DETAIL_2"))),
               Sizing.dynamic(Point(200,200)),
-              id = ShapeyId("DETAC")),
+              id = ShapeyId("DETAC")))(Style()),
             Rect(
               Sizing(Point.one, Grow.Until(Point(10000000000.0, 1029)), Shrink.Affinity),
               looks = Looks(Color.lime, Color.olive, 1))
@@ -78,7 +78,7 @@ object BuildContainer {
         margin = Box(Point(6, 6))
       ),
       1,
-      x => x.elements.collect { case a: SizableGroup => a }.head,
+      (x:GenericSizable[_]) => x.elements.collect { case a: SizableGroup => a }.head,
       scrollBars = (TriState.Auto, TriState.Auto),
       maxSizing = Some(Sizing(size)),
       id = ShapeyId("__EDITOR")
