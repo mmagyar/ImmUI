@@ -1,6 +1,6 @@
 package mmagyar.ui.widgetHelpers
 
-import mmagyar.ui.Looks
+import mmagyar.ui.core.Looks
 import mmagyar.util.{Box, Color, Point}
 
 /** Magyar Máté 2017, all rights reserved */

@@ -1,5 +1,6 @@
-package mmagyar.ui
+package mmagyar.ui.group
 
+import mmagyar.ui.core._
 
 /** Magyar Máté 2017, all rights reserved */
 trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]

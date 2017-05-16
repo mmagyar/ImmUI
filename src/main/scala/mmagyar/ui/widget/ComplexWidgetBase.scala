@@ -1,6 +1,7 @@
 package mmagyar.ui.widget
 
-import mmagyar.ui._
+import mmagyar.ui.core.{ElementList, PositionableShapey}
+import mmagyar.ui.group.GenericGroup
 
 /** Magyar Máté 2017, all rights reserved */
 sealed trait UpdateReason

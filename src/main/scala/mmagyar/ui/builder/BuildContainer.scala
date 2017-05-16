@@ -1,7 +1,8 @@
 package mmagyar.ui.builder
 
 import mmagyar.layout._
-import mmagyar.ui._
+import mmagyar.ui.core._
+import mmagyar.ui.group._
 import mmagyar.ui.interaction._
 import mmagyar.ui.widget.{Accord, Accordian, ScrollbarGroup}
 import mmagyar.ui.widgetHelpers.Style
@@ -61,12 +62,13 @@ object BuildContainer {
             Text("Selected Id:"),
             Text("", id = ShapeyId("SEL_ID_HERE")),
             Text("\ndetail:"),
-            ScrollbarGroup(Accordian(
-              Vector(
-                Accord(Text("HEADER_1"), Text("DETAIL_1")),
-                Accord(Text("HEADER_2"), Text("DETAIL_2"))),
-              Sizing.dynamic(Point(200,200)),
-              id = ShapeyId("DETAC")))(Style()),
+            ScrollbarGroup(
+              Accordian(
+                Vector(
+                  Accord(Text("HEADER_1"), Text("DETAIL_1")),
+                  Accord(Text("HEADER_2"), Text("DETAIL_2"))),
+                Sizing.dynamic(Point(200, 200)),
+                id = ShapeyId("DETAC")))(Style()),
             Rect(
               Sizing(Point.one, Grow.Until(Point(10000000000.0, 1029)), Shrink.Affinity),
               looks = Looks(Color.lime, Color.olive, 1))
@@ -78,13 +80,34 @@ object BuildContainer {
         margin = Box(Point(6, 6))
       ),
       1,
-      (x:GenericSizable[_]) => x.elements.collect { case a: SizableGroup => a }.head,
+      (x: GenericSizable[_]) => x.elements.collect { case a: SizableGroup => a }.head,
       scrollBars = (TriState.Auto, TriState.Auto),
       maxSizing = Some(Sizing(size)),
       id = ShapeyId("__EDITOR")
     )(Style())
 
   def builder(maxSize: Point, toAnalyse: Groupable[_]): Group = {
+    def accordCreate(shapey: Shapey) = {
+      val look = Looks(stroke = Color.white)
+
+      Accord(
+        Text("ID: " + shapey.id, looks = look),
+        //                                  new ProvidedSizeGroup(
+        BgGroup(
+          new ElementList(
+            Vector(
+              MultilineText(shapey.stringToWithoutChild, looks = look)
+
+            ), Horizontal()
+          //  Union(stretchType = StretchToConstraint)
+          ),
+          Rect(Sizing.dynamic(), looks = Looks(Color(16, 16, 16), Color.aqua, 3), zOrder = -1)
+
+
+        )
+      )
+    }
+
     val controlPanelElement = controlPanel(Point(480, maxSize.y))
     Group(
       Group(
@@ -104,29 +127,24 @@ object BuildContainer {
                       case b: Vector[_] =>
                         if (b.nonEmpty) b.head match {
                           case _: Accord =>
-
-
                             val isRoot = tracker.downElements.headOption.exists(_.shapey match {
                               case a: Group => a.get(_.id == controlPanelElement.id).nonEmpty
                               case _        => false
                             })
 
-                            val look = Looks(stroke = Color.white)
                             def shapeyToAccord(shapey: Shapey): Vector[Accord] = {
                               (shapey match {
                                 case b: GenericGroup[_] =>
                                   b.elementList.elements.flatMap(shapeyToAccord)
                                 case _ => Vector.empty
                               }) :+
-                                Accord(
-                                  Text("ID: " + shapey.id, looks = look),
-                                  MultilineText(shapey.stringToWithoutChild))
+                                accordCreate(shapey)
                             }
 
                             val ress = tracker.downElements.headOption.toVector
                               .flatMap(y => shapeyToAccord(y.shapey))
                             Accordian(ress, a.sizing, a.elementList.organize, a.id)
-                          case _         => a
+                          case _ => a
                         } else a
 
                       case b =>

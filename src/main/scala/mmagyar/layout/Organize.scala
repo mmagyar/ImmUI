@@ -39,6 +39,26 @@ sealed trait Organize {
     case a: FreeForm   => a
     case a: Relative   => a
     case a: Union      => a.copy(sizeConstraint)
+
+  }
+
+  def subSize(point:Point): Organize = this match {
+    case a: Horizontal => a.copy(size = a.size.sub(point))
+    case a: Vertical   => a.copy(size = a.size.sub(point))
+    case a: FreeForm   => a
+    case a: Relative   => a
+    case a: Union      => a.copy(a.size.sub(point))
+
+  }
+
+
+  def addSize(point:Point): Organize = this match {
+    case a: Horizontal => a.copy(size = a.size.add(point))
+    case a: Vertical   => a.copy(size = a.size.add(point))
+    case a: FreeForm   => a
+    case a: Relative   => a
+    case a: Union      => a.copy(a.size.add(point))
+
   }
 
 }
@@ -513,6 +533,7 @@ final case class Vertical(layout: Layout = Layout(), size: LayoutSizeConstraint 
                                                             organizeToBounds: Option[Boolean] =
                                                               None): Vector[T] = {
 
+
     val org = Organize.wrapOrganize(
       elements,
       layout,
@@ -562,9 +583,12 @@ case class Relative(position: Point) extends Organize {
 }
 
 sealed trait UnionLayoutSetting
-case object StretchToConstraint extends UnionLayoutSetting
-case object StretchToLargest    extends UnionLayoutSetting
+case object StretchToConstraint  extends UnionLayoutSetting
+case object StretchToLargest     extends UnionLayoutSetting
+case object StretchToConstraintX extends UnionLayoutSetting
+case object StretchToConstraintY extends UnionLayoutSetting
 
+//case class StretchSpecifiedToConstraintOthersToSpecified(specific:ShapeyId) extends UnionLayoutSetting
 /**
   * Union layout, sets every sub components position to zero,
   * and resize all resizable elements to the size of the largest element.
@@ -583,6 +607,7 @@ case class Union(size: LayoutSizeConstraint = Dynamic(),
       case BoundHeight(constraintH) => Point(largest.x, constraintH)
       case Bound(constraintSize)    => constraintSize
     }
+
   override def organize[T <: Positionable[T] with Material](elements: Vector[T],
                                                             offset: Point = Point.zero,
                                                             organizeToBounds: Option[Boolean] =
@@ -592,14 +617,30 @@ case class Union(size: LayoutSizeConstraint = Dynamic(),
 
     val newSize = stretchType match {
       case StretchToConstraint => sizeFromConstraint(size, largest)
-      case StretchToLargest    => largest
+      case StretchToConstraintX =>
+        val constrained = sizeFromConstraint(size, largest)
+        val mapped = elements map mapFn(Point(constrained.x,largest.y),offset)
+        val largestMapped  = mapped.foldLeft(Point.zero)((p, c) => p.max(c.size))
+        Point(constrained.x, largestMapped.y)
+
+      case StretchToConstraintY =>
+        val constrained = sizeFromConstraint(size, largest)
+        val mapped = elements map mapFn(Point(largest.x, constrained.y),offset)
+        val largestMapped  = mapped.foldLeft(Point.zero)((p, c) => p.max(c.size))
+        Point(largestMapped.x, constrained.y)
+
+      case StretchToLargest => largest
+
     }
 
-    elements.map {
+    elements.map(mapFn(newSize, offset))
+  }
+
+  def mapFn[T <: Positionable[T] with Material](newSize: Point, offset: Point)(el: T): T =
+    el match {
       case a: Sizable[T @unchecked] =>
         a.size(newSize.min(a.sizing.maxSize).max(a.sizing.minSize)).position(Point.zero + offset)
-      case a => a.position(Point.zero + offset)
+      case a: Positionable[T @unchecked] => a.position(Point.zero + offset)
     }
-  }
 
 }

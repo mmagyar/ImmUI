@@ -1,6 +1,7 @@
-package mmagyar.ui
+package mmagyar.ui.group
 
 import mmagyar.layout._
+import mmagyar.ui.core._
 import mmagyar.ui.interaction._
 import mmagyar.util._
 

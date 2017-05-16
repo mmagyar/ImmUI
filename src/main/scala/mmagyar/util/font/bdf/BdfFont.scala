@@ -1,6 +1,7 @@
 package mmagyar.util.font.bdf
 
-import mmagyar.ui.{BitmapChar, FontBitmap}
+
+import mmagyar.ui.core.{BitmapChar, FontBitmap}
 import mmagyar.util.Point
 import mmagyar.util.font.bdf.Font.IntPoint
 

@@ -1,7 +1,8 @@
 package mmagyar.ui.widget
 
 import mmagyar.layout.{Relative, Sizing}
-import mmagyar.ui._
+import mmagyar.ui.core._
+import mmagyar.ui.group.GenericSizable
 import mmagyar.ui.interaction._
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Point, TriState}
@@ -247,7 +248,7 @@ class ScrollbarGroup[T <: GenericSizable[T]](
         resizeSubElementsIncludeScrollBar(cChild, scrollProvider.id, scrollBarSize, sizing))
 
   override def equals(obj: scala.Any): Boolean = obj match {
-    case a: ScrollbarGroup[T @unchecked] => a.cChild == cChild
+    case a: ScrollbarGroup[_] => a.cChild == cChild
     case _                               => false
   }
 }

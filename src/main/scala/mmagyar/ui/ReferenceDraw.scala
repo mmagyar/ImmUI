@@ -1,5 +1,7 @@
 package mmagyar.ui
 
+import mmagyar.ui.core._
+import mmagyar.ui.group.Group
 import mmagyar.util._
 
 /** Created by Magyar Máté on 2017-02-01, All rights reserved. */

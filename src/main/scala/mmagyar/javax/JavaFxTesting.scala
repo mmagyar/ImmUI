@@ -11,8 +11,10 @@ import javafx.stage.Stage
 
 import mmagyar.layout._
 import mmagyar.ui._
+import mmagyar.ui.core._
+import mmagyar.ui.draw.BufferDraw
+import mmagyar.ui.group.Group
 import mmagyar.ui.interaction.{PointerAction, PointerState}
-
 import mmagyar.util._
 
 object JavaFxTesting {
@@ -22,7 +24,7 @@ object JavaFxTesting {
 }
 
 class JavaFxTesting extends Application {
-  val size: Point        = Point(1280,720)//Point(800, 480)
+  val size: Point        = Point(1280,480)//Point(800, 480)
   val width: Int         = size.x.toInt
   val height: Int        = size.y.toInt
   val multiplier: Double = 1
@@ -58,8 +60,9 @@ class JavaFxTesting extends Application {
 //    )
 
   def getRoot: Group =
-//    DemoScenarios.specificScrollBug
-  DemoScenarios.analysed(size)
+//   DemoScenarios.bug
+    DemoScenarios.mainDemo
+//  DemoScenarios.analysed(size)
   def baseDoc =
     Document(root = getRoot, transform = Transform(scale = Point(1, 1)))
   private var document: Document = baseDoc
@@ -94,6 +97,9 @@ class JavaFxTesting extends Application {
       case a: KeyEvent if a.getText == "b" =>
         benchmark()
       case a: KeyEvent if a.getText == "[" =>
+        val b = DemoScenarios.mainDemo
+        println(b)
+        b
       case a: KeyEvent if a.getText == "r" =>
         println("RELOADING mainDemo")
         document(baseDoc)
@@ -190,10 +196,20 @@ class JavaFxTesting extends Application {
 
     scene.setOnMouseReleased({
       case a: MouseEvent =>
+        val docA = document
         document(
           actions.act(
             PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = false),
             document))
+/*
+        val docB = document
+        println(docA)
+        println()
+        println()
+        println()
+        println()
+        println()
+        println(docB)*/
     })
 
     scene.setOnScroll({

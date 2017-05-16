@@ -21,7 +21,25 @@ object LayoutSizeConstraint {
   implicit def fromSize(point: Point): LayoutSizeConstraint = Bound(point)
 }
 
-sealed trait LayoutSizeConstraint { def constraintSize: Point }
+sealed trait LayoutSizeConstraint {
+  def constraintSize: Point
+
+  def sub(point: Point): LayoutSizeConstraint = this match {
+    case Dynamic(current)        => Dynamic(current.sub(point))
+    case a: Unbound              => a
+    case BoundWidth(constraint)  => BoundWidth(constraint - point.x)
+    case BoundHeight(constraint) => BoundHeight(constraint - point.y)
+    case Bound(constraintSize)   => Bound(constraintSize - point)
+  }
+
+  def add(point: Point): LayoutSizeConstraint = this match {
+    case Dynamic(current)        => Dynamic(current.add(point))
+    case a: Unbound              => a
+    case BoundWidth(constraint)  => BoundWidth(constraint + point.x)
+    case BoundHeight(constraint) => BoundHeight(constraint + point.y)
+    case Bound(constraintSize)   => Bound(constraintSize + point)
+  }
+}
 
 case class Dynamic(current: LayoutSizeConstraint = Unbound()) extends LayoutSizeConstraint {
   val constraintSize: Point = current.constraintSize

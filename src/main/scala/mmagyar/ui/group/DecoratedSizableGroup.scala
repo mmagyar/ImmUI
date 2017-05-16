@@ -1,6 +1,7 @@
-package mmagyar.ui
+package mmagyar.ui.group
 
 import mmagyar.layout.Sizing
+import mmagyar.ui.core.{ElementList, ShapeyId}
 import mmagyar.ui.interaction.{Behaviour, BehaviourBasic}
 import mmagyar.util.{Box, Point}
 

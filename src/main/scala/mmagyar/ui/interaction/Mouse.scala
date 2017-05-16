@@ -1,6 +1,6 @@
 package mmagyar.ui.interaction
 
-import mmagyar.ui.Shapey
+import mmagyar.ui.core.Shapey
 import mmagyar.util.{Point, PointTransform}
 
 /** Magyar Máté 2017, all rights reserved */

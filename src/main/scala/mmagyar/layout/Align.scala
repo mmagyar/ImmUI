@@ -134,7 +134,7 @@ object Align {
 
   }
 
-  final case class Stretch(forNonSizable: AlignSimple) extends AlignSimple {
+  final case class Stretch(forNonSizable: AlignSimple = Align.Left) extends AlignSimple {
 
     override def align(maxSize: Double,
                        elementSize: Double,

@@ -1,5 +1,8 @@
-package mmagyar.ui
+package mmagyar.ui.draw
 
+import mmagyar.ui._
+import mmagyar.ui.core._
+import mmagyar.ui.group.Group
 import mmagyar.util.{BoundingBox, Point, _}
 
 import scala.collection.mutable.ArrayBuffer
@@ -159,6 +162,8 @@ class BufferDraw() {
         DrawInstruction(a.position, constraint, rotated)
 
       case a: Groupable[_] =>
+
+
         val res = draw(
           a.elements,
           a match {
@@ -169,6 +174,21 @@ class BufferDraw() {
           constraint,
           sourceBuffers
         )
+
+        a match  {
+          case b  :BackgroundGroupShapey =>
+            draw(
+              Vector(b.background),
+              a match {
+                case c: Group => Transform(c.position, scale = c.scale) +: rotate
+                case c        => Transform(c.position) +: rotate
+              },
+              a.size,
+              constraint,
+              sourceBuffers
+            )
+          case _ => Point.zero
+        }
         DrawInstruction(a.position, res, Array.empty)
       case drawable: Drawable =>
         drawable match {

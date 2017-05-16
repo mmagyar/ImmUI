@@ -1,6 +1,6 @@
 package mmagyar.ui.interaction
 
-import mmagyar.ui.Shapey
+import mmagyar.ui.core.Shapey
 import mmagyar.ui.interaction.State._
 import mmagyar.util.Point
 
@@ -23,7 +23,7 @@ case class InjectedBehaviourAction[T <: Shapey](act: (T, Tracker) => T)
 
 object BehaviourBasic {
 
-  def empty[T <: mmagyar.ui.Shapey]: BehaviourBasic[T] = BehaviourBasic[T]()
+  def empty[T <: Shapey]: BehaviourBasic[T] = BehaviourBasic[T]()
 
   def diagnosticPrint[T <: Shapey]: BehaviourBasic[T] = BehaviourBasic[T](
     Some(InjectedBehaviourAction[T]((in, track) => {

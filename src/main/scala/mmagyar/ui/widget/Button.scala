@@ -1,7 +1,7 @@
 package mmagyar.ui.widget
 
 import mmagyar.layout.Sizing
-import mmagyar.ui._
+import mmagyar.ui.core._
 import mmagyar.ui.interaction._
 import mmagyar.ui.widget.Button.DefaultBehaviour
 import mmagyar.ui.widgetHelpers.Style

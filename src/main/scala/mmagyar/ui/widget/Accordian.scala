@@ -1,7 +1,8 @@
 package mmagyar.ui.widget
 
 import mmagyar.layout._
-import mmagyar.ui._
+import mmagyar.ui.core.{ElementList, Shapey, ShapeyId}
+import mmagyar.ui.group.{DecoratedSizableGroup, GenericSizable}
 import mmagyar.ui.interaction.{Behaviour, BehaviourAction, BehaviourBasic}
 
 /** Magyar Máté 2017, all rights reserved */

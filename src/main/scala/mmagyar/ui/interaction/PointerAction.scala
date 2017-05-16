@@ -1,6 +1,7 @@
 package mmagyar.ui.interaction
 
-import mmagyar.ui._
+import mmagyar.ui.core.{Behaveable, Document, Groupable, Shapey}
+import mmagyar.ui.group.Group
 import mmagyar.util.{Degree, Point, PointTransform, Rotation}
 
 /** Magyar Máté 2016, all rights reserved */

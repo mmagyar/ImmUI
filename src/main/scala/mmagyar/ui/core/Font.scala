@@ -1,4 +1,4 @@
-package mmagyar.ui
+package mmagyar.ui.core
 
 import mmagyar.util.font.bdf.Font.IntPoint
 

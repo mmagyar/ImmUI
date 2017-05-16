@@ -1,15 +1,54 @@
 package mmagyar.javax
 
 import mmagyar.layout._
-import mmagyar.ui._
 import mmagyar.ui.builder.BuildContainer
+import mmagyar.ui.core._
+import mmagyar.ui.group.{Group, SizableGroup}
 import mmagyar.ui.interaction.{BehaviourBasic, InjectedBehaviourAction}
-import mmagyar.ui.widget.{Dialogue, DialogueOption, DialogueState}
+import mmagyar.ui.widget._
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util._
 
 /** Magyar Máté 2017, all rights reserved */
 object DemoScenarios {
+
+  def testString(num: Int): String =
+    s"__${num}__ THIS IS A LONG STRING, AS AN EXAMPLE : __${num}__"
+
+  /*def accord(title: String, detail: String): Accord = {
+    val look = Looks(stroke = Color.black)
+    Accord(
+      Text(title, looks = look),
+       SizableGroup(
+        ElementList(
+          Union(),
+          Rect(Sizing.dynamic(), looks = Looks(Color(220, 220, 220), Color.aqua, 3), zOrder = -1),
+          MultilineText(detail, looks = look)
+        )
+      )
+    )
+  }
+  def bug: Group = Group(
+    ScrollbarGroup(
+      Accordian(
+        Vector(
+//          accord("TITLE 1111", testString(1)),
+          accord("TITLE 2222", testString(2))
+        ),
+        Sizing.dynamic(Point(200, 200)),
+        id = ShapeyId("DETAC")))(Style())
+  )
+*/
+//    Group(
+//Horizontal(Layout(), size = Bound(Point(150, 197))),
+//    SizableGroup(Vertical(),Vector(Group(
+//      Union(),
+//      //                                    Vector(
+//      Rect(
+//        Sizing.dynamic(),
+//        looks = Looks(Color(16, 16, 16), Color.aqua, 3),
+//        zOrder = -1),
+//      MultilineText(testString(1))))  ))
 
   lazy val bmp = BitmapShapey(
     Point.zero,
@@ -151,6 +190,7 @@ object DemoScenarios {
       ))
   def mainDemo: Group = Group(
     Relative(),
+    /*
     Rect(Sizing(150, 15), zOrder = -8, position = Point(4, 4)),
     BitmapShapey(
       (5, 20),
@@ -158,11 +198,12 @@ object DemoScenarios {
       Bitmap.fourColor(10, 90),
       StretchBoth,
       Align2d(Align.Right, Align.Right)),
-    rects.position(Point(10, 300)),
-    Group(
+    rects.position(Point(10, 300)),*/
+//    Group(
       Dialogue(
-        "ohh hacky, this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
-//        Point.zero,
+        "ohh hacky"
+//        , this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
+          ,
         Sizing(Point(240, 110)),
         DialogueState(
           Vector(
@@ -173,8 +214,9 @@ object DemoScenarios {
           ),
           Some(DialogueOption("OK"))
         )
-      )(Style()))
-      .copy(id = ShapeyId("HEY"), position = Point(30, 30), zOrder = 4, scale = Point(2, 2))
+      )(Style())
+//  )
+//      .copy(id = ShapeyId("HEY"), position = Point(30, 30), zOrder = 4, scale = Point(2, 2))
   )
 
   def testA: Group = Group(

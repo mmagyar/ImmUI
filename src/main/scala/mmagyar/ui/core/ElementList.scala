@@ -1,6 +1,7 @@
-package mmagyar.ui
+package mmagyar.ui.core
 
-import mmagyar.layout.{Organize, Relative}
+import mmagyar.layout.{LayoutSizeConstraint, Organize, Relative}
+import mmagyar.ui.group._
 import mmagyar.util.Point
 
 import scala.language.implicitConversions
@@ -22,6 +23,13 @@ object ElementList {
   def apply(elements: Shapey*): ElementList =
     new ElementList(elements.toVector, Relative(Point.zero))
 
+  def get(source: Vector[Shapey],
+          where: (Shapey) => Boolean,
+          recursive: Boolean = true): Vector[Shapey] =
+    source.collect {
+      case a if where(a)                   => Vector(a)
+      case a: GenericGroup[_] if recursive => a.get(where, recursive)
+    }.flatten
 }
 
 trait ElementListable {
@@ -32,10 +40,6 @@ trait ElementListable {
     * These elements must be organized
     */
   val elements: Vector[Shapey]
-
-  def copy(elements: Vector[Shapey] = elements,
-           organize: Organize = organize,
-           organizeToBounds: Option[Boolean] = None): ElementListable
 
   def toString(nest: Int): String =
     s"(ElementList: (organize: $organize),elements:\n" + elements
@@ -48,12 +52,15 @@ trait ElementListable {
       .foldLeft("")((p, c) => p + (if (p.nonEmpty) "\n" else "") + c) + ")"
 }
 
-class ElementList(_elements: Vector[Shapey],
-                  val organize: Organize,
-                  val organizeToBounds: Option[Boolean] = None,
-                  val offsetElements: Point = Point.zero,
-                  //HAHAHWHAHEHAWA this value name is a complete sentence
-                  passLayoutConstraintToChildGroupIfItHasDynamicBounds: Boolean = true)
+class ElementList(
+    _elements: Vector[Shapey],
+    _organize: Organize,
+    val organizeToBounds: Option[Boolean] = None,
+    val offsetElements: Point = Point.zero,
+    val dynamicBound: Option[((Vector[Shapey],
+                               LayoutSizeConstraint) => Option[LayoutSizeConstraint])] = None,
+    //HAHAHWHAHEHAWA this value name is a complete sentence
+    passLayoutConstraintToChildGroupIfItHasDynamicBounds: Boolean = true)
     extends ElementListable {
 
   private val positionable: Vector[PositionableShapey] = _elements.collect {
@@ -64,6 +71,10 @@ class ElementList(_elements: Vector[Shapey],
     case a if !a.isInstanceOf[PositionableShapey] => a
   }
 
+  val organize: Organize =
+    dynamicBound
+      .flatMap(x => x(_elements, _organize.size).map(_organize.setSize))
+      .getOrElse(_organize)
   val elements: Vector[Shapey] =
     organize
       .organize[PositionableShapey](positionable, offsetElements, organizeToBounds) ++
@@ -72,30 +83,36 @@ class ElementList(_elements: Vector[Shapey],
         a.map {
           case b: Group             => b.setBoundToDynamic(organize.size);
           case b: GenericSizable[_] => b.setBoundToDynamic(organize.size);
+          case b: BgGroup           => b.setBoundToDynamic(organize.size);
           case b                    => b
         }
       case a => a
     }
 
-  def map(fn: (Shapey) => Shapey): ElementList = elements.map(fn) match {
-    case a if a == elements => this
-    case a                  => copy(a)
-  }
+  def change[K <: Shapey](changePf: PartialFunction[Shapey, K],
+                          recursive: Boolean = true): ElementList =
+    map {
+      case a if changePf.isDefinedAt(a)                       => changePf(a)
+      case a: GroupableWithBehaveableChildren[_] if recursive => a.change(changePf, recursive)
+      case a                                                  => a
+    }
 
-  def copy(elements: Vector[Shapey] = elements,
+  def map(fn: (Shapey) => Shapey): ElementList = copy(elements.map(fn))
+
+  def copy(elements: Vector[Shapey] = _elements,
            organize: Organize = organize,
-           organizeToBounds: Option[Boolean] = organizeToBounds): ElementList =
-    if (elements == this.elements && organize == this.organize && organizeToBounds == this.organizeToBounds)
-      this
-    else new ElementList(elements, organize, organizeToBounds, offsetElements)
-
-  def copy(elements: Vector[Shapey],
-           organize: Organize,
-           organizeToBounds: Option[Boolean],
-           offset: Point): ElementList =
-    if (elements == this.elements && organize == this.organize && organizeToBounds == this.organizeToBounds && offset == this.offsetElements)
-      this
-    else new ElementList(elements, organize, organizeToBounds, offset)
+           organizeToBounds: Option[Boolean] = organizeToBounds,
+           offset: Point = offsetElements): ElementList =
+//    if (elements == this.elements && organize == this.organize && organizeToBounds == this.organizeToBounds && offset == this.offsetElements)
+//      this
+//    else
+    new ElementList(
+      elements,
+      organize,
+      organizeToBounds,
+      offset,
+      dynamicBound,
+      passLayoutConstraintToChildGroupIfItHasDynamicBounds)
 
   def asOrganizeToBounds: ElementList =
     if (organizeToBounds.contains(true)) this
@@ -114,6 +131,5 @@ class ElementList(_elements: Vector[Shapey],
     case _ => false
   }
 
-  def setElements(elements: Vector[Shapey]): ElementList =
-    if (elements == this.elements) this else this.copy(elements = elements)
+  def setElements(elements: Vector[Shapey]): ElementList = this.copy(elements = elements)
 }

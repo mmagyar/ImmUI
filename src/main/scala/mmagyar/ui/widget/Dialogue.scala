@@ -1,7 +1,8 @@
 package mmagyar.ui.widget
 
 import mmagyar.layout._
-import mmagyar.ui._
+import mmagyar.ui.core.{ElementList, Rect, ShapeyId}
+import mmagyar.ui.group.{DecoratedSizableGroup, Group, SizableGroup}
 import mmagyar.ui.interaction.{Behaviour, BehaviourAction, BehaviourBasic}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Point}
@@ -102,7 +103,7 @@ object Dialogue {
         .unifyButtonSize[OptionButton](buttons(state, id), _.button, (x, b) => x.copy(button = b))
     val buttonGroups = buttonsGroup(buttonsEl.map(x => x.button), id)
     val innards = ElementList(
-      Vertical(Layout(Wrap.No, alignContent = Align.Stretch(Align.Center)), Bound(size)),
+      Vertical(Layout(Wrap.No, alignContent = Align.Stretch(Align.Center))),
       ScrollbarGroup(multiText, id = id.append("_SBC")),
       buttonGroups
     )
