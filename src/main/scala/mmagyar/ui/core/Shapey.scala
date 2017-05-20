@@ -1,7 +1,7 @@
 package mmagyar.ui.core
 
 import mmagyar.layout._
-import mmagyar.ui.group.dynamic.TransformGroup
+import mmagyar.ui.group.dynamic.Group
 import mmagyar.ui.interaction.{Behaviour, Tracker}
 import mmagyar.util._
 
@@ -9,7 +9,6 @@ import mmagyar.util._
 object Shapey {}
 sealed trait Shapey extends Material {
 
-  //  def inside(point: Point): Boolean
   def inside(point: Point, transform: Transform = Transform()): Boolean =
     BoundingBox(position.transform(transform), size.scale(transform.scale))
       .inside(point)
@@ -21,8 +20,6 @@ sealed trait Shapey extends Material {
   def zOrder: Double
 
   def id: ShapeyId
-
-  //    boundingBox.inside(point)
 
   final def elementsString(nest: Int): String = {
     this match {
@@ -60,7 +57,7 @@ sealed trait Shapey extends Material {
 
 }
 
-case class Document(transform: Transform = Transform(), root: TransformGroup)
+case class Document(transform: Transform = Transform(), root: Group)
 
 trait Drawable extends Shapey
 

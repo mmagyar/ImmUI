@@ -1,9 +1,8 @@
 package mmagyar.ui.builder
-
 import mmagyar.layout._
 import mmagyar.ui.core._
 import mmagyar.ui.group._
-import mmagyar.ui.group.dynamic.{BgGroup, DecoratedGroup, TransformGroup}
+import mmagyar.ui.group.dynamic.{BgGroup, DecoratedGroup, Group}
 import mmagyar.ui.group.sizable.{GenericSizable, SizableGroup}
 import mmagyar.ui.interaction._
 import mmagyar.ui.widget.Accordian.Accords
@@ -18,17 +17,15 @@ object BuildContainer {
   def controlPanel(size: Point): Groupable[_] =
     new ScrollbarGroup(
       SizableGroup.scrollableWithBackground(
-        TransformGroup(
+        Group(
           ElementList(
             Vertical(
               Layout(
                 Wrap.No,
                 alignItem = Align.SpaceAround(Spacing.Set(14), Align.Center),
-                alignContent = Align.Stretch(Align.Center)
+                alignContent = Align.Stretch(Align.Left)
               )),
-            MultilineText(
-              "SHOW DATA HERE, and this overlaps, way over",
-              id = ShapeyId("DEBUG_THIS")),
+            MultilineText("SHOW DATA HERE, and this overlaps, way over", id = ShapeyId("DEBUG_THIS")),
             Text("Selected Id:"),
             Text("", id = ShapeyId("SEL_ID_HERE")),
             Text("\ndetail:"),
@@ -40,7 +37,6 @@ object BuildContainer {
               Sizing(Point.one, Grow.Until(Point(10000000000.0, 1029)), Shrink.Affinity),
               looks = Looks(Color.lime, Color.olive, 1))
           ),
-          Point.zero,
           id = ShapeyId("CTRLGROUP")
         ),
         Sizing(size),
@@ -53,19 +49,14 @@ object BuildContainer {
       id = ShapeyId("__EDITOR")
     )(Style())
 
-  def builder(maxSize: Point, toAnalyse: Groupable[_]): TransformGroup = {
+  def builder(maxSize: Point, toAnalyse: Groupable[_]): Group = {
     def accordCreate(shapey: Shapey) = {
       val look = Looks(stroke = Color.white)
 
       Accord(
-        Text("ID: " + shapey.id, looks = look),
+        MultilineText("ID: " + shapey.id, looks = look),
         BgGroup(
-          new ElementList(
-            Vector(
-              MultilineText(shapey.stringToWithoutChild, looks = look)
-            ),
-            Horizontal()
-          ),
+          ElementList(Horizontal(), MultilineText(shapey.stringToWithoutChild, looks = look)),
           Rect(Sizing.dynamic(), looks = Looks(Color(16, 16, 16), Color.aqua, 3), zOrder = -1),
           Box(10)
         )
@@ -73,11 +64,11 @@ object BuildContainer {
     }
 
     val controlPanelElement = controlPanel(Point(200, maxSize.y))
-    TransformGroup(
-      TransformGroup(
+    Group(
+      Group(
         Horizontal(Layout(Wrap.No, Fill.No, alignItem = Align.Left), Bound(maxSize)),
         BehaviourBasic(
-          Some(InjectedBehaviourAction((group: TransformGroup, tracker: Tracker) => {
+          Some(InjectedBehaviourAction((group: Group, tracker: Tracker) => {
             if (tracker.downElements.exists(_.shapey.id == controlPanelElement.id)) group
             else {
               group.changeWhereParents(
@@ -92,9 +83,11 @@ object BuildContainer {
                       }) :+ accordCreate(shapey)
                     }
 
-                    val res = Accords(tracker.downElements.headOption.toVector
-                      .flatMap(y => shapeyToAccord(y.shapey)))
-                    Accordian(res, a.elementList.organize, a.id)
+                    Accordian(
+                      Accords(tracker.downElements.headOption.toVector.flatMap(y =>
+                        shapeyToAccord(y.shapey))),
+                      a.elementList.organize,
+                      a.id)
 
                   case a: Text =>
                     val text =

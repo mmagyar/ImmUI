@@ -252,6 +252,6 @@ object DemoScenarios {
 
   def negative: TransformGroup = TransformGroup(Relative(), Rect(Sizing(40, 40), position = Point(-1, -1)))
 
-  def analysed(maxSize: Point): TransformGroup = BuildContainer.builder(maxSize, mainDemo)
+  def analysed(maxSize: Point): Group = BuildContainer.builder(maxSize, mainDemo)
 
 }

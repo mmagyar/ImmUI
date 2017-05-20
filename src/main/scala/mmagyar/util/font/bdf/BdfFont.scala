@@ -40,7 +40,8 @@ case class Font(characters: Map[Char, CharPixel],
                 family: String = "UNKNOWN",
                 name: String = "UNKNOWN",
                 comment: String = "",
-                hypenation: Boolean = true)
+                splitLinesOnSpace: Boolean = true,
+                hypenation: Boolean = false)
     extends FontBitmap {
   def apply(char: Char): CharPixel = characters.getOrElse(char, defaultChar)
 
@@ -75,10 +76,13 @@ case class Font(characters: Map[Char, CharPixel],
         val start = p.line.init + "-"
         val end   = p.line.lastOption.map(_.toString).getOrElse("")
         Slicer(currentWidth + getSizeForString(end)._1.toDouble, end + c.toString, p.past :+ start)
-      } else if (p.width + currentWidth > maxWidth) {
+      } else if (splitLinesOnSpace && p.width + currentWidth > maxWidth) {
         val lastIndex = p.line.lastIndexOf(" ")
-        if (lastIndex == -1 || c == ' ') //|| p.currentLine.endsWith(" "))
-          Slicer(currentWidth, if (c == ' ') "" else c.toString, p.past :+ p.line)
+        if (lastIndex == -1 || c == ' ')
+          Slicer(
+            if (c == ' ') 0 else currentWidth,
+            if (c == ' ') "" else c.toString,
+            p.past :+ p.line)
         else {
           val end = p.line.substring(lastIndex + 1)
           Slicer(
@@ -86,6 +90,8 @@ case class Font(characters: Map[Char, CharPixel],
             end + c.toString,
             p.past :+ p.line.substring(0, lastIndex))
         }
+      } else if (p.width + currentWidth > maxWidth) {
+        Slicer(currentWidth, c.toString, p.past :+ p.line)
       } else Slicer(p.width + currentWidth, p.line + c, p.past)
     })
     if (res.line.nonEmpty) res.past :+ res.line else res.past

@@ -20,7 +20,8 @@ object Accordian {
   def apply(id: ShapeyId, accords: Accord*): Accordian = apply(Accords(accords.toVector), id = id)
   def apply(accords: Accord*): Accordian               = apply(Accords(accords.toVector))
   def apply(inputData: Accords,
-            organize: Organize = Vertical(Layout(alignContent = Align.Stretch(Align.Left))),
+    organize: Organize = Vertical(Layout(alignContent = Align.Stretch(Align.Left))),
+//    organize: Organize = Vertical(),
             id: ShapeyId = ShapeyId()): Accordian = {
     val behaviour: Behaviour[Accordian] = BehaviourBasic[Accordian](
       click = Some(BehaviourAction((el, tracker) => {

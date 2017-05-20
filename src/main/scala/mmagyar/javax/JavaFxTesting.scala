@@ -13,7 +13,7 @@ import mmagyar.layout._
 import mmagyar.ui._
 import mmagyar.ui.core._
 import mmagyar.ui.draw.BufferDraw
-import mmagyar.ui.group.dynamic.TransformGroup
+import mmagyar.ui.group.dynamic.{Group, TransformGroup}
 import mmagyar.ui.interaction.{PointerAction, PointerState}
 import mmagyar.util._
 
@@ -59,7 +59,7 @@ class JavaFxTesting extends Application {
 //      transform = Transform(scale = Point(1, 1))
 //    )
 
-  def getRoot: TransformGroup =
+  def getRoot: Group =
 //   DemoScenarios.bug
 //    DemoScenarios.mainDemo
     DemoScenarios.analysed(size)
