@@ -126,9 +126,10 @@ abstract class GenericSizable[T <: GenericSizable[T]](_elements: ElementList)
 
 }
 
-object GenericSizable{
-  case class ScrollWheelBehaviour[T <: GenericSizable[T]](divider: RationalAboveZero = RationalAboveZero.two)
-    extends BehaviourAction[T] {
+object GenericSizable {
+  case class ScrollWheelBehaviour[T <: GenericSizable[T]](
+      divider: RationalAboveZero = RationalAboveZero.two)
+      extends BehaviourAction[T] {
     override def action(in: T, tracker: Tracker): T =
       in.copy(offset = in.offset - (tracker.scroll / divider.v))
   }

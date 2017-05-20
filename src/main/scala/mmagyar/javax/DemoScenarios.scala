@@ -15,40 +15,6 @@ object DemoScenarios {
   def testString(num: Int): String =
     s"__${num}__ THIS IS A LONG STRING, AS AN EXAMPLE : __${num}__"
 
-  /*def accord(title: String, detail: String): Accord = {
-    val look = Looks(stroke = Color.black)
-    Accord(
-      Text(title, looks = look),
-       SizableGroup(
-        ElementList(
-          Union(),
-          Rect(Sizing.dynamic(), looks = Looks(Color(220, 220, 220), Color.aqua, 3), zOrder = -1),
-          MultilineText(detail, looks = look)
-        )
-      )
-    )
-  }
-  def bug: Group = Group(
-    ScrollbarGroup(
-      Accordian(
-        Vector(
-//          accord("TITLE 1111", testString(1)),
-          accord("TITLE 2222", testString(2))
-        ),
-        Sizing.dynamic(Point(200, 200)),
-        id = ShapeyId("DETAC")))(Style())
-  )
-*/
-//    Group(
-//Horizontal(Layout(), size = Bound(Point(150, 197))),
-//    SizableGroup(Vertical(),Vector(Group(
-//      Union(),
-//      //                                    Vector(
-//      Rect(
-//        Sizing.dynamic(),
-//        looks = Looks(Color(16, 16, 16), Color.aqua, 3),
-//        zOrder = -1),
-//      MultilineText(testString(1))))  ))
 
   lazy val bmp = BitmapShapey(
     Point.zero,

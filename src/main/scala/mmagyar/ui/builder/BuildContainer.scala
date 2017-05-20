@@ -9,38 +9,6 @@ import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Color, Point, TriState}
 
 /** Magyar Máté 2017, all rights reserved */
-/*
-class BuildContainer(val contents: Groupable[_],
-                     val position: Point,
-                     val size: Point,
-                     val zOrder: Double,
-                     val id: ShapeyId = ShapeyId())
-    extends WidgetWithChildrenBase[BuildContainer] {
-
-  val ownGroup :Group = Group()
-  override def mapElements(map: (Shapey) => Shapey): BuildContainer = elementList.map()
-
-
-
-  override val elementList: ElementList = ElementList(Horizontal(Layout(Wrap.No()),BoundWidthAndHeight(size)),contents, ownGroup)
-
-  override def behaviour: Behaviour[BuildContainer] = new EmptyBehaviour()
-
-  override def position(point: Point): PositionableShapey = copy(position = point)
-
-  def copy(contents: Groupable[_] = contents,
-           position: Point = position,
-           size: Point = size,
-           zOrder: Double = zOrder,
-           id: ShapeyId = id): BuildContainer = {
-    if (contents == this.contents && position == this.position && size == this.size && zOrder == this.zOrder && id == this.id)
-      this
-    else new BuildContainer(contents, position, size, zOrder, id)
-
-  }
-
-}
- */
 
 //Document that new element should not be created by inheritance
 object BuildContainer {

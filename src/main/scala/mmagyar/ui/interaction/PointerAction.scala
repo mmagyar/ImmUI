@@ -70,8 +70,8 @@ class PointerAction(
       val behavables =
         (if (tracker.state == State.Drag) tracker.downElements
          else actionElements).collect {
-          case PointedElement(a, b: Behaveable[_]) if b.behaviour.canBehave(tracker) =>
-            PointedElement(a, b)
+          case PointedElement(c, b: Behaveable[_]) if b.behaviour.canBehave(tracker) =>
+            PointedElement(c, b)
         }
       val a  = group.copy(
         root = behavables.foldLeft(group.root)(

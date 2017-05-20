@@ -24,7 +24,7 @@ object JavaFxTesting {
 }
 
 class JavaFxTesting extends Application {
-  val size: Point        = Point(1280,480)//Point(800, 480)
+  val size: Point        = Point(1280, 480) //Point(800, 480)
   val width: Int         = size.x.toInt
   val height: Int        = size.y.toInt
   val multiplier: Double = 1
@@ -62,7 +62,7 @@ class JavaFxTesting extends Application {
   def getRoot: Group =
 //   DemoScenarios.bug
 //    DemoScenarios.mainDemo
-  DemoScenarios.analysed(size)
+    DemoScenarios.analysed(size)
   def baseDoc =
     Document(root = getRoot, transform = Transform(scale = Point(1, 1)))
   private var document: Document = baseDoc
@@ -160,7 +160,6 @@ class JavaFxTesting extends Application {
             b.copy(position = Point.zero, rotation = Degree(b.rotation.value + 5))
         })
         document(document.copy(root = root))
-      //        println(document.root)
       case a: KeyEvent if a.getText.toLowerCase() == "t" =>
         val root = document.root.change({
           case xx: Group if xx.id("HEY") =>
@@ -173,48 +172,35 @@ class JavaFxTesting extends Application {
 
     scene.setOnMouseMoved({
       case a: MouseEvent =>
-        document(
-          actions.act(
-            PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = false),
-            document))
+        changeDoc(
+          actions
+            .act(PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = false), _))
     })
     scene.setOnMouseDragged({
       case a: MouseEvent =>
-        document(
-          actions.act(
-            PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = true),
-            document))
+        changeDoc(
+          actions
+            .act(PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = true), _))
+
     })
 
     scene.setOnMousePressed({
       case a: MouseEvent =>
-        document(
-          actions.act(
-            PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = true),
-            document))
+        changeDoc(
+          actions
+            .act(PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = true), _))
     })
 
     scene.setOnMouseReleased({
       case a: MouseEvent =>
-        val docA = document
-        document(
-          actions.act(
-            PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = false),
-            document))
-/*
-        val docB = document
-        println(docA)
-        println()
-        println()
-        println()
-        println()
-        println()
-        println(docB)*/
+        changeDoc(
+          actions
+            .act(PointerState(Point(a.getSceneX, a.getSceneY) / multiplier, switch = false), _))
     })
 
     scene.setOnScroll({
       case a: ScrollEvent =>
-        document(actions.act(None, document, Point(a.getDeltaX, a.getDeltaY)))
+        changeDoc(actions.act(None, _, Point(a.getDeltaX, a.getDeltaY)))
     })
     stage.setScene(scene)
     stage.setTitle("Shapey Reference")
@@ -235,6 +221,17 @@ class JavaFxTesting extends Application {
     at.start()
   }
 
+  def changeDoc(doc: (Document) => Document): Unit = {
+    val timing  = Timing()
+    val changed = doc(this.document)
+    if (changed != this.document) {
+      this.document = changed
+      needsUpdate = true
+    }
+    if(writeRenderTime && timing.totalTime > 0.5)
+    timing.print("Document changed slow ")
+
+  }
   def document(document: Document): Unit = {
 
     if (document != this.document) {
