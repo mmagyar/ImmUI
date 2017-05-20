@@ -1,4 +1,4 @@
-package mmagyar.ui.group
+package mmagyar.ui.group.sizable
 
 import mmagyar.layout.Sizing
 import mmagyar.ui.core.{ElementList, ShapeyId}
@@ -6,7 +6,6 @@ import mmagyar.ui.interaction.{Behaviour, BehaviourBasic}
 import mmagyar.util.{Box, Point}
 
 /** Created by Magyar Máté on 2017-05-11, All rights reserved. */
-//TODO decorated withBG
 class DecoratedSizableGroup[T](_elements: ElementList,
                                val sizing: Sizing,
                                val data: T,

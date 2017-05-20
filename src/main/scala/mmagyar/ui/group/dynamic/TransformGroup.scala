@@ -1,40 +1,41 @@
-package mmagyar.ui.group
+package mmagyar.ui.group.dynamic
 
 import mmagyar.layout._
 import mmagyar.ui.core._
+import mmagyar.ui.group.GenericGroupExternallyModifiable
 import mmagyar.ui.interaction._
 import mmagyar.util._
 
-object Group {
-  def apply(elements: Shapey*): Group = Group(ElementList(elements: _*), Point.zero)
+object TransformGroup {
+  def apply(elements: Shapey*): TransformGroup = TransformGroup(ElementList(elements: _*), Point.zero)
 
-  def apply(organize: Organize, elements: Shapey*): Group =
-    Group(ElementList(organize, elements: _*), Point.zero)
+  def apply(organize: Organize, elements: Shapey*): TransformGroup =
+    TransformGroup(ElementList(organize, elements: _*), Point.zero)
 
-  def apply(organize: Organize, elements: Vector[Shapey], position: Point): Group =
-    Group(ElementList(organize, elements: _*), position = position)
+  def apply(organize: Organize, elements: Vector[Shapey], position: Point): TransformGroup =
+    TransformGroup(ElementList(organize, elements: _*), position = position)
 
 
-  def apply(organize: Organize, elements: Vector[Shapey]): Group =
-    Group(ElementList(organize, elements: _*))
+  def apply(organize: Organize, elements: Vector[Shapey]): TransformGroup =
+    TransformGroup(ElementList(organize, elements: _*))
 
-  def apply(organize: Organize, behaviour: Behaviour[Group], elements: Shapey*): Group =
-    Group(ElementList(organize, elements: _*), Point.zero, behaviour = behaviour)
+  def apply(organize: Organize, behaviour: Behaviour[TransformGroup], elements: Shapey*): TransformGroup =
+    TransformGroup(ElementList(organize, elements: _*), Point.zero, behaviour = behaviour)
 
   def vertical(position: Point,
                size: LayoutSizeConstraint,
                layout: Layout,
-               elements: Shapey*): Group =
-    Group(ElementList(Vertical(layout, size), elements: _*), position)
+               elements: Shapey*): TransformGroup =
+    TransformGroup(ElementList(Vertical(layout, size), elements: _*), position)
 
   def horizontal(position: Point,
                  size: LayoutSizeConstraint,
                  layout: Layout,
-                 elements: Shapey*): Group =
-    Group(ElementList(Horizontal(layout, size), elements: _*), position)
+                 elements: Shapey*): TransformGroup =
+    TransformGroup(ElementList(Horizontal(layout, size), elements: _*), position)
 
-  def relative(position: Point, elements: Shapey*): Group =
-    Group(ElementList(Relative(Point.zero), elements: _*), position)
+  def relative(position: Point, elements: Shapey*): TransformGroup =
+    TransformGroup(ElementList(Relative(Point.zero), elements: _*), position)
 
 }
 
@@ -50,14 +51,14 @@ object Group {
   * @param id          ShapeyId
   * @param behaviour   Behaviour
   */
-final case class Group(elementList: ElementList,
+final case class TransformGroup(elementList: ElementList,
                        position: Point = Point.zero,
                        rotation: Degree = Degree(0),
                        scale: Point = Point.one,
                        zOrder: Double = 1,
                        id: ShapeyId = ShapeyId(),
-                       behaviour: Behaviour[Group] = BehaviourBasic())
-    extends GenericGroupExternallyModifiable[Group]
+                       behaviour: Behaviour[TransformGroup] = BehaviourBasic())
+    extends GenericGroupExternallyModifiable[TransformGroup]
     with RotatableShapey
     with PositionableShapey {
 
@@ -79,32 +80,22 @@ final case class Group(elementList: ElementList,
   override val size: Point = boundingBox.size
 //  override val position: Point = boundingBox.position
 
-  override def rotation(degree: Degree): Group =
+  override def rotation(degree: Degree): TransformGroup =
     if (rotation == degree) this else copy(rotation = degree)
 
-  def scale(value: Point): Group = if (scale == value) this else copy(scale = value)
-  def scale(value: Double): Group =
+  def scale(value: Point): TransformGroup = if (scale == value) this else copy(scale = value)
+  def scale(value: Double): TransformGroup =
     if (scale.bothEqual(value)) this else copy(scale = Point(value, value))
 
-  override def setElements(elementList: ElementList): Group =
+  override def setElements(elementList: ElementList): TransformGroup =
     if (elementList == this.elementList) this else copy(elementList)
 
-  override def position(point: Point): Group =
+  override def position(point: Point): TransformGroup =
     if (position == point) this else copy(position = point)
 
   override lazy val customToString: String = s"rotation: ${rotation.value}"
 
-  override def mapElements(map: (Shapey) => Shapey): Group = setElements(elementList.map(map))
+  override def mapElements(map: (Shapey) => Shapey): TransformGroup = setElements(elementList.map(map))
 
-  def setBoundToDynamic(layoutSizeConstraint: LayoutSizeConstraint): Group =
-    elementList.organize.size match {
-      case _: Dynamic =>
-        setElements(
-          elementList.copy(organize = elementList.organize.setSize(layoutSizeConstraint match {
-            case b: Dynamic => b
-            case b          => Dynamic(b)
-          })))
-      case _ => this
-    }
 
 }

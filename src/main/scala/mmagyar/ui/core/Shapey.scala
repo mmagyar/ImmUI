@@ -1,7 +1,7 @@
 package mmagyar.ui.core
 
 import mmagyar.layout._
-import mmagyar.ui.group.Group
+import mmagyar.ui.group.dynamic.TransformGroup
 import mmagyar.ui.interaction.{Behaviour, Tracker}
 import mmagyar.util._
 
@@ -60,7 +60,7 @@ sealed trait Shapey extends Material {
 
 }
 
-case class Document(transform: Transform = Transform(), root: Group)
+case class Document(transform: Transform = Transform(), root: TransformGroup)
 
 trait Drawable extends Shapey
 

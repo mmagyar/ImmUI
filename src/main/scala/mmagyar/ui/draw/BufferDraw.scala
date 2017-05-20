@@ -2,7 +2,7 @@ package mmagyar.ui.draw
 
 import mmagyar.ui._
 import mmagyar.ui.core._
-import mmagyar.ui.group.Group
+import mmagyar.ui.group.dynamic.TransformGroup
 import mmagyar.util.{BoundingBox, Point, _}
 
 import scala.collection.mutable.ArrayBuffer
@@ -142,7 +142,7 @@ class BufferDraw() {
       case _ if constraint.size == Point.zero =>
         DrawInstruction(Point.zero, constraint, Array.empty)
 
-      case a: Group if a.rotation.value != 0 =>
+      case a: TransformGroup if a.rotation.value != 0 =>
         val scaledSize          = scale * a.unRotatedBbox.size
         val intermediateBuffers = ArrayBuffer[DrawInstruction]()
         val innerConstraint     = BoundingBox(size = scaledSize)
@@ -167,7 +167,7 @@ class BufferDraw() {
         val res = draw(
           a.elements,
           a match {
-            case b: Group => Transform(b.position, scale = b.scale) +: rotate
+            case b: TransformGroup => Transform(b.position, scale = b.scale) +: rotate
             case b        => Transform(b.position) +: rotate
           },
           a.size,
@@ -180,7 +180,7 @@ class BufferDraw() {
             draw(
               Vector(b.background),
               a match {
-                case c: Group => Transform(c.position, scale = c.scale) +: rotate
+                case c: TransformGroup => Transform(c.position, scale = c.scale) +: rotate
                 case c        => Transform(c.position) +: rotate
               },
               a.size,

@@ -1,7 +1,8 @@
-package mmagyar.ui.group
+package mmagyar.ui.group.sizable
 
 import mmagyar.layout._
 import mmagyar.ui.core._
+import mmagyar.ui.group.GenericGroupExternallyModifiable
 import mmagyar.ui.interaction.{Behaviour, BehaviourAction, EmptyBehaviour, Tracker}
 import mmagyar.util.number.RationalAboveZero
 import mmagyar.util.{BoundingBox, Box, Point}
@@ -113,16 +114,6 @@ abstract class GenericSizable[T <: GenericSizable[T]](_elements: ElementList)
            offset: Point = offset,
            behaviour: Behaviour[T] = behaviour): T
 
-  def setBoundToDynamic(layoutSizeConstraint: LayoutSizeConstraint): T =
-    elementList.organize.size match {
-      case _: Dynamic =>
-        setElements(
-          elementList.copy(organize = elementList.organize.setSize(layoutSizeConstraint match {
-            case b: Dynamic => b
-            case b          => Dynamic(b)
-          })))
-      case _ => this
-    }
 
 }
 

@@ -1,7 +1,7 @@
 package mmagyar.ui
 
 import mmagyar.ui.core._
-import mmagyar.ui.group.Group
+import mmagyar.ui.group.dynamic.TransformGroup
 import mmagyar.util._
 
 /** Created by Magyar Máté on 2017-02-01, All rights reserved. */
@@ -54,7 +54,7 @@ class ReferenceDraw(var scale: Double = 1) {
         val res = draw(
           a.elements,
           a match {
-            case b: Group =>
+            case b: TransformGroup =>
               rotate :+ PointTransform(
                 b.position - b.rotationPositionCorrection.floor,
                 Rotation(b.rotation, b.position + (b.size / 2)),

@@ -1,28 +1,31 @@
 package mmagyar.ui.widget
 
 import mmagyar.layout._
-import mmagyar.ui.core.{ElementList, Shapey, ShapeyId}
-import mmagyar.ui.group.{DecoratedSizableGroup, GenericSizable}
+import mmagyar.ui.core._
+import mmagyar.ui.group.dynamic.DecoratedGroup
 import mmagyar.ui.interaction.{Behaviour, BehaviourAction, BehaviourBasic}
 
 /** Magyar Máté 2017, all rights reserved */
 case class Accord(header: Shapey, content: Shapey)
 object Accordian {
-  type Accords   = Vector[Accord]
-  type Accordian = DecoratedSizableGroup[Accords]
+
+  case class Accords(e: Vector[Accord])
+//  type Accords   = Vector[Accord]
+  type Accordian = DecoratedGroup[Accords]
 
   def collapse(accordian: Accordian): Accordian = {
     accordian.setElements(accordian.elementList.copy(accordian.elementList.elements.filter(x =>
-      accordian.data.exists(y => y.content.id == x.id))))
+      accordian.data.e.exists(y => y.content.id == x.id))))
   }
-  def apply(inputData: Vector[Accord],
-            sizing: Sizing = Sizing.dynamic(),
+  def apply(id: ShapeyId, accords: Accord*): Accordian = apply(Accords(accords.toVector), id = id)
+  def apply(accords: Accord*): Accordian               = apply(Accords(accords.toVector))
+  def apply(inputData: Accords,
             organize: Organize = Vertical(Layout(alignContent = Align.Stretch(Align.Left))),
             id: ShapeyId = ShapeyId()): Accordian = {
     val behaviour: Behaviour[Accordian] = BehaviourBasic[Accordian](
       click = Some(BehaviourAction((el, tracker) => {
         tracker.downElements
-          .flatMap(x => el.data.find(y => x.shapey.id == y.header.id))
+          .flatMap(x => el.data.e.find(y => x.shapey.id == y.header.id))
           .headOption
           .map(x => {
             val org   = el.elementList.elements
@@ -40,10 +43,10 @@ object Accordian {
           })
           .getOrElse(el)
       }))
-    ).combine(GenericSizable.ScrollBehaviour())
-    new DecoratedSizableGroup[Vector[Accord]](
-      ElementList(inputData.map(x => x.header), organize),
-      sizing,
+    )
+
+    new DecoratedGroup[Accords](
+      ElementList(inputData.e.map(x => x.header), organize),
       inputData,
       id = id,
       behaviour = behaviour)

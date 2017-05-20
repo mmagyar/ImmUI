@@ -13,7 +13,7 @@ import mmagyar.layout._
 import mmagyar.ui._
 import mmagyar.ui.core._
 import mmagyar.ui.draw.BufferDraw
-import mmagyar.ui.group.Group
+import mmagyar.ui.group.dynamic.TransformGroup
 import mmagyar.ui.interaction.{PointerAction, PointerState}
 import mmagyar.util._
 
@@ -59,7 +59,7 @@ class JavaFxTesting extends Application {
 //      transform = Transform(scale = Point(1, 1))
 //    )
 
-  def getRoot: Group =
+  def getRoot: TransformGroup =
 //   DemoScenarios.bug
 //    DemoScenarios.mainDemo
     DemoScenarios.analysed(size)
@@ -104,8 +104,8 @@ class JavaFxTesting extends Application {
         println("RELOADING mainDemo")
         document(baseDoc)
       case a: KeyEvent if a.getText == "x" =>
-        val grp = Group(
-          Group(
+        val grp = TransformGroup(
+          TransformGroup(
             ElementList(
               Horizontal(
                 Layout(Wrap.Simple(), alignItem = Align.SpaceAround(Spacing.MinMax(1, 20))),
@@ -125,7 +125,7 @@ class JavaFxTesting extends Application {
 
         println(grp)
       case a: KeyEvent if a.getText == "d" =>
-        val grp = Group(
+        val grp = TransformGroup(
           ElementList(
             Vertical(
               Layout(
@@ -156,13 +156,13 @@ class JavaFxTesting extends Application {
 
       case a: KeyEvent if a.getText == "rzx" =>
         val root = document.root.change({
-          case b: Group if b.id("AHOY") =>
+          case b: TransformGroup if b.id("AHOY") =>
             b.copy(position = Point.zero, rotation = Degree(b.rotation.value + 5))
         })
         document(document.copy(root = root))
       case a: KeyEvent if a.getText.toLowerCase() == "t" =>
         val root = document.root.change({
-          case xx: Group if xx.id("HEY") =>
+          case xx: TransformGroup if xx.id("HEY") =>
             xx.rotation(Degree(xx.rotation.value + (if (a.isShiftDown) -3 else 3)))
           //          case a=> a
         })

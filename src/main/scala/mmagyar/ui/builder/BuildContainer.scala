@@ -3,20 +3,22 @@ package mmagyar.ui.builder
 import mmagyar.layout._
 import mmagyar.ui.core._
 import mmagyar.ui.group._
+import mmagyar.ui.group.dynamic.{BgGroup, DecoratedGroup, TransformGroup}
+import mmagyar.ui.group.sizable.{GenericSizable, SizableGroup}
 import mmagyar.ui.interaction._
+import mmagyar.ui.widget.Accordian.Accords
 import mmagyar.ui.widget.{Accord, Accordian, ScrollbarGroup}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Color, Point, TriState}
 
 /** Magyar Máté 2017, all rights reserved */
-
 //Document that new element should not be created by inheritance
 object BuildContainer {
 
   def controlPanel(size: Point): Groupable[_] =
     new ScrollbarGroup(
       SizableGroup.scrollableWithBackground(
-        Group(
+        TransformGroup(
           ElementList(
             Vertical(
               Layout(
@@ -30,13 +32,10 @@ object BuildContainer {
             Text("Selected Id:"),
             Text("", id = ShapeyId("SEL_ID_HERE")),
             Text("\ndetail:"),
-            ScrollbarGroup(
-              Accordian(
-                Vector(
-                  Accord(Text("HEADER_1"), Text("DETAIL_1")),
-                  Accord(Text("HEADER_2"), Text("DETAIL_2"))),
-                Sizing.dynamic(Point(200, 200)),
-                id = ShapeyId("DETAC")))(Style()),
+            Accordian(
+              ShapeyId("DETAC"),
+              Accord(Text("HEADER_1"), Text("DETAIL_1")),
+              Accord(Text("HEADER_2"), Text("DETAIL_2"))),
             Rect(
               Sizing(Point.one, Grow.Until(Point(10000000000.0, 1029)), Shrink.Affinity),
               looks = Looks(Color.lime, Color.olive, 1))
@@ -54,71 +53,48 @@ object BuildContainer {
       id = ShapeyId("__EDITOR")
     )(Style())
 
-  def builder(maxSize: Point, toAnalyse: Groupable[_]): Group = {
+  def builder(maxSize: Point, toAnalyse: Groupable[_]): TransformGroup = {
     def accordCreate(shapey: Shapey) = {
       val look = Looks(stroke = Color.white)
 
       Accord(
         Text("ID: " + shapey.id, looks = look),
-        //                                  new ProvidedSizeGroup(
         BgGroup(
           new ElementList(
             Vector(
               MultilineText(shapey.stringToWithoutChild, looks = look)
-
-            ), Horizontal()
-          //  Union(stretchType = StretchToConstraint)
+            ),
+            Horizontal()
           ),
-          Rect(Sizing.dynamic(), looks = Looks(Color(16, 16, 16), Color.aqua, 3), zOrder = -1)
-
-
+          Rect(Sizing.dynamic(), looks = Looks(Color(16, 16, 16), Color.aqua, 3), zOrder = -1),
+          Box(10)
         )
       )
     }
 
-    val controlPanelElement = controlPanel(Point(480, maxSize.y))
-    Group(
-      Group(
+    val controlPanelElement = controlPanel(Point(200, maxSize.y))
+    TransformGroup(
+      TransformGroup(
         Horizontal(Layout(Wrap.No, Fill.No, alignItem = Align.Left), Bound(maxSize)),
         BehaviourBasic(
-          Some(InjectedBehaviourAction((group: Group, tracker: Tracker) => {
+          Some(InjectedBehaviourAction((group: TransformGroup, tracker: Tracker) => {
             if (tracker.downElements.exists(_.shapey.id == controlPanelElement.id)) group
             else {
               group.changeWhereParents(
                 x =>
                   (x.shapey.id("DETAC") || x.shapey.id("SEL_ID_HERE")) && x.parents
                     .exists(_.id == controlPanelElement.id), {
-                  case a: DecoratedSizableGroup[_] =>
-                    //NOTE this ridicules matching is to make it fully safe,
-                    //this is the only way i know to match against generics
-                    a.data match {
-                      case b: Vector[_] =>
-                        if (b.nonEmpty) b.head match {
-                          case _: Accord =>
-                            val isRoot = tracker.downElements.headOption.exists(_.shapey match {
-                              case a: Group => a.get(_.id == controlPanelElement.id).nonEmpty
-                              case _        => false
-                            })
-
-                            def shapeyToAccord(shapey: Shapey): Vector[Accord] = {
-                              (shapey match {
-                                case b: GenericGroup[_] =>
-                                  b.elementList.elements.flatMap(shapeyToAccord)
-                                case _ => Vector.empty
-                              }) :+
-                                accordCreate(shapey)
-                            }
-
-                            val ress = tracker.downElements.headOption.toVector
-                              .flatMap(y => shapeyToAccord(y.shapey))
-                            Accordian(ress, a.sizing, a.elementList.organize, a.id)
-                          case _ => a
-                        } else a
-
-                      case b =>
-                        println("NOT ACCORD: " + b.getClass.getCanonicalName)
-                        a
+                  case a: DecoratedGroup[Accords @unchecked] if a.data.isInstanceOf[Accords] =>
+                    def shapeyToAccord(shapey: Shapey): Vector[Accord] = {
+                      (shapey match {
+                        case b: GenericGroup[_] => b.elementList.elements.flatMap(shapeyToAccord)
+                        case _                  => Vector.empty
+                      }) :+ accordCreate(shapey)
                     }
+
+                    val res = Accords(tracker.downElements.headOption.toVector
+                      .flatMap(y => shapeyToAccord(y.shapey)))
+                    Accordian(res, a.elementList.organize, a.id)
 
                   case a: Text =>
                     val text =
@@ -135,4 +111,5 @@ object BuildContainer {
         toAnalyse
       ))
   }
+
 }

@@ -3,7 +3,8 @@ package mmagyar.javax
 import mmagyar.layout._
 import mmagyar.ui.builder.BuildContainer
 import mmagyar.ui.core._
-import mmagyar.ui.group.{Group, SizableGroup}
+import mmagyar.ui.group.dynamic.{Group, TransformGroup}
+import mmagyar.ui.group.sizable.SizableGroup
 import mmagyar.ui.interaction.{BehaviourBasic, InjectedBehaviourAction}
 import mmagyar.ui.widget._
 import mmagyar.ui.widgetHelpers.Style
@@ -25,10 +26,10 @@ object DemoScenarios {
     Align2d(horizontal = Align.Center, vertical = Align.Right)
   )
 
-  lazy val g2: Group =
-    Group(
+  lazy val g2: TransformGroup =
+    TransformGroup(
       Relative(Point(200, 10)),
-      Group(
+      TransformGroup(
         Relative(Point(20, 70)),
         Rect(
           Sizing(100, 100),
@@ -44,10 +45,10 @@ object DemoScenarios {
       bmp.copy(zOrder = 1.2)
     ).copy(position = Point.zero, rotation = Degree(-12), zOrder = 2)
 
-  lazy val group: Group = Group(
+  lazy val group: TransformGroup = TransformGroup(
     Relative(Point(0, 10)),
     g2,
-    Group(
+    TransformGroup(
       Relative(Point(10, 170)),
       Rect(
         Sizing(100, 100),
@@ -63,7 +64,7 @@ object DemoScenarios {
     bmp.copy(zOrder = 1.2)
   )
 
-  val simpleGroup: Group = Group
+  val simpleGroup: TransformGroup = TransformGroup
     .horizontal(
       Point.zero,
       Bound(Point(320 - 1, 240 - 1)),
@@ -75,9 +76,9 @@ object DemoScenarios {
         looks = Looks(Color.green, Color.silver, 10))
     )
 
-  lazy val simpleGroup2: Group = Group(
+  lazy val simpleGroup2: TransformGroup = TransformGroup(
     Relative(),
-    Group
+    TransformGroup
       .horizontal(
         Point.zero,
         Bound(Point(320 - 1, 240 - 1)),
@@ -92,10 +93,10 @@ object DemoScenarios {
   private val doubleThis =
     Rect(Sizing(30, 60), looks = Looks(Color.white, Color.blue, 2), id = ShapeyId("DOUBLE VISION"))
 
-  lazy val doublePresence: Group = Group(
+  lazy val doublePresence: TransformGroup = TransformGroup(
     Relative(),
     doubleThis,
-    Group
+    TransformGroup
       .horizontal(
         Point.zero,
         Bound(Point(320 - 1, 240 - 1)),
@@ -108,15 +109,15 @@ object DemoScenarios {
         position = Point.zero,
         rotation = Degree(0),
         id = ShapeyId("AHOY"),
-        behaviour = BehaviourBasic(click = Some(InjectedBehaviourAction[Group]((a, _) =>
+        behaviour = BehaviourBasic(click = Some(InjectedBehaviourAction[TransformGroup]((a, _) =>
           a.copy(rotation = Degree(a.rotation.value + 5)))))
       )
   )
 
-  lazy val simple: Group = Group(
+  lazy val simple: TransformGroup = TransformGroup(
     Rect(Sizing(5, 5)),
     Rect(Sizing(10, 10), position = Point(10, 10)),
-    Group(
+    TransformGroup(
       Horizontal(),
       Rect(Sizing(15, 15), Looks(Color(255, 0, 0, 0.5)), 3, Point(3, 3)),
       Rect(Sizing(15, 15), Looks(Color(0, 0, 255, 0.5)), 3, Point(3, 3)))
@@ -133,9 +134,9 @@ object DemoScenarios {
     )
   )
 
-  def rects: Group =
-    Group(
-      Group(
+  def rects: TransformGroup =
+    TransformGroup(
+      TransformGroup(
         Horizontal(
           Layout(
             Wrap.Simple(),
@@ -184,10 +185,10 @@ object DemoScenarios {
 //      .copy(id = ShapeyId("HEY"), position = Point(30, 30), zOrder = 4, scale = Point(2, 2))
   )
 
-  def testA: Group = Group(
+  def testA: TransformGroup = TransformGroup(
     Rect(Sizing(5, 5)),
     Rect(Sizing(10, 10), zOrder = 20, position = Point(10, 10)),
-    Group(
+    TransformGroup(
       Relative(),
       Rect(Sizing(15, 15), Looks(Color(255, 0, 0)), 3, Point(3, 3)),
 //      Rect(Sizing(15, 15), Point(3, 3), Looks(Color(0, 0, 255, 0.5)), 3),
@@ -204,12 +205,12 @@ object DemoScenarios {
       .position(Point(10, 10))
   )
 
-  def rotationDemo: Group = Group(
+  def rotationDemo: TransformGroup = TransformGroup(
     Relative(),
     Rect(Sizing(5, 5)),
     Rect(Sizing(90, 90), looks = Looks(Color(0, 0, 0)), zOrder = -2),
     Rect(Sizing(10, 10), position = Point(10, 10)),
-    Group(
+    TransformGroup(
       Horizontal(),
       Rect(Sizing(5, 5), Looks(Color(255, 0, 0, 0.5)), 3, Point(3, 3)),
       Rect(Sizing(5, 5), Looks(Color(0, 0, 255, 0.5)), 3, Point.zero))
@@ -220,15 +221,15 @@ object DemoScenarios {
       .copy(zOrder = 22, id = ShapeyId("HEY"))
   )
 
-  def interactionDev: Group = Group(
+  def interactionDev: TransformGroup = TransformGroup(
     Relative(),
 //    Rect(Sizing(5, 5)),
 //    Rect(Sizing(90, 90), zOrder = -2, looks = Looks(Color(0, 0, 0))),
 //    Rect(Sizing(10, 10), Point(10, 10)),
-    Group(
+    TransformGroup(
       Relative(),
       Rect(Sizing(50, 50), Looks(Color(255, 0, 0)), 3).copy(id = ShapeyId("TOP RECT")),
-      Group(Rect(Sizing(25, 25), looks = Looks(Color(0, 255, 0)), zOrder = 4).copy(id =
+      TransformGroup(Rect(Sizing(25, 25), looks = Looks(Color(0, 255, 0)), zOrder = 4).copy(id =
         ShapeyId("INSIDE RECT")))
         .copy(
           zOrder = 4,
@@ -249,8 +250,8 @@ object DemoScenarios {
       }))), zOrder = 22, id = ShapeyId("ROTATED GROUP")) //behaviour = InjectedBehaviourAction())
   )
 
-  def negative: Group = Group(Relative(), Rect(Sizing(40, 40), position = Point(-1, -1)))
+  def negative: TransformGroup = TransformGroup(Relative(), Rect(Sizing(40, 40), position = Point(-1, -1)))
 
-  def analysed(maxSize: Point): Group = BuildContainer.builder(maxSize, mainDemo)
+  def analysed(maxSize: Point): TransformGroup = BuildContainer.builder(maxSize, mainDemo)
 
 }

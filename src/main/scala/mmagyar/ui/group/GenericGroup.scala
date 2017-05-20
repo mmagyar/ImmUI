@@ -1,5 +1,6 @@
 package mmagyar.ui.group
 
+import mmagyar.layout.{Dynamic, LayoutSizeConstraint}
 import mmagyar.ui.core._
 
 /** Magyar Máté 2017, all rights reserved */
@@ -78,7 +79,8 @@ trait GenericGroupExternallyModifiable[T <: GenericGroupExternallyModifiable[T]]
     extends GenericGroup[T] { this: T =>
   def setElements(elementList: ElementList): T
 
-  def setElements(elements: Vector[Shapey]): T = setElements(this.elementList.setElements(elements))
+  def setElements(elements: Vector[Shapey]): T =
+    setElements(this.elementList.setElements(elements))
 
   def replace[K <: Shapey, L <: Shapey](oldElement: K, newElement: L): T =
     setElements(elementList.copy(elements.map {
@@ -96,4 +98,16 @@ trait GenericGroupExternallyModifiable[T <: GenericGroupExternallyModifiable[T]]
 
   def add[K <: Shapey](element: K): T =
     setElements(elementList.copy(elementList.elements :+ element))
+
+  def setBoundToDynamic(layoutSizeConstraint: LayoutSizeConstraint): T =
+    elementList.organize.size match {
+      case _: Dynamic =>
+        setElements(
+          elementList.copy(organize = elementList.organize.setSize(layoutSizeConstraint match {
+            case b: Dynamic => b
+            case b          => Dynamic(b)
+          })))
+      case _ => this
+    }
+
 }

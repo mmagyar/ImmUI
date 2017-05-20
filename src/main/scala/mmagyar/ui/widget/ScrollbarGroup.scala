@@ -2,7 +2,7 @@ package mmagyar.ui.widget
 
 import mmagyar.layout.{Relative, Sizing}
 import mmagyar.ui.core._
-import mmagyar.ui.group.GenericSizable
+import mmagyar.ui.group.sizable.GenericSizable
 import mmagyar.ui.interaction._
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Point, TriState}

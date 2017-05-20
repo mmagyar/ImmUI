@@ -2,7 +2,8 @@ package mmagyar.ui.widget
 
 import mmagyar.layout._
 import mmagyar.ui.core.{ElementList, Rect, ShapeyId}
-import mmagyar.ui.group.{DecoratedSizableGroup, Group, SizableGroup}
+import mmagyar.ui.group.dynamic.TransformGroup
+import mmagyar.ui.group.sizable.{DecoratedSizableGroup, SizableGroup}
 import mmagyar.ui.interaction.{Behaviour, BehaviourAction, BehaviourBasic}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Point}
@@ -17,7 +18,7 @@ case class DialogueOption(text: String, id: Symbol)
 case class OptionButton(button: Button, option: DialogueOption)
 case class DialogueWidgetState(state: DialogueState,
                                buttons: Vector[OptionButton],
-                               buttonContainer: Group)
+                               buttonContainer: TransformGroup)
 object Dialogue {
 
   def createButtonId(parentId: ShapeyId, dialogueOption: DialogueOption): ShapeyId =
@@ -39,8 +40,8 @@ object Dialogue {
             behaviour = BehaviourBasic.empty),
           x))
 
-  def buttonsGroup(buttons: Vector[Button], id: ShapeyId): Group =
-    Group(
+  def buttonsGroup(buttons: Vector[Button], id: ShapeyId): TransformGroup =
+    TransformGroup(
       ElementList(
         buttons,
         Horizontal(
@@ -55,7 +56,7 @@ object Dialogue {
   def select(option: Option[DialogueOption], in: Dialogue): Dialogue =
     in.data(in.data.copy(state = in.data.state.copy(currentSelection = option)))
       .change({
-        case a: Group if a.id == in.data.buttonContainer.id =>
+        case a: TransformGroup if a.id == in.data.buttonContainer.id =>
           a mapElements {
             case b: Button =>
               in.data.buttons

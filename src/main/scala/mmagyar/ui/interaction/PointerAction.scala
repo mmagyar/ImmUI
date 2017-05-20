@@ -1,7 +1,7 @@
 package mmagyar.ui.interaction
 
 import mmagyar.ui.core.{Behaveable, Document, Groupable, Shapey}
-import mmagyar.ui.group.Group
+import mmagyar.ui.group.dynamic.TransformGroup
 import mmagyar.util.{Degree, Point, PointTransform, Rotation}
 
 /** Magyar Máté 2016, all rights reserved */
@@ -109,7 +109,7 @@ class PointerAction(
         sense(
           a.elements,
           a match {
-            case b: Group =>
+            case b: TransformGroup =>
               rotate :+ PointTransform(
                 b.position - b.rotationPositionCorrection,
                 Rotation(Degree(b.rotation.value), b.position + (b.size / 2.0)),

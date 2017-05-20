@@ -68,10 +68,8 @@ class ElementList(_elements: Vector[Shapey],
   }
 
   private def passBounds(x: Shapey): Shapey = x match {
-    case b: Group             => b.setBoundToDynamic(organize.size);
-    case b: GenericSizable[_] => b.setBoundToDynamic(organize.size);
-    case b: BgGroup           => b.setBoundToDynamic(organize.size);
-    case b                    => b
+    case b: GenericGroupExternallyModifiable[_] => b.setBoundToDynamic(organize.size);
+    case b                                      => b
   }
 
   val elements: Vector[Shapey] =
