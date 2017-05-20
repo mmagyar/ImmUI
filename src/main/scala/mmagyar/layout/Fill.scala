@@ -15,6 +15,9 @@ object Fill {
   case object No extends Fill
 
   /** Items will be grow / shrink with equal percentile */
+  case object Flex extends Fill
+
+  /** Items will have the same size when possible */
   case object Equal extends Fill
 
   /** Fill the remaining space with the largest element or Shrink the smallest*/

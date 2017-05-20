@@ -29,7 +29,7 @@ abstract class GenericSizable[T <: GenericSizable[T]](_elements: ElementList)
           a
 //          Horizontal(Layout(), Bound((sizing: Sizing).size - margin.pointSum))
       },
-      organizeToBounds = Some(true),
+      organizeToBounds = None,
       offset = margin.topLeft + offset.invert
     )
   }

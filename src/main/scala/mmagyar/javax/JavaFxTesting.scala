@@ -61,8 +61,8 @@ class JavaFxTesting extends Application {
 
   def getRoot: Group =
 //   DemoScenarios.bug
-    DemoScenarios.mainDemo
-//  DemoScenarios.analysed(size)
+//    DemoScenarios.mainDemo
+  DemoScenarios.analysed(size)
   def baseDoc =
     Document(root = getRoot, transform = Transform(scale = Point(1, 1)))
   private var document: Document = baseDoc
@@ -99,7 +99,7 @@ class JavaFxTesting extends Application {
       case a: KeyEvent if a.getText == "[" =>
         val b = DemoScenarios.mainDemo
         println(b)
-        b
+
       case a: KeyEvent if a.getText == "r" =>
         println("RELOADING mainDemo")
         document(baseDoc)

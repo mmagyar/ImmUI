@@ -87,19 +87,17 @@ object Dialogue {
 
   def apply(text: String, sizing: Sizing, state: DialogueState, id: ShapeyId = ShapeyId())(
       implicit style: Style): Dialogue = {
-    val size        = sizing.size
     val margin: Box = style.defaultGroupMargin
 
     val multiText = SizableGroup.scrollableTextBox(
       text,
-      Sizing.grow(),
+      Sizing.dynamic(),
       style.fontLooks,
       Point.zero,
       margin,
       id = id.append("_TEXT_BOX"))
 
-    val buttonsEl = //buttons(state,id)
-      Button
+    val buttonsEl = Button
         .unifyButtonSize[OptionButton](buttons(state, id), _.button, (x, b) => x.copy(button = b))
     val buttonGroups = buttonsGroup(buttonsEl.map(x => x.button), id)
     val innards = ElementList(
@@ -108,13 +106,11 @@ object Dialogue {
       buttonGroups
     )
 
-    //TODO test resizability
     val list = ElementList(
-      Union(),
+    Union(),
       Rect(Sizing.dynamic(), looks = style.groupLooks, zOrder = -2),
       new SizableGroup(
         innards,
-        //TODO this should also work when base size is 1
         Sizing.dynamic(),
         Point.zero,
         margin = margin,

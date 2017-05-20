@@ -14,6 +14,10 @@ object Group {
   def apply(organize: Organize, elements: Vector[Shapey], position: Point): Group =
     Group(ElementList(organize, elements: _*), position = position)
 
+
+  def apply(organize: Organize, elements: Vector[Shapey]): Group =
+    Group(ElementList(organize, elements: _*))
+
   def apply(organize: Organize, behaviour: Behaviour[Group], elements: Shapey*): Group =
     Group(ElementList(organize, elements: _*), Point.zero, behaviour = behaviour)
 

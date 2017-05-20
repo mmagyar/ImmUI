@@ -190,7 +190,7 @@ object DemoScenarios {
       ))
   def mainDemo: Group = Group(
     Relative(),
-    /*
+
     Rect(Sizing(150, 15), zOrder = -8, position = Point(4, 4)),
     BitmapShapey(
       (5, 20),
@@ -198,7 +198,7 @@ object DemoScenarios {
       Bitmap.fourColor(10, 90),
       StretchBoth,
       Align2d(Align.Right, Align.Right)),
-    rects.position(Point(10, 300)),*/
+    rects.position(Point(10, 300)),
 //    Group(
       Dialogue(
         "ohh hacky"

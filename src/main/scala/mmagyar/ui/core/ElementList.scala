@@ -1,6 +1,6 @@
 package mmagyar.ui.core
 
-import mmagyar.layout.{LayoutSizeConstraint, Organize, Relative}
+import mmagyar.layout.{Organize, Relative}
 import mmagyar.ui.group._
 import mmagyar.util.Point
 
@@ -52,42 +52,34 @@ trait ElementListable {
       .foldLeft("")((p, c) => p + (if (p.nonEmpty) "\n" else "") + c) + ")"
 }
 
-class ElementList(
-    _elements: Vector[Shapey],
-    _organize: Organize,
-    val organizeToBounds: Option[Boolean] = None,
-    val offsetElements: Point = Point.zero,
-    val dynamicBound: Option[((Vector[Shapey],
-                               LayoutSizeConstraint) => Option[LayoutSizeConstraint])] = None,
-    //HAHAHWHAHEHAWA this value name is a complete sentence
-    passLayoutConstraintToChildGroupIfItHasDynamicBounds: Boolean = true)
+class ElementList(_elements: Vector[Shapey],
+                  val organize: Organize,
+                  val organizeToBounds: Option[Boolean] = None,
+                  val offsetElements: Point = Point.zero)
     extends ElementListable {
 
-  private val positionable: Vector[PositionableShapey] = _elements.collect {
+  private val positionable: Vector[PositionableShapey] = _elements.map(passBounds).collect {
     case a: PositionableShapey => a
   }
 
-  private val static: Vector[Shapey] = _elements.collect {
+  private val static: Vector[Shapey] = _elements.map(passBounds).collect {
     case a if !a.isInstanceOf[PositionableShapey] => a
   }
 
-  val organize: Organize =
-    dynamicBound
-      .flatMap(x => x(_elements, _organize.size).map(_organize.setSize))
-      .getOrElse(_organize)
+  private def passBounds(x: Shapey): Shapey = x match {
+    case b: Group             => b.setBoundToDynamic(organize.size);
+    case b: GenericSizable[_] => b.setBoundToDynamic(organize.size);
+    case b: BgGroup           => b.setBoundToDynamic(organize.size);
+    case b                    => b
+  }
+//  val organize: Organize =
+//    dynamicBound
+//      .flatMap(x => x(_elements, _organize.size).map(_organize.setSize))
+//      .getOrElse(_organize)
   val elements: Vector[Shapey] =
     organize
       .organize[PositionableShapey](positionable, offsetElements, organizeToBounds) ++
-      static match {
-      case a if passLayoutConstraintToChildGroupIfItHasDynamicBounds =>
-        a.map {
-          case b: Group             => b.setBoundToDynamic(organize.size);
-          case b: GenericSizable[_] => b.setBoundToDynamic(organize.size);
-          case b: BgGroup           => b.setBoundToDynamic(organize.size);
-          case b                    => b
-        }
-      case a => a
-    }
+      static
 
   def change[K <: Shapey](changePf: PartialFunction[Shapey, K],
                           recursive: Boolean = true): ElementList =
@@ -106,13 +98,7 @@ class ElementList(
 //    if (elements == this.elements && organize == this.organize && organizeToBounds == this.organizeToBounds && offset == this.offsetElements)
 //      this
 //    else
-    new ElementList(
-      elements,
-      organize,
-      organizeToBounds,
-      offset,
-      dynamicBound,
-      passLayoutConstraintToChildGroupIfItHasDynamicBounds)
+    new ElementList(elements, organize, organizeToBounds, offset)
 
   def asOrganizeToBounds: ElementList =
     if (organizeToBounds.contains(true)) this

@@ -42,7 +42,7 @@ sealed trait Organize {
 
   }
 
-  def subSize(point:Point): Organize = this match {
+  def subSize(point: Point): Organize = this match {
     case a: Horizontal => a.copy(size = a.size.sub(point))
     case a: Vertical   => a.copy(size = a.size.sub(point))
     case a: FreeForm   => a
@@ -51,8 +51,7 @@ sealed trait Organize {
 
   }
 
-
-  def addSize(point:Point): Organize = this match {
+  def addSize(point: Point): Organize = this match {
     case a: Horizontal => a.copy(size = a.size.add(point))
     case a: Vertical   => a.copy(size = a.size.add(point))
     case a: FreeForm   => a
@@ -180,7 +179,7 @@ object Organize {
 
     fill match {
       case No => elements
-      case Equal =>
+      case Flex =>
         val growData = sizables.foldLeft(GrowData(remainingWidth, 0, 0))((p, el) => {
           if (el.sizing.grow == Grow.No || ps._1(el.sizing.maxSize) <= ps._1(el.size))
             p.copy(nonGrowable = p.nonGrowable + ps._1(el.size))
@@ -211,6 +210,7 @@ object Organize {
             case a => a._2
           }
         } else elements
+      case Equal    => ??? //Items will have the same size when possible
       case Largest  => ??? //Find the largest element and only stretch that
       case Smallest => ??? //find the smallest element and only stretch that
       case First    => ??? //find the first sizable and only stretch that
@@ -252,7 +252,7 @@ object Organize {
       getSummed_1(elements.filter({ case _: Sizable[_] => false; case _ => true }), ps)
     fill match {
       case No => elements
-      case Equal =>
+      case Flex =>
         val shrinkData =
           sizables.foldLeft(ShrinkData(remainingWidth, 0, 0))((p, el) => {
             if (el.sizing.shrink == Shrink.No || ps._1(el.sizing.minSize) >= ps._1(el.size))
@@ -286,6 +286,7 @@ object Organize {
             case a => a._2
           }
         } else elements
+      case Equal    => ??? //Items will have the same size when possible
       case Largest  => ??? //Find the largest element and only stretch that
       case Smallest => ??? //find the smallest element and only stretch that
       case First    => ??? //find the first sizable and only stretch that
@@ -533,7 +534,6 @@ final case class Vertical(layout: Layout = Layout(), size: LayoutSizeConstraint 
                                                             organizeToBounds: Option[Boolean] =
                                                               None): Vector[T] = {
 
-
     val org = Organize.wrapOrganize(
       elements,
       layout,
@@ -618,15 +618,15 @@ case class Union(size: LayoutSizeConstraint = Dynamic(),
     val newSize = stretchType match {
       case StretchToConstraint => sizeFromConstraint(size, largest)
       case StretchToConstraintX =>
-        val constrained = sizeFromConstraint(size, largest)
-        val mapped = elements map mapFn(Point(constrained.x,largest.y),offset)
-        val largestMapped  = mapped.foldLeft(Point.zero)((p, c) => p.max(c.size))
+        val constrained   = sizeFromConstraint(size, largest)
+        val mapped        = elements map mapFn(Point(constrained.x, largest.y), offset)
+        val largestMapped = mapped.foldLeft(Point.zero)((p, c) => p.max(c.size))
         Point(constrained.x, largestMapped.y)
 
       case StretchToConstraintY =>
-        val constrained = sizeFromConstraint(size, largest)
-        val mapped = elements map mapFn(Point(largest.x, constrained.y),offset)
-        val largestMapped  = mapped.foldLeft(Point.zero)((p, c) => p.max(c.size))
+        val constrained   = sizeFromConstraint(size, largest)
+        val mapped        = elements map mapFn(Point(largest.x, constrained.y), offset)
+        val largestMapped = mapped.foldLeft(Point.zero)((p, c) => p.max(c.size))
         Point(largestMapped.x, constrained.y)
 
       case StretchToLargest => largest
