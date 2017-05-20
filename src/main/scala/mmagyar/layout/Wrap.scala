@@ -32,8 +32,6 @@ sealed trait Wrap {
 
 object Wrap {
 
-  val default = Wrap.No
-
   /** No wrap happens, just overflows, does this even make sense?*/
   final case object No
       extends Wrap {

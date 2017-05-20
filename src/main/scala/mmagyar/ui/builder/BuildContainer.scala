@@ -3,10 +3,10 @@ import mmagyar.layout._
 import mmagyar.ui.core._
 import mmagyar.ui.group._
 import mmagyar.ui.group.dynamic.{BgGroup, DecoratedGroup, Group}
-import mmagyar.ui.group.sizable.{GenericSizable, SizableGroup}
+import mmagyar.ui.group.sizable.SizableGroup
 import mmagyar.ui.interaction._
 import mmagyar.ui.widget.Accordian.Accords
-import mmagyar.ui.widget.{Accord, Accordian, ScrollbarGroup}
+import mmagyar.ui.widget.{Accord, Accordian, ScrollbarGroup, ScrollbarProvider}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Color, Point, TriState}
 
@@ -21,11 +21,10 @@ object BuildContainer {
           ElementList(
             Vertical(
               Layout(
-                Wrap.No,
                 alignItem = Align.SpaceAround(Spacing.Set(14), Align.Center),
                 alignContent = Align.Stretch(Align.Left)
               )),
-            MultilineText("SHOW DATA HERE, and this overlaps, way over", id = ShapeyId("DEBUG_THIS")),
+            MultilineText("SHOW DATA HERE, and this overlaps, way over"),
             Text("Selected Id:"),
             Text("", id = ShapeyId("SEL_ID_HERE")),
             Text("\ndetail:"),
@@ -33,17 +32,14 @@ object BuildContainer {
               ShapeyId("DETAC"),
               Accord(Text("HEADER_1"), Text("DETAIL_1")),
               Accord(Text("HEADER_2"), Text("DETAIL_2"))),
-            Rect(
-              Sizing(Point.one, Grow.Until(Point(10000000000.0, 1029)), Shrink.Affinity),
-              looks = Looks(Color.lime, Color.olive, 1))
-          ),
-          id = ShapeyId("CTRLGROUP")
+            Rect(looks = Looks(Color.lime, Color.olive, 1))
+          )
         ),
         Sizing(size),
         margin = Box(Point(6, 6))
       ),
       1,
-      (x: GenericSizable[_]) => x.elements.collect { case a: SizableGroup => a }.head,
+      ScrollbarProvider.FirstSizableChild,
       scrollBars = (TriState.Auto, TriState.Auto),
       maxSizing = Some(Sizing(size)),
       id = ShapeyId("__EDITOR")

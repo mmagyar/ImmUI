@@ -4,6 +4,7 @@ import mmagyar.layout.{Relative, Sizing}
 import mmagyar.ui.core._
 import mmagyar.ui.group.sizable.GenericSizable
 import mmagyar.ui.interaction._
+import mmagyar.ui.widget.ScrollbarProvider.{FirstSizableChild, Self}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Point, TriState}
 
@@ -64,11 +65,22 @@ object ScrollbarGroup {
       style)
 }
 
+sealed trait ScrollbarProvider
+object ScrollbarProvider {
+
+  final case class Id(id: ShapeyId) extends ScrollbarProvider
+
+  case object FirstSizableChild extends ScrollbarProvider
+
+  case object Self extends ScrollbarProvider
+
+}
+
 /**
   *
   * @param child2 it's children
   * @param zOrder zOrder
-  * @param getScrollProvider an optional function that gets the element
+  * @param scrollProviderId an optional function that gets the element
   *                          that provides the scroll position,
   *                          by default it gets `child`,
   *                          but when overwritten, any children of `child`
@@ -82,7 +94,7 @@ object ScrollbarGroup {
 class ScrollbarGroup[T <: GenericSizable[T]](
     val child2: GenericSizable[T],
     val zOrder: Double = 1,
-    val getScrollProvider: (GenericSizable[T]) => GenericSizable[T] = (x: GenericSizable[T]) => x,
+    val scrollProviderId: ScrollbarProvider = Self,
     val resizeProviderWhenChangingSizing: Boolean = true,
     val scrollBars: (TriState, TriState) = ScrollbarGroup.defaultScrollbars,
     val id: ShapeyId = ShapeyId(),
@@ -90,6 +102,18 @@ class ScrollbarGroup[T <: GenericSizable[T]](
     maxSizing: Option[Sizing] = None)(implicit style: Style)
     extends WidgetWithChildrenBase[ScrollbarGroup[T]]
     with SizableShapey {
+
+  def getScrollProvider(genericSizable: GenericSizable[T]): GenericSizable[T] =
+    scrollProviderId match {
+      case ScrollbarProvider.Id(idProvider) =>
+        genericSizable
+          .find(_.id == idProvider)
+          .collect({ case a: GenericSizable[T @unchecked] => a })
+          .getOrElse(genericSizable)
+      case FirstSizableChild =>
+        genericSizable.elements.collect { case a: GenericSizable[T @unchecked] => a }.head
+      case Self => genericSizable
+    }
 
   private val scrollProviderTemp = getScrollProvider(child2)
   val drawScrollBar: (Boolean, Boolean) =
@@ -202,13 +226,12 @@ class ScrollbarGroup[T <: GenericSizable[T]](
                            scrollBars: (TriState, TriState) = scrollBars,
                            zOrder: Double = zOrder,
                            id: ShapeyId = id,
-                           getScrollProvider: (GenericSizable[T]) => GenericSizable[T] =
-                             getScrollProvider,
+                           scrollProviderId: ScrollbarProvider = scrollProviderId,
                            maxSizing: Option[Sizing] = maxSizing): ScrollbarGroup[T] = {
     new ScrollbarGroup[T](
       child,
       zOrder,
-      getScrollProvider,
+      scrollProviderId,
       scrollBars = scrollBars,
       id = id,
       position = position,
@@ -249,6 +272,6 @@ class ScrollbarGroup[T <: GenericSizable[T]](
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case a: ScrollbarGroup[_] => a.cChild == cChild
-    case _                               => false
+    case _                    => false
   }
 }

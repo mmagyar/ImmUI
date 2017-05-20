@@ -26,7 +26,7 @@ object Layout {
   *                     is set to true in the layout
   * @param alignItem  alignment of the items on rows that does not fully fill the line
   */
-case class Layout(wrap: Wrap = Wrap.default,
+case class Layout(wrap: Wrap = Wrap.No,
                   fill: Fill = Fill.Flex,
                   alignContent: AlignSimple = Align.Left,
                   alignItem: AlignNonSizing = Align.Left)

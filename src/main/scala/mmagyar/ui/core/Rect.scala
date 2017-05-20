@@ -4,7 +4,7 @@ import mmagyar.layout.Sizing
 import mmagyar.util.{Color, Point}
 
 /** Magyar Máté 2017, all rights reserved */
-final case class Rect(sizing: Sizing,
+final case class Rect(sizing: Sizing = Sizing.dynamic(),
                       looks: Looks = Looks(Color.amber, Color.green),
                       zOrder: Double = 1,
                       position: Point = Point.zero,

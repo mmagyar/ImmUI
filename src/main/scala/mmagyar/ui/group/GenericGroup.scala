@@ -51,6 +51,9 @@ trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]
       }
   }
 
+  def find(where: (Shapey) => Boolean, recursive: Boolean = true): Option[Shapey] =
+    get(where,recursive).headOption
+
   def get(where: (Shapey) => Boolean, recursive: Boolean = true): Vector[Shapey] =
     elements.collect {
       case a if where(a)                   => Vector(a)
