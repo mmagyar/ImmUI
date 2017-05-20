@@ -165,11 +165,10 @@ object DemoScenarios {
       StretchBoth,
       Align2d(Align.Right, Align.Right)),
     rects.position(Point(10, 300)),
-//    Group(
+
       Dialogue(
-        "ohh hacky"
-//        , this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
-          ,
+        "ohh hacky this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
+          
         Sizing(Point(240, 110)),
         DialogueState(
           Vector(
@@ -180,8 +179,8 @@ object DemoScenarios {
           ),
           Some(DialogueOption("OK"))
         )
-      )(Style())
-//  )
+      )(Style()).position(Point(20,20))
+
 //      .copy(id = ShapeyId("HEY"), position = Point(30, 30), zOrder = 4, scale = Point(2, 2))
   )
 

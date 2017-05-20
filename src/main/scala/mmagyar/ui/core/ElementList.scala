@@ -89,7 +89,8 @@ class ElementList(_elements: Vector[Shapey],
 
   def map(fn: (Shapey) => Shapey): ElementList = copy(elements.map(fn))
 
-  def copy(elements: Vector[Shapey] = _elements,
+  //TODO check if unprocessed or the processed should be the default
+  def copy(elements: Vector[Shapey] = elements,
            organize: Organize = organize,
            organizeToBounds: Option[Boolean] = organizeToBounds,
            offset: Point = offsetElements): ElementList =
