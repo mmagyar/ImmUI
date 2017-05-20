@@ -9,10 +9,11 @@ import scala.language.implicitConversions
 /** Magyar Máté 2017, all rights reserved */
 object ElementList {
   val empty = ElementList()
+
   implicit def toElementList(elements: Seq[Shapey]): ElementList =
     ElementList(elements: _*)
 
-//  def apply(elements: Vector[Shapey]): ElementList     = new ElementList(elements, FreeForm())
+  //  def apply(elements: Vector[Shapey]): ElementList     = new ElementList(elements, FreeForm())
 
   def apply(elements: Vector[Shapey], organize: Organize): ElementList =
     new ElementList(elements, organize)
@@ -72,10 +73,7 @@ class ElementList(_elements: Vector[Shapey],
     case b: BgGroup           => b.setBoundToDynamic(organize.size);
     case b                    => b
   }
-//  val organize: Organize =
-//    dynamicBound
-//      .flatMap(x => x(_elements, _organize.size).map(_organize.setSize))
-//      .getOrElse(_organize)
+
   val elements: Vector[Shapey] =
     organize
       .organize[PositionableShapey](positionable, offsetElements, organizeToBounds) ++
@@ -95,10 +93,15 @@ class ElementList(_elements: Vector[Shapey],
            organize: Organize = organize,
            organizeToBounds: Option[Boolean] = organizeToBounds,
            offset: Point = offsetElements): ElementList =
-//    if (elements == this.elements && organize == this.organize && organizeToBounds == this.organizeToBounds && offset == this.offsetElements)
-//      this
-//    else
-    new ElementList(elements, organize, organizeToBounds, offset)
+    //TODO benchmark if the addition equality check is worth it.
+//    if ((elements == this.elements   || elements == _elements) &&
+    if ((elements == this.elements) &&
+        organize == this.organize &&
+        organizeToBounds == this.organizeToBounds &&
+        offset == this.offsetElements)
+      this
+    else
+      new ElementList(elements, organize, organizeToBounds, offset)
 
   def asOrganizeToBounds: ElementList =
     if (organizeToBounds.contains(true)) this
