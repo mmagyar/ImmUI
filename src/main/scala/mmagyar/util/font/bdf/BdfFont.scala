@@ -1,6 +1,5 @@
 package mmagyar.util.font.bdf
 
-
 import mmagyar.ui.core.{BitmapChar, FontBitmap}
 import mmagyar.util.Point
 import mmagyar.util.font.bdf.Font.IntPoint
@@ -40,7 +39,8 @@ case class Font(characters: Map[Char, CharPixel],
                 defaultChar: CharPixel,
                 family: String = "UNKNOWN",
                 name: String = "UNKNOWN",
-                comment: String = "")
+                comment: String = "",
+                hypenation: Boolean = true)
     extends FontBitmap {
   def apply(char: Char): CharPixel = characters.getOrElse(char, defaultChar)
 
@@ -62,14 +62,33 @@ case class Font(characters: Map[Char, CharPixel],
 
   override def toString: String = s"font: $family $name"
 
+  case class Slicer(width: Double, line: String, past: Vector[String])
+
   override def sliceToMaxLineWidth(string: String, maxWidth: Double): Vector[String] = {
-    val res = string.foldLeft((0.0, "", Vector[String]()))((p, c) => {
+    val res = string.foldLeft(Slicer(0.0, "", Vector[String]()))((p, c) => {
       val currentWidth = getSizeForString(c.toString)._1.toDouble
-      if (p._1 + currentWidth > maxWidth || p._2.lastOption.contains('\n')) {
-        (currentWidth, c.toString, p._3 :+ p._2)
-      } else (p._1 + currentWidth, p._2 + c, p._3)
+
+      if (p.line.lastOption.contains('\n'))
+        Slicer(currentWidth, if (c == ' ') "" else c.toString, p.past :+ p.line)
+      else if (hypenation && p.width + currentWidth > maxWidth && !p.line
+                 .contains(' ') && p.line.nonEmpty) {
+        val start = p.line.init + "-"
+        val end   = p.line.lastOption.map(_.toString).getOrElse("")
+        Slicer(currentWidth + getSizeForString(end)._1.toDouble, end + c.toString, p.past :+ start)
+      } else if (p.width + currentWidth > maxWidth) {
+        val lastIndex = p.line.lastIndexOf(" ")
+        if (lastIndex == -1 || c == ' ') //|| p.currentLine.endsWith(" "))
+          Slicer(currentWidth, if (c == ' ') "" else c.toString, p.past :+ p.line)
+        else {
+          val end = p.line.substring(lastIndex + 1)
+          Slicer(
+            currentWidth + getSizeForString(end)._1.toDouble,
+            end + c.toString,
+            p.past :+ p.line.substring(0, lastIndex))
+        }
+      } else Slicer(p.width + currentWidth, p.line + c, p.past)
     })
-    if (res._2.nonEmpty) res._3 :+ res._2 else res._3
+    if (res.line.nonEmpty) res.past :+ res.line else res.past
   }
 
 }

@@ -168,7 +168,7 @@ object DemoScenarios {
 
       Dialogue(
         "ohh hacky this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
-          
+
         Sizing(Point(240, 110)),
         DialogueState(
           Vector(
