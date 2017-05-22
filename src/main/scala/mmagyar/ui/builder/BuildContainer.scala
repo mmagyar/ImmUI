@@ -2,11 +2,10 @@ package mmagyar.ui.builder
 import mmagyar.layout._
 import mmagyar.ui.core._
 import mmagyar.ui.group._
-import mmagyar.ui.group.dynamic.{BgGroup, DecoratedGroup, Group}
+import mmagyar.ui.group.dynamic.{BgGroup, Group}
 import mmagyar.ui.group.sizable.SizableGroup
 import mmagyar.ui.interaction._
-import mmagyar.ui.widget.Accordian.Accords
-import mmagyar.ui.widget.{Accord, Accordian, ScrollbarGroup, ScrollbarProvider}
+import mmagyar.ui.widget._
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Color, Point, TriState}
 
@@ -48,7 +47,7 @@ object BuildContainer {
   def builder(maxSize: Point, toAnalyse: Groupable[_]): Group = {
     def accordCreate(shapey: Shapey) = {
       val look = Looks(stroke = Color.white)
-
+//TODO setters
       Accord(
         MultilineText("ID: " + shapey.id, looks = look),
         BgGroup(
@@ -71,7 +70,7 @@ object BuildContainer {
                 x =>
                   (x.shapey.id("DETAC") || x.shapey.id("SEL_ID_HERE")) && x.parents
                     .exists(_.id == controlPanelElement.id), {
-                  case a: DecoratedGroup[Accords @unchecked] if a.data.isInstanceOf[Accords] =>
+                  case a: Accordian =>
                     def shapeyToAccord(shapey: Shapey): Vector[Accord] = {
                       (shapey match {
                         case b: GenericGroup[_] => b.elementList.elements.flatMap(shapeyToAccord)
@@ -80,10 +79,10 @@ object BuildContainer {
                     }
 
                     Accordian(
-                      Accords(tracker.downElements.headOption.toVector.flatMap(y =>
-                        shapeyToAccord(y.shapey))),
+                      tracker.downElements.headOption.toVector.flatMap(y =>
+                        shapeyToAccord(y.shapey)),
                       a.elementList.organize,
-                      a.id)
+                      id = a.id)
 
                   case a: Text =>
                     val text =

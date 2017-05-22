@@ -2,8 +2,15 @@ package mmagyar.ui.group
 
 import mmagyar.layout.{Dynamic, LayoutSizeConstraint}
 import mmagyar.ui.core._
+import mmagyar.util.{BoundingBox, Box, Point}
 
 /** Magyar Máté 2017, all rights reserved */
+object GenericGroup{
+  def sizeForElements(elements:Vector[Shapey], margin:Box = Box.zero):Point = elements
+    .foldLeft(BoundingBox.zero)((p, c) =>
+      BoundingBox(Point.zero, p.size max c.boundingBox.addSize(c.boundingBox.position).size))
+    .size + margin.bottomRight
+}
 trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]
     extends GroupableWithBehaveableChildren[T]
     with Behaveable[T] { this: T =>
