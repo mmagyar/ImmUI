@@ -2,7 +2,7 @@ package mmagyar.ui.builder
 import mmagyar.layout._
 import mmagyar.ui.core._
 import mmagyar.ui.group._
-import mmagyar.ui.group.dynamic.{BgGroup, Group}
+import mmagyar.ui.group.dynamic.{BgGroup, DecoratedGroup, Group}
 import mmagyar.ui.group.sizable.SizableGroup
 import mmagyar.ui.interaction._
 import mmagyar.ui.widget._
@@ -13,6 +13,7 @@ import mmagyar.util.{Box, Color, Point, TriState}
 //Document that new element should not be created by inheritance
 object BuildContainer {
 
+  val width: Double = 280
   def controlPanel(size: Point): Groupable[_] =
     new ScrollbarGroup(
       SizableGroup.scrollableWithBackground(
@@ -47,25 +48,50 @@ object BuildContainer {
   def builder(maxSize: Point, toAnalyse: Groupable[_]): Group = {
     def accordCreate(shapey: Shapey) = {
       val look = Looks(stroke = Color.white)
-//TODO setters
+
+      val grp = Vector(MultilineText(shapey.stringToWithoutChild, looks = look))
+
+
       Accord(
         MultilineText("ID: " + shapey.id, looks = look),
         BgGroup(
-          ElementList(Horizontal(), MultilineText(shapey.stringToWithoutChild, looks = look)),
+          ElementList(
+            if (shapey.isInstanceOf[SizableShapey])
+              grp :+ DecoratedGroup(
+                ElementList(Button("SIZE: " + shapey.size)(Style())),
+                shapey.id)
+            else grp,
+            Vertical(Layout(alignContent = Align.Stretch()))
+          ),
           Rect(Sizing.dynamic(), looks = Looks(Color(16, 16, 16), Color.aqua, 3), zOrder = -1),
           Box(10)
         )
       )
     }
 
-    val controlPanelElement = controlPanel(Point(200, maxSize.y))
+    val controlPanelElement = controlPanel(Point(width, maxSize.y))
     Group(
       Group(
         Horizontal(Layout(Wrap.No, Fill.No, alignItem = Align.Left), Bound(maxSize)),
         BehaviourBasic(
           Some(InjectedBehaviourAction((group: Group, tracker: Tracker) => {
-            if (tracker.downElements.exists(_.shapey.id == controlPanelElement.id)) group
-            else {
+            if (tracker.downElements.exists(_.shapey.id == controlPanelElement.id)) {
+              val cc = tracker.downElements.map(_.shapey).collect {
+                case a: DecoratedGroup[ShapeyId @unchecked] if a.data.isInstanceOf[ShapeyId] => a
+              }
+              println("BEHAVE" + cc.size)
+
+              cc.headOption
+                .map(x => {
+                  group.change({
+                    case a: SizableShapey if a.id == x.data =>
+                      println("AND CHAGE: " + a.sizing)
+                      a.size(a.size + Point(1, 1))
+                      //This is noice, but updating the editor :( how?
+                  })
+                })
+                .getOrElse(group)
+            } else {
               group.changeWhereParents(
                 x =>
                   (x.shapey.id("DETAC") || x.shapey.id("SEL_ID_HERE")) && x.parents

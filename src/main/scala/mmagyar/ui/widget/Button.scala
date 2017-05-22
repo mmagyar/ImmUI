@@ -24,22 +24,22 @@ object Button {
 
   def unifyButtonSize[T](buttons: Vector[T],
                          buttonGetter: (T) => Button,
-                         buttonSetter: (T,Button) => T): Vector[T] = {
+                         buttonSetter: (T, Button) => T): Vector[T] = {
     val largest = buttons.foldLeft(0.0)((p, c) => buttonGetter(c).rectSize.x.max(p))
-    buttons.map(x => buttonSetter(x,buttonGetter(x).minWidth(largest)))
+    buttons.map(x => buttonSetter(x, buttonGetter(x).minWidth(largest)))
   }
 }
-
-case class Button(position: Point,
-                  text: String,
+//TODO multiline buttons
+case class Button(text: String,
                   minWidth: Double = 16,
                   zOrder: Double = 1,
+                  position: Point = Point.zero,
                   id: ShapeyId = ShapeyId(),
                   active: Boolean = false,
                   behaviour: Behaviour[Button] = DefaultBehaviour())(implicit style: Style)
     extends Groupable[Button]
     with Behaveable[Button]
-    with PositionableShapey {
+  {
 
   private val margin = style.buttonMargin
   private val textElPre = Text(
@@ -68,18 +68,14 @@ case class Button(position: Point,
   override val elementList: ElementList = ElementList(textEl, bg)
 
   override def position(point: Point): Button =
-    if (position == point) this else copy(position = point)
+    if (position == point) this else copy(position = point)(style)
 
   def toggle: Button = active(!active)
 
-  def active(value: Boolean): Button = if (value == active) this else copy(active = value)
+  def active(value: Boolean): Button = if (value == active) this else copy(active = value)(style)
 
   override def customToString: String = s"isActive: $active"
 
-  def minWidth(value: Double): Button = if (minWidth == value) this else copy(minWidth = value)
-//  override val behaviour: Behaviour[Button] =
-//    BehaviourBasic(Some(InjectedBehaviourAction((el, t) => {
-//      el.toggle
-//    })))
+  def minWidth(value: Double): Button = if (minWidth == value) this else copy(minWidth = value)(style)
 
 }

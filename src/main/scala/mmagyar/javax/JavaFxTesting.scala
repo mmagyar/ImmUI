@@ -206,7 +206,7 @@ class JavaFxTesting extends Application {
     stage.setTitle("Shapey Reference")
     stage.setY(0)
 
-    stage.setX(2890)
+    if (System.getProperty("os.name") != "Linux") stage.setX(2890)
     //    stage.setX(1620)
     stage.show()
     //    stage.setResizable(false)
@@ -228,8 +228,8 @@ class JavaFxTesting extends Application {
       this.document = changed
       needsUpdate = true
     }
-    if(writeRenderTime && timing.totalTime > 0.5)
-    timing.print("Document changed slow ")
+    if (writeRenderTime && timing.totalTime > 0.5)
+      timing.print("Document changed slow ")
 
   }
   def document(document: Document): Unit = {

@@ -59,8 +59,7 @@ final case class TransformGroup(elementList: ElementList,
                        id: ShapeyId = ShapeyId(),
                        behaviour: Behaviour[TransformGroup] = BehaviourBasic())
     extends GenericGroupExternallyModifiable[TransformGroup]
-    with RotatableShapey
-    with PositionableShapey {
+    with RotatableShapey {
 
   val preRotationBbox: BoundingBox = this.elements
     .foldLeft(BoundingBox.zero)((p, c) =>

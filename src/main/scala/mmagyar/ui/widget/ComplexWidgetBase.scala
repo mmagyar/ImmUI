@@ -1,6 +1,6 @@
 package mmagyar.ui.widget
 
-import mmagyar.ui.core.{ElementList, PositionableShapey}
+import mmagyar.ui.core.ElementList
 import mmagyar.ui.group.GenericGroup
 
 /** Magyar Máté 2017, all rights reserved */
@@ -24,8 +24,7 @@ object UpdateReason {
 }
 
 trait WidgetWithChildrenBase[T <: WidgetWithChildrenBase[T]]
-    extends PositionableShapey
-    with GenericGroup[T] { this: T =>
+    extends  GenericGroup[T] { this: T =>
 }
 
 abstract class ComplexWidgetBase[T <: ComplexWidgetBase[T]](_elementList: ElementList,

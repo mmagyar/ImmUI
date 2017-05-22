@@ -179,10 +179,7 @@ class ScrollbarGroup[T <: GenericSizable[T]](
     else Vector.empty
   val elementList = ElementList(
     (if ((child.position: Point) != Point.zero)
-       child match {
-         case a: PositionableShapey => a.position(Point.zero)
-         case a                     => a
-       } else child) +:
+       child.position(Point.zero) else child) +:
       (yScrollBar ++ xScrollbar),
     Relative()
   )
@@ -218,7 +215,7 @@ class ScrollbarGroup[T <: GenericSizable[T]](
                   a.offset(offset)
               }))
 
-  override def position(point: Point): PositionableShapey =
+  override def position(point: Point): ScrollbarGroup[T] =
     if (point == this.position) this else copyInternal(point)
 
   private def copyInternal(position: Point = position,

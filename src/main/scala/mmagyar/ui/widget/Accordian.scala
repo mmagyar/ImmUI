@@ -65,7 +65,7 @@ case class Accordian private (data: Vector[Accord],
 
   override def behaviour: Behaviour[Accordian] = Accordian.behaviour
 
-  override def position(point: Point): PositionableShapey =
+  override def position(point: Point): Accordian  =
     if (point == position) this else copy(position = point)
 
   override def setElements(elementList: ElementList): Accordian =

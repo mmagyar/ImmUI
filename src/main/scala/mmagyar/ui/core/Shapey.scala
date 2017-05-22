@@ -7,7 +7,7 @@ import mmagyar.util._
 
 /** Created by Magyar Máté on 2017-01-31, All rights reserved. */
 object Shapey {}
-sealed trait Shapey extends Material {
+sealed trait Shapey extends Material with Positionable[Shapey] {
 
   def inside(point: Point, transform: Transform = Transform()): Boolean =
     BoundingBox(position.transform(transform), size.scale(transform.scale))
@@ -60,8 +60,6 @@ sealed trait Shapey extends Material {
 case class Document(transform: Transform = Transform(), root: Group)
 
 trait Drawable extends Shapey
-
-trait PositionableShapey extends Shapey with Positionable[PositionableShapey]
 
 trait SizableShapey extends Shapey with Sizable[SizableShapey] {
   override def printSize: String = sizing.toString

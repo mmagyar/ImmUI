@@ -1,13 +1,12 @@
 package mmagyar.ui.group.dynamic
 
-import mmagyar.ui.core.{ElementList, PositionableShapey, Shapey}
+import mmagyar.ui.core.{ElementList, Shapey}
 import mmagyar.ui.group.{GenericGroup, GenericGroupExternallyModifiable}
 import mmagyar.util.{Box, Point}
 
 /** Magyar Máté 2017, all rights reserved */
 trait DynamicGroupBase[T <: GenericGroupExternallyModifiable[T]]
-    extends GenericGroupExternallyModifiable[T]
-    with PositionableShapey { this: T =>
+    extends GenericGroupExternallyModifiable[T] { this: T =>
   def margin: Box
   def _elementList: ElementList
 
@@ -24,7 +23,7 @@ trait DynamicGroupBase[T <: GenericGroupExternallyModifiable[T]]
 
 trait DynamicGroupBasedWidgetBase[T <: GenericGroupExternallyModifiable[T]]
     extends GenericGroupExternallyModifiable[T]
-    with PositionableShapey { this: T =>
+  { this: T =>
 
 //  def _elementList: Option[ElementList]
 

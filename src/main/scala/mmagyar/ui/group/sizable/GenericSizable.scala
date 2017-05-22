@@ -10,7 +10,6 @@ import mmagyar.util.{BoundingBox, Box, Point}
 /** Magyar Máté 2017, all rights reserved */
 abstract class GenericSizable[T <: GenericSizable[T]](_elements: ElementList)
     extends GenericGroupExternallyModifiable[T]
-    with PositionableShapey
     with SizableShapey { this: T =>
 
   def margin: Box

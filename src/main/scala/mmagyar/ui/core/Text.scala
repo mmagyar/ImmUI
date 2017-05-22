@@ -17,8 +17,7 @@ final case class Text(
     id: ShapeyId = ShapeyId()
 ) extends Drawable
     with LookableShapey
-    with LabelableShapey
-    with PositionableShapey {
+    with LabelableShapey {
 
   override def looks(looks: Looks): Text = if (looks != this.looks) copy(looks = looks) else this
 

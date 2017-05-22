@@ -39,7 +39,6 @@ final case class MultilineText(
     font: Font,
     minSize: Point
 ) extends Groupable[MultilineText]
-    with PositionableShapey
     with SizableShapey
     with LabelableShapey {
 

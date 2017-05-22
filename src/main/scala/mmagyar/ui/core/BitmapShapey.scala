@@ -56,8 +56,7 @@ final case class BitmapShapey(
     zOrder: Double = 1,
     id: ShapeyId = ShapeyId()
 ) extends Drawable
-    with SizableShapey
-    with PositionableShapey {
+    with SizableShapey{
 
   override def position(point: Point): BitmapShapey =
     if (position != point) copy(position = point) else this

@@ -11,7 +11,7 @@ final case class Rect(sizing: Sizing = Sizing.dynamic(),
                       id: ShapeyId = ShapeyId())
   extends Drawable
       with LookableShapey
-      with PositionableShapey
+
       with SizableShapey {
 
     override def looks(looks: Looks): Rect = if (looks != this.looks) copy(looks = looks) else this

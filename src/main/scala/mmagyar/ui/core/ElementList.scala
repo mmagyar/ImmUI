@@ -59,35 +59,30 @@ class ElementList(_elements: Vector[Shapey],
                   val offsetElements: Point = Point.zero)
     extends ElementListable {
 
-  private val positionable: Vector[PositionableShapey] = _elements.map(passBounds).collect {
-    case a: PositionableShapey => a
-  }
-
-  private val static: Vector[Shapey] = _elements.map(passBounds).collect {
-    case a if !a.isInstanceOf[PositionableShapey] => a
-  }
-
+  /**
+    * Passes bounds to child groups (that are externally modifiable) if child is dynamic
+    * @param x element to bass to
+    * @return element with possibly modified bound
+    */
   private def passBounds(x: Shapey): Shapey = x match {
     case b: GenericGroupExternallyModifiable[_] => b.setBoundToDynamic(organize.size);
     case b                                      => b
   }
 
   val elements: Vector[Shapey] =
-    organize
-      .organize[PositionableShapey](positionable, offsetElements, organizeToBounds) ++
-      static
+    organize.organize(_elements.map(passBounds), offsetElements, organizeToBounds)
 
   def change[K <: Shapey](changePf: PartialFunction[Shapey, K],
-                          recursive: Boolean = true): ElementList =
-    map {
-      case a if changePf.isDefinedAt(a)                       => changePf(a)
-      case a: GroupableWithBehaveableChildren[_] if recursive => a.change(changePf, recursive)
-      case a                                                  => a
-    }
+                          recursive: Boolean = true): ElementList = map {
+    case a if changePf.isDefinedAt(a)                       => changePf(a)
+    case a: GroupableWithBehaveableChildren[_] if recursive => a.change(changePf, recursive)
+    case a                                                  => a
+  }
 
   def map(fn: (Shapey) => Shapey): ElementList = copy(elements.map(fn))
 
-  //TODO check if unprocessed or the processed should be the default
+  //TODO check if unprocessed or the processed should be the default,
+  // it's deterministic so it should not make a difference.
   def copy(elements: Vector[Shapey] = elements,
            organize: Organize = organize,
            organizeToBounds: Option[Boolean] = organizeToBounds,
@@ -101,14 +96,6 @@ class ElementList(_elements: Vector[Shapey],
       this
     else
       new ElementList(elements, organize, organizeToBounds, offset)
-
-  def asOrganizeToBounds: ElementList =
-    if (organizeToBounds.contains(true)) this
-    else new ElementList(elements, organize, Some(true), offsetElements)
-
-  def asOrganizeToActual: ElementList =
-    if (organizeToBounds.contains(false)) this
-    else new ElementList(elements, organize, Some(false), offsetElements)
 
   override def equals(o: Any): Boolean = o match {
     case that: ElementList =>
