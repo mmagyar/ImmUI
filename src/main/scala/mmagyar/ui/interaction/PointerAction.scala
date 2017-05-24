@@ -5,6 +5,23 @@ import mmagyar.ui.group.dynamic.TransformGroup
 import mmagyar.util.{Degree, Point, PointTransform, Rotation}
 
 /** Magyar Máté 2016, all rights reserved */
+case class TrackerState(
+    lastPointerState: PointerState = PointerState(Point.zero, switch = false),
+    lastTracker: Tracker = Tracker.zero,
+    tracker: Tracker = Tracker.zero
+) {
+  def go(pointerState: Option[PointerState], scroll: Point): TrackerState = {
+    val currentPointerState = pointerState.getOrElse(lastPointerState)
+    copy(currentPointerState, tracker, tracker.processPointer(currentPointerState, scroll))
+  }
+
+  def tracker(value: Tracker): TrackerState =
+    if (value == tracker) this else copy(tracker = value)
+
+  def changed: Boolean = (tracker != lastTracker) || (tracker.scroll != Point.zero)
+}
+case class PointerInteraction(document: Document, tracker: TrackerState)
+
 /**
   * Soo, quick rundown how this method should/will/does work
   *
@@ -29,39 +46,30 @@ class PointerAction(
       * but additional behaviour, we don't want to trigger actions multiple times */
     val triggerBehaviour: Boolean = false) {
 
-  var lastPointerState: PointerState = PointerState(Point.zero, switch = false)
-  var lastTracker: Tracker =
-    Tracker(
-      switch = false,
-      currentPosition = Point.zero,
-      lastMove = Point.zero,
-      downPos = Point.zero)
-  var tracker: Tracker = lastTracker
-
-  def act(pointerState: PointerState, group: Document): Document = act(Some(pointerState), group)
+  def act(pointerState: PointerState, input: PointerInteraction): PointerInteraction =
+    act(Some(pointerState), input)
 
   /**
     * This method will modify the Document according to it's behaviour
-    * @param pointerState PointerState
-    * @param group Document
-    * @return Document
+    *
+    * @param pointerState currentPointerState
+    * @param input inputDataStructure
+    * @param scroll Scrolled pixels
+    * @return
     */
   def act(pointerState: Option[PointerState] = None,
-          group: Document,
-          scroll: Point = Point.zero): Document = {
+          input: PointerInteraction,
+          scroll: Point = Point.zero): PointerInteraction = {
 
-    lastTracker = tracker
-    val currentPointerState = pointerState.getOrElse(lastPointerState)
-    tracker = tracker.processPointer(currentPointerState, scroll)
-    lastPointerState = currentPointerState
+    val nt = input.tracker.go(pointerState, scroll)
 
-    if (tracker != lastTracker || tracker.scroll != Point.zero) {
-      val actionElements = getElement(group, tracker.currentPosition)
+    if (nt.changed) {
+      val actionElements = getElement(input.document, nt.tracker.currentPosition)
 
-      tracker =
-        if (tracker.state == State.Press)
-          tracker.copy(downElements = actionElements, overElements = actionElements)
-        else tracker.copy(overElements = actionElements)
+      val tracker =
+        if (nt.tracker.state == State.Press)
+          nt.tracker.copy(downElements = actionElements, overElements = actionElements)
+        else nt.tracker.copy(overElements = actionElements)
 
       /**
         * When dragging, also fire the event the origin elements
@@ -73,17 +81,21 @@ class PointerAction(
           case PointedElement(c, b: Behaveable[_]) if b.behaviour.canBehave(tracker) =>
             PointedElement(c, b)
         }
-      val a  = group.copy(
-        root = behavables.foldLeft(group.root)(
-          (p, c) =>
-            p.change({
-              case a: Behaveable[_] if a.id == c.shapey.id  =>
-                a.behave(tracker.transform(c.transformations.foldLeft(_)((p, c) =>
-                  c.transformReverse(p))))
-            })
-        ))
-      a
-    } else group
+      PointerInteraction(
+        input.document
+          .copy(
+            root = behavables.foldLeft(input.document.root)(
+              (p, c) =>
+                p.change({
+                  case a: Behaveable[_] if a.id == c.shapey.id =>
+                    a.behave(tracker.transform(x =>
+                      c.transformations.foldLeft(x)((p, c) => c.transformReverse(p))))
+                })
+            ))
+          .syncData,
+        nt.tracker(tracker)
+      )
+    } else input
 
   }
 

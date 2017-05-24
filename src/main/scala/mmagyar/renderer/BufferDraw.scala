@@ -1,6 +1,5 @@
-package mmagyar.ui.draw
+package mmagyar.renderer
 
-import mmagyar.ui._
 import mmagyar.ui.core._
 import mmagyar.ui.group.dynamic.TransformGroup
 import mmagyar.util.{BoundingBox, Point, _}

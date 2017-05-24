@@ -1,4 +1,4 @@
-package mmagyar.ui
+package mmagyar.renderer
 
 import mmagyar.util._
 

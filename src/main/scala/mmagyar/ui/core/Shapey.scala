@@ -1,7 +1,6 @@
 package mmagyar.ui.core
 
 import mmagyar.layout._
-import mmagyar.ui.group.dynamic.Group
 import mmagyar.ui.interaction.{Behaviour, Tracker}
 import mmagyar.util._
 
@@ -56,8 +55,6 @@ sealed trait Shapey extends Material with Positionable[Shapey] {
   final override def toString: String = elementsPrint()
 
 }
-
-case class Document(transform: Transform = Transform(), root: Group)
 
 trait Drawable extends Shapey
 

@@ -1,11 +1,12 @@
 package mmagyar.javax
 
 import mmagyar.layout._
+import mmagyar.ui.bind.{DataProvider, DataProviderMap, Required, Supplied}
 import mmagyar.ui.builder.BuildContainer
 import mmagyar.ui.core._
-import mmagyar.ui.group.dynamic.{Group, TransformGroup}
+import mmagyar.ui.group.dynamic.{DynamicGroupBase, Group, TransformGroup}
 import mmagyar.ui.group.sizable.SizableGroup
-import mmagyar.ui.interaction.{BehaviourBasic, InjectedBehaviourAction}
+import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction}
 import mmagyar.ui.widget._
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util._
@@ -15,7 +16,6 @@ object DemoScenarios {
 
   def testString(num: Int): String =
     s"__${num}__ THIS IS A LONG STRING, AS AN EXAMPLE : __${num}__"
-
 
   lazy val bmp = BitmapShapey(
     Point.zero,
@@ -155,9 +155,53 @@ object DemoScenarios {
         //    sizing = Sizing(200,200),
         position = Point(0, 0)
       ))
+
+  case class BoundGroupDemo(_elementList: ElementList = ElementList(Rect(Sizing(30, 30))),
+                            position: Point = Point(150, 300),
+                            margin: Box = Box.zero,
+                            zOrder: Double = 1,
+                            id: ShapeyId = ShapeyId(),
+                            behaviour: Behaviour[BoundGroupDemo] = BehaviourBasic())
+      extends DynamicGroupBase[BoundGroupDemo]
+      with Supplied[BoundGroupDemo] {
+    override def supplyData(startingData: DataProvider): DataProvider = startingData match {
+      case a: DataProviderMap => a.put("MYSIZE", this.size)
+      case a                  => a
+    }
+    override def setElements(elementList: ElementList): BoundGroupDemo =
+      copy(_elementList = elementList)
+
+    override def position(point: Point): Shapey = copy(position = point)
+  }
+
+  case class BoundRquiredGroupDemo(_elementList: ElementList = ElementList(
+                                     Rect(Sizing(30, 30), Looks(Color.teal, Color.purple, 4))),
+                                   position: Point = Point(150, 300),
+                                   margin: Box = Box.zero,
+                                   zOrder: Double = 1,
+                                   id: ShapeyId = ShapeyId(),
+                                   behaviour: Behaviour[BoundRquiredGroupDemo] = BehaviourBasic())
+      extends DynamicGroupBase[BoundRquiredGroupDemo]
+      with Required[BoundRquiredGroupDemo] {
+
+    override def setElements(elementList: ElementList): BoundRquiredGroupDemo =
+      copy(_elementList = elementList)
+
+    override def position(point: Point): BoundRquiredGroupDemo = copy(position = point)
+
+    override def transform(value: DataProvider): BoundRquiredGroupDemo = value match {
+      case a: DataProviderMap =>
+        a.get("MYSIZE") match {
+          case Some(point: Point) => this.position(point); case _ => this
+        }
+
+    }
+  }
+
   def mainDemo: Group = Group(
     Relative(),
-
+    BoundGroupDemo(),
+    BoundRquiredGroupDemo(),
     Rect(Sizing(150, 15), zOrder = -8, position = Point(4, 4)),
     BitmapShapey(
       (5, 20),
@@ -166,21 +210,19 @@ object DemoScenarios {
       StretchBoth,
       Align2d(Align.Right, Align.Right)),
     rects.position(Point(10, 300)),
-
-      Dialogue(
-        "ohh hacky this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
-
-        Sizing(Point(240, 110)),
-        DialogueState(
-          Vector(
-            DialogueOption("OK"),
-            DialogueOption("CANCEL"),
-            DialogueOption("MAYBE"),
-            DialogueOption("NOT ENOUGH")
-          ),
-          Some(DialogueOption("OK"))
-        )
-      )(Style()).position(Point(20,20))
+    Dialogue(
+      "ohh hacky this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
+      Sizing(Point(240, 110)),
+      DialogueState(
+        Vector(
+          DialogueOption("OK"),
+          DialogueOption("CANCEL"),
+          DialogueOption("MAYBE"),
+          DialogueOption("NOT ENOUGH")
+        ),
+        Some(DialogueOption("OK"))
+      )
+    )(Style()).position(Point(20, 20))
 
 //      .copy(id = ShapeyId("HEY"), position = Point(30, 30), zOrder = 4, scale = Point(2, 2))
   )
@@ -250,7 +292,8 @@ object DemoScenarios {
       }))), zOrder = 22, id = ShapeyId("ROTATED GROUP")) //behaviour = InjectedBehaviourAction())
   )
 
-  def negative: TransformGroup = TransformGroup(Relative(), Rect(Sizing(40, 40), position = Point(-1, -1)))
+  def negative: TransformGroup =
+    TransformGroup(Relative(), Rect(Sizing(40, 40), position = Point(-1, -1)))
 
   def analysed(maxSize: Point): Group = BuildContainer.builder(maxSize, mainDemo)
 

@@ -1,6 +1,6 @@
 package mmagyar.ui.bind
 
-import mmagyar.ui.core.{Drawable, Shapey}
+import mmagyar.ui.core.{Document, Drawable, Shapey}
 import mmagyar.ui.group.GroupableWithBehaveableChildren
 import mmagyar.ui.group.dynamic.Group
 
@@ -12,12 +12,14 @@ import mmagyar.ui.group.dynamic.Group
   */
 trait DataProvider
 
+case object EmptyDataProvider extends DataProvider
+
 /**
   * This is a very simple example data provider, not ideal, but it's good for a quick fix
   * In the real word it might be a case class with declared properties
   * @param map any bound data can be stored and updated here, with a string key
   */
-case class DataProviderMap(map: Map[String, Any]) extends DataProvider {
+case class DataProviderMap(map: Map[String, Any] = Map()) extends DataProvider {
   def get(key: String): Option[Any]                 = map.get(key)
   def put(key: String, value: Any): DataProviderMap = copy(map = map.updated(key, value))
 }
@@ -26,6 +28,17 @@ case class DataProviderMap(map: Map[String, Any]) extends DataProvider {
   *
   */
 object Bind {
+
+  /**
+    * Updates the DataProvider in the document according to it's elements,
+    * and then updated the document according to the bound data
+    * @param document Document to update
+    * @return updated Document
+    */
+  def syncDocument(document: Document): Document = {
+    val newData = updateData(document.root, document.data)
+    document.copy(root = updateBinds(document.root, newData), data = newData)
+  }
 
   def updateData(group: GroupableWithBehaveableChildren[_],
                  initial: DataProvider,

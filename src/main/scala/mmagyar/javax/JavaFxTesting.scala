@@ -10,11 +10,11 @@ import javafx.scene.layout.Pane
 import javafx.stage.Stage
 
 import mmagyar.layout._
-import mmagyar.ui._
+import mmagyar.renderer.BufferDraw
+import mmagyar.ui.bind.DataProviderMap
 import mmagyar.ui.core._
-import mmagyar.ui.draw.BufferDraw
 import mmagyar.ui.group.dynamic.{Group, TransformGroup}
-import mmagyar.ui.interaction.{PointerAction, PointerState}
+import mmagyar.ui.interaction.{PointerAction, PointerInteraction, PointerState, TrackerState}
 import mmagyar.util._
 
 object JavaFxTesting {
@@ -64,8 +64,9 @@ class JavaFxTesting extends Application {
 //    DemoScenarios.mainDemo
     DemoScenarios.analysed(size)
   def baseDoc =
-    Document(root = getRoot, transform = Transform(scale = Point(1, 1)))
-  private var document: Document = baseDoc
+    Document(root = getRoot, transform = Transform(scale = Point(1, 1)), data = DataProviderMap())
+  private var document: Document         = baseDoc.syncData
+  private var trackerState: TrackerState = TrackerState()
 
   val bufferDraw = new BufferDraw()
 
@@ -221,15 +222,21 @@ class JavaFxTesting extends Application {
     at.start()
   }
 
-  def changeDoc(doc: (Document) => Document): Unit = {
+  def changeDoc(doc: (PointerInteraction) => PointerInteraction): Unit = {
     val timing  = Timing()
-    val changed = doc(this.document)
-    if (changed != this.document) {
-      this.document = changed
+    val changed = doc(PointerInteraction(this.document, this.trackerState))
+
+    val didChange = if (changed.document != this.document) {
+      this.document = changed.document
+      println(changed.document.data)
       needsUpdate = true
-    }
+      true
+    } else false
+    this.trackerState = changed.tracker
     if (writeRenderTime && timing.totalTime > 0.5)
-      timing.print("Document changed slow ")
+      timing.print(
+        "Document " + (if (didChange) "processed and changed"
+                       else "processed without change") + " slow ")
 
   }
   def document(document: Document): Unit = {
@@ -240,8 +247,6 @@ class JavaFxTesting extends Application {
       needsUpdate = true
     }
   }
-
-  val refD = new ReferenceDraw
 
   private val pw = gc.getPixelWriter
 

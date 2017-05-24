@@ -39,6 +39,13 @@ sealed trait State
 
 case class PointedElement(transformations: Vector[PointTransform], shapey: Shapey)
 
+object Tracker {
+  val zero:Tracker = Tracker(
+    switch = false,
+    currentPosition = Point.zero,
+    lastMove = Point.zero,
+    downPos = Point.zero)
+}
 case class Tracker(switch: Boolean,
                    currentPosition: Point,
                    state: State = State.Idle,

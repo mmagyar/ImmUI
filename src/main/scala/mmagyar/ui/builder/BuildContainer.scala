@@ -79,13 +79,13 @@ object BuildContainer {
               val cc = tracker.downElements.map(_.shapey).collect {
                 case a: DecoratedGroup[ShapeyId @unchecked] if a.data.isInstanceOf[ShapeyId] => a
               }
-              println("BEHAVE" + cc.size)
+//              println("BEHAVE" + cc.size)
 
               cc.headOption
                 .map(x => {
                   group.change({
                     case a: SizableShapey if a.id == x.data =>
-                      println("AND CHAGE: " + a.sizing)
+//                      println("AND CHAGE: " + a.sizing)
                       a.size(a.size + Point(1, 1))
                       //This is noice, but updating the editor :( how?
                   })

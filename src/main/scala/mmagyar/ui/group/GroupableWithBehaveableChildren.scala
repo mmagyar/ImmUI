@@ -28,7 +28,7 @@ trait GroupableWithBehaveableChildren[A <: Groupable[A]] extends Groupable[A] { 
     * NEVER declare this case in your partial function if you want recursion:
     * `case a => a` because that will stop recursion.
     *
-    * Change method is neccessery, since this is the way behaviour can act on it's children
+    * Change method is necessary, since this is the way behaviour can act on it's children
     * If the element is being changed by this, it will NOT be mapped over recursively.
     */
   def change[K <: Shapey](changePf: PartialFunction[Shapey, K], recursive: Boolean = true): A =
