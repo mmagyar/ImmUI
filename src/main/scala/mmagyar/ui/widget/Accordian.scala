@@ -58,7 +58,7 @@ case class Accordian private (data: Vector[Accord],
                               _elementList: Option[ElementList])
     extends DynamicGroupBasedWidgetBase[Accordian] {
 
-  override val elementList: ElementList = _elementList match {
+  override lazy val elementList: ElementList = _elementList match {
     case Some(value) => value
     case None        => ElementList(data.map(x => x.header), organize)
   }

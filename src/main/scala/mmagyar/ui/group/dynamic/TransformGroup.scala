@@ -7,7 +7,8 @@ import mmagyar.ui.interaction._
 import mmagyar.util._
 
 object TransformGroup {
-  def apply(elements: Shapey*): TransformGroup = TransformGroup(ElementList(elements: _*), Point.zero)
+  def apply(elements: Shapey*): TransformGroup =
+    TransformGroup(ElementList(elements: _*), Point.zero)
 
   def apply(organize: Organize, elements: Shapey*): TransformGroup =
     TransformGroup(ElementList(organize, elements: _*), Point.zero)
@@ -15,11 +16,12 @@ object TransformGroup {
   def apply(organize: Organize, elements: Vector[Shapey], position: Point): TransformGroup =
     TransformGroup(ElementList(organize, elements: _*), position = position)
 
-
   def apply(organize: Organize, elements: Vector[Shapey]): TransformGroup =
     TransformGroup(ElementList(organize, elements: _*))
 
-  def apply(organize: Organize, behaviour: Behaviour[TransformGroup], elements: Shapey*): TransformGroup =
+  def apply(organize: Organize,
+            behaviour: Behaviour[TransformGroup],
+            elements: Shapey*): TransformGroup =
     TransformGroup(ElementList(organize, elements: _*), Point.zero, behaviour = behaviour)
 
   def vertical(position: Point,
@@ -52,31 +54,31 @@ object TransformGroup {
   * @param behaviour   Behaviour
   */
 final case class TransformGroup(elementList: ElementList,
-                       position: Point = Point.zero,
-                       rotation: Degree = Degree(0),
-                       scale: Point = Point.one,
-                       zOrder: Double = 1,
-                       id: ShapeyId = ShapeyId(),
-                       behaviour: Behaviour[TransformGroup] = BehaviourBasic())
+                                position: Point = Point.zero,
+                                rotation: Degree = Degree(0),
+                                scale: Point = Point.one,
+                                zOrder: Double = 1,
+                                id: ShapeyId = ShapeyId(),
+                                behaviour: Behaviour[TransformGroup] = BehaviourBasic())
     extends GenericGroupExternallyModifiable[TransformGroup]
     with RotatableShapey {
 
-  val preRotationBbox: BoundingBox = this.elements
+  lazy val preRotationBbox: BoundingBox = this.elements
     .foldLeft(BoundingBox.zero)((p, c) =>
       BoundingBox(Point.zero, p.size max c.boundingBox.addSize(c.boundingBox.position).size))
 
-  private val boundingBoxProto: BoundingBox = preRotationBbox.rotatedBBox(rotation)
+  private lazy val boundingBoxProto: BoundingBox = preRotationBbox.rotatedBBox(rotation)
 
   //This is required for the reference drawer and interactions,
   // might need to find a better solution in the future
-  val rotationPositionCorrection: Point = boundingBoxProto.position * scale
+  lazy val rotationPositionCorrection: Point = boundingBoxProto.position * scale
 
-  val unRotatedBbox: BoundingBox =
+  lazy val unRotatedBbox: BoundingBox =
     preRotationBbox.position(position).size(preRotationBbox.size * scale)
-  override val boundingBox: BoundingBox =
+  override lazy val boundingBox: BoundingBox =
     boundingBoxProto.position(position).size(boundingBoxProto.size * scale)
 
-  override val size: Point = boundingBox.size
+  override def size: Point = boundingBox.size
 //  override val position: Point = boundingBox.position
 
   override def rotation(degree: Degree): TransformGroup =
@@ -94,7 +96,7 @@ final case class TransformGroup(elementList: ElementList,
 
   override lazy val customToString: String = s"rotation: ${rotation.value}"
 
-  override def mapElements(map: (Shapey) => Shapey): TransformGroup = setElements(elementList.map(map))
-
+  override def mapElements(map: (Shapey) => Shapey): TransformGroup =
+    setElements(elementList.map(map))
 
 }

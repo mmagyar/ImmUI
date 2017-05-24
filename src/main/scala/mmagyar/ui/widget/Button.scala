@@ -41,31 +41,31 @@ case class Button(text: String,
     with Behaveable[Button]
   {
 
-  private val margin = style.buttonMargin
-  private val textElPre = Text(
+  private lazy val margin = style.buttonMargin
+  private lazy val textElPre = Text(
     text,
     if (active) style.fontLooksActive else style.fontLooks,
     position = style.defaultButtonTextMargin.topLeft + margin.topLeft,
     id = id.append("_TEXT"))
 
-  private val minSizeDiff = minWidth - textElPre.size.x
+  private lazy val minSizeDiff = minWidth - textElPre.size.x
 
-  private val textEl =
+  private lazy val textEl =
     if (minSizeDiff < 0) textElPre
     else textElPre.position(textElPre.position.addX(minSizeDiff / 2))
 
-  private val rectSize
+  private lazy val rectSize
     : Point       = textEl.size.max(Point(minWidth, textEl.size.y)) + style.defaultButtonTextMargin.pointSum
   val size: Point = rectSize + margin.pointSum
 
-  private val bg: Rect =
+  private lazy val bg: Rect =
     Rect(
       Sizing(rectSize),
       if (active) style.buttonLooksActive else style.buttonLooks,
       position = margin.topLeft,
       id = id.append("_BG"))
 
-  override val elementList: ElementList = ElementList(textEl, bg)
+  override lazy val elementList: ElementList = ElementList(textEl, bg)
 
   override def position(point: Point): Button =
     if (position == point) this else copy(position = point)(style)

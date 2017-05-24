@@ -115,36 +115,36 @@ class ScrollbarGroup[T <: GenericSizable[T]](
       case Self => genericSizable
     }
 
-  private val scrollProviderTemp = getScrollProvider(child2)
-  val drawScrollBar: (Boolean, Boolean) =
+  private lazy val scrollProviderTemp = getScrollProvider(child2)
+  lazy val drawScrollBar: (Boolean, Boolean) =
     (
       scrollBars._1.getOrElse(scrollProviderTemp.canOffset._1),
       scrollBars._2.getOrElse(scrollProviderTemp.canOffset._2))
 
-  val scrollBarSize = Point(
+  lazy val scrollBarSize = Point(
     if (drawScrollBar._2) style.scrollBar.x else 0,
     if (drawScrollBar._1) style.scrollBar.y else 0)
 
-  val child: GenericSizable[T] =
+  lazy val child: GenericSizable[T] =
     maxSizing
       .map(x => resizeSubElementsIncludeScrollBar(child2, scrollProviderTemp.id, scrollBarSize, x))
       .getOrElse(child2)
-  private val childId = child.id
+  private def childId = child.id
 
-  val scrollProvider: GenericSizable[T] = getScrollProvider(child)
+  lazy val scrollProvider: GenericSizable[T] = getScrollProvider(child)
 
-  private val scrollW = child.size.union(
+  private lazy val scrollW = child.size.union(
     (x, ps) =>
       if (x > ps._1(scrollProvider.totalScrollSize)) x
       else ((x / ps._1(scrollProvider.totalScrollSize)) * x).max(4))
-  private val scrollKnobOffset = scrollProvider.scrollPercent * (child.size - scrollW)
+  private lazy val scrollKnobOffset = scrollProvider.scrollPercent * (child.size - scrollW)
 
   val scrollBarXId: ShapeyId = ShapeyId(id.symbol.name + "ScrollX_bar")
   val scrollBarYId: ShapeyId = ShapeyId(id.symbol.name + "ScrollY_bar")
   val knobXId: ShapeyId      = ShapeyId(id.symbol.name + "ScrollX_Knob")
   val knobYId: ShapeyId      = ShapeyId(id.symbol.name + "ScrollY_Knob")
 
-  val xScrollbar: Vector[Rect] =
+  lazy val xScrollbar: Vector[Rect] =
     if (drawScrollBar._1)
       Vector(
         Rect(
@@ -161,7 +161,7 @@ class ScrollbarGroup[T <: GenericSizable[T]](
       )
     else Vector.empty
 
-  val yScrollBar: Vector[Rect] =
+  lazy val yScrollBar: Vector[Rect] =
     if (drawScrollBar._2)
       Vector(
         Rect(
@@ -177,18 +177,19 @@ class ScrollbarGroup[T <: GenericSizable[T]](
           id = knobYId)
       )
     else Vector.empty
-  val elementList = ElementList(
+  lazy val elementList = ElementList(
     (if ((child.position: Point) != Point.zero)
-       child.position(Point.zero) else child) +:
+       child.position(Point.zero)
+     else child) +:
       (yScrollBar ++ xScrollbar),
     Relative()
   )
 
   //This is not nice :*-(
-  private val cChild: GenericSizable[T] =
+  private lazy val cChild: GenericSizable[T] =
     elementList.elements.find(x => x.id == childId).get.asInstanceOf[GenericSizable[T]]
 
-  override val behaviour: Behaviour[ScrollbarGroup[T]] = ScrollbarGroup.DefaultBehaviour[T]()
+  override lazy val behaviour: Behaviour[ScrollbarGroup[T]] = ScrollbarGroup.DefaultBehaviour[T]()
   override def mapElements(map: (Shapey) => Shapey): ScrollbarGroup[T] =
     copyInternal(child = map(cChild) match {
       case a: GenericSizable[T @unchecked] => a

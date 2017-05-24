@@ -3,7 +3,6 @@ package mmagyar.ui.group
 import mmagyar.ui.core.{Groupable, Shapey}
 
 /** Magyar Máté 2017, all rights reserved */
-
 case class ChangeWithParents(shapey: Shapey, parents: Vector[Shapey])
 
 trait GroupableWithBehaveableChildren[A <: Groupable[A]] extends Groupable[A] { this: A =>
@@ -38,4 +37,16 @@ trait GroupableWithBehaveableChildren[A <: Groupable[A]] extends Groupable[A] { 
       case a: GroupableWithBehaveableChildren[_] if recursive => a.change(changePf, recursive)
       case a                                                  => a
     }
+
+  def changeSubGroupFirst[K <: Shapey](changePf: PartialFunction[Shapey, K],
+                                       recursive: Boolean = true): A =
+    mapElements {
+      case a: GroupableWithBehaveableChildren[_] if recursive && changePf.isDefinedAt(a) =>
+        changePf(a.changeSubGroupFirst(changePf, recursive))
+      case a if changePf.isDefinedAt(a) => changePf(a)
+      case a: GroupableWithBehaveableChildren[_] if recursive =>
+        a.changeSubGroupFirst(changePf, recursive)
+      case a => a
+    }
+
 }
