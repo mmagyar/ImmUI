@@ -1,5 +1,6 @@
 package mmagyar.ui.widget
 
+import mmagyar.ihbp.Widget
 import mmagyar.layout._
 import mmagyar.ui.core._
 import mmagyar.ui.group.dynamic.DynamicGroupBasedWidgetBase
@@ -37,8 +38,8 @@ object Accordian {
         .getOrElse(el)
     })))
 
-  def apply(id: ShapeyId, accords: Accord*): Accordian = Accordian(accords.toVector, id = id)
-  def apply(accords: Accord*): Accordian               = Accordian(accords.toVector)
+  def apply(id: ShapeyId, accords: Accord*): Accordian = new Accordian(accords.toVector, id = id)
+  def apply(accords: Accord*): Accordian               = new Accordian(accords.toVector)
   def apply(data: Vector[Accord],
             organize: Organize = Vertical(Layout(alignContent = Align.Stretch(Align.Left))),
             zOrder: Double = 1,
@@ -49,13 +50,14 @@ object Accordian {
 
 }
 
-case class Accordian private (data: Vector[Accord],
-                              organize: Organize,
-                              zOrder: Double,
-                              margin: Box,
-                              position: Point,
-                              id: ShapeyId,
-                              _elementList: Option[ElementList])
+@Widget
+class Accordian private (val data: Vector[Accord],
+                         val organize: Organize = Vertical(Layout(alignContent = Align.Stretch(Align.Left))),
+                         val   zOrder: Double =1,
+                         val   margin: Box=Box.zero,
+                         val    position: Point = Point.zero,
+                         val    id: ShapeyId= ShapeyId(),
+                         val    _elementList: Option[ElementList] = None)
     extends DynamicGroupBasedWidgetBase[Accordian] {
 
   override lazy val elementList: ElementList = _elementList match {

@@ -1,4 +1,5 @@
 package mmagyar.ui.builder
+
 import mmagyar.layout._
 import mmagyar.ui.core._
 import mmagyar.ui.group._

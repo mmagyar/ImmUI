@@ -1,6 +1,5 @@
 package mmagyar.layout
 
-
 import mmagyar.util.Point
 
 /** Magyar Máté 2017, all rights reserved */
