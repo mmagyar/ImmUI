@@ -25,7 +25,6 @@ trait DynamicGroupBasedWidgetBase[T <: GenericGroupExternallyModifiable[T]]
     extends GenericGroupExternallyModifiable[T]
   { this: T =>
 
-//  def _elementList: Option[ElementList]
 
   lazy val size: Point = GenericGroup.sizeForElements(elements)
 

@@ -15,14 +15,12 @@ import mmagyar.ui.bind.DataProviderMap
 import mmagyar.ui.core._
 import mmagyar.ui.group.dynamic.{Group, TransformGroup}
 import mmagyar.ui.interaction.{PointerAction, PointerInteraction, PointerState, TrackerState}
-import mmagyar.ui.widget.{ TestWidget}
 import mmagyar.util._
 
 object JavaFxTesting {
   def main(args: Array[String]): Unit = {
-    import scala.meta._
 
-    println(TestWidget.cx)
+//    println(TestWidget.cx)
 //    val a = "class abc(val a:Int = 4, b:String = \"asc\")".parse[Source]
 //    val aa = new Accordian(Vector())
     Application.launch(classOf[JavaFxTesting], args: _*)

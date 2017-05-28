@@ -5,6 +5,7 @@ import mmagyar.layout._
 import mmagyar.ui.core._
 import mmagyar.ui.group.dynamic.DynamicGroupBasedWidgetBase
 import mmagyar.ui.interaction.{Behaviour, BehaviourAction, BehaviourBasic}
+import mmagyar.ui.widget.base.{DynamicWidgetBase, WidgetBase, WidgetCommon, WidgetCommonInternal}
 import mmagyar.util.{Box, Point}
 
 /** Magyar Máté 2017, all rights reserved */
@@ -38,38 +39,33 @@ object Accordian {
         .getOrElse(el)
     })))
 
-  def apply(id: ShapeyId, accords: Accord*): Accordian = new Accordian(accords.toVector, id = id)
-  def apply(accords: Accord*): Accordian               = new Accordian(accords.toVector)
-  def apply(data: Vector[Accord],
-            organize: Organize = Vertical(Layout(alignContent = Align.Stretch(Align.Left))),
-            zOrder: Double = 1,
-            margin: Box = Box.zero,
-            position: Point = Point.zero,
-            id: ShapeyId = ShapeyId()): Accordian =
-    new Accordian(data, organize, zOrder, margin, position, id, None)
+  def apply(id: ShapeyId, accords: Accord*): Accordian =
+    Accordian(accords.toVector, WidgetCommon.id(id))
+  def apply(accords: Accord*): Accordian = Accordian(accords.toVector)
+  def apply(data: Vector[Accord], common: WidgetCommon = WidgetCommon()): Accordian =
+    new Accordian(data, common.toInternal)
 
 }
 
-@Widget
-class Accordian private (val data: Vector[Accord],
-                         val organize: Organize = Vertical(Layout(alignContent = Align.Stretch(Align.Left))),
-                         val   zOrder: Double =1,
-                         val   margin: Box=Box.zero,
-                         val    position: Point = Point.zero,
-                         val    id: ShapeyId= ShapeyId(),
-                         val    _elementList: Option[ElementList] = None)
-    extends DynamicGroupBasedWidgetBase[Accordian] {
-
-  override lazy val elementList: ElementList = _elementList match {
-    case Some(value) => value
-    case None        => ElementList(data.map(x => x.header), organize)
-  }
+class Accordian(val data: Vector[Accord], val common: WidgetCommonInternal)
+    extends DynamicWidgetBase[Accordian] {
 
   override def behaviour: Behaviour[Accordian] = Accordian.behaviour
 
-  override def position(point: Point): Accordian  =
-    if (point == position) this else copy(position = point)
+  override def generateElements: ElementList =
+    ElementList(
+      data.map(x => x.header),
+      Vertical(Layout(alignContent = Align.Stretch(Align.Left))))
 
-  override def setElements(elementList: ElementList): Accordian =
-    if (elementList == this.elementList) this else copy(_elementList = Some(elementList))
+  override protected def copyCommon(commonValue: WidgetCommonInternal): Accordian =
+    if (commonValue == common) this else new Accordian(data, commonValue)
+
+  def data(dataValue: Vector[Accord]): Accordian =
+    if (dataValue != this.data) new Accordian(dataValue, common.reset) else this
+
+  override def equals(obj: Any): Boolean = obj match {
+    case a: Accordian if a.common == this.common && a.data == this.data => true
+    case _                                                              => false
+  }
+
 }

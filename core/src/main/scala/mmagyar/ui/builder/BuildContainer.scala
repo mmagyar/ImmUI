@@ -52,7 +52,6 @@ object BuildContainer {
 
       val grp = Vector(MultilineText(shapey.stringToWithoutChild, looks = look))
 
-
       Accord(
         MultilineText("ID: " + shapey.id, looks = look),
         BgGroup(
@@ -88,7 +87,7 @@ object BuildContainer {
                     case a: SizableShapey if a.id == x.data =>
 //                      println("AND CHAGE: " + a.sizing)
                       a.size(a.size + Point(1, 1))
-                      //This is noice, but updating the editor :( how?
+                    //This is noice, but updating the editor :( how?
                   })
                 })
                 .getOrElse(group)
@@ -104,12 +103,8 @@ object BuildContainer {
                         case _                  => Vector.empty
                       }) :+ accordCreate(shapey)
                     }
-
-                    Accordian(
-                      tracker.downElements.headOption.toVector.flatMap(y =>
-                        shapeyToAccord(y.shapey)),
-                      a.elementList.organize,
-                      id = a.id)
+a.data( tracker.downElements.headOption.toVector.flatMap(y =>
+                        shapeyToAccord(y.shapey)))
 
                   case a: Text =>
                     val text =
