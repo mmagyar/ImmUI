@@ -2,7 +2,7 @@ package mmagyar.util.font.bdf
 
 import mmagyar.ui.core.{BitmapChar, FontBitmap}
 import mmagyar.util.Point
-import mmagyar.util.font.bdf.Font.IntPoint
+import mmagyar.util.Point.IntPoint
 
 import scala.collection.immutable.Map
 import scala.io.Source
@@ -30,7 +30,7 @@ case class CharPixel(size: IntPoint,
   }
 }
 object Font {
-  type IntPoint = (Int, Int)
+
   def add(a: IntPoint, b: IntPoint): IntPoint = (a._1 + b._1, a._2 + b._2)
 
 }

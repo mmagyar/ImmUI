@@ -1,4 +1,4 @@
-package mmagyar.javax
+package mmagyar.javafx
 
 import mmagyar.layout._
 import mmagyar.ui.bind.{DataProvider, DataProviderMap, Required, Supplied}

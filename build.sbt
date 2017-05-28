@@ -24,13 +24,20 @@ lazy val macroSettings = Seq(
 )
 
 lazy val macros = (project in file("macros"))
-//  .enablePlugins(ScalaJSPlugin)
   .settings(macroSettings)
 
 lazy val core = (project in file("core"))
-//  .enablePlugins(ScalaJSPlugin)
   .settings(macroSettings)
   .dependsOn(macros)
+
+lazy val extended = (project in file("extended"))
+  .settings(macroSettings)
+  .dependsOn(core)
+
+
+lazy val javafx = (project in file("javafx"))
+  .settings(macroSettings)
+  .dependsOn(extended)
 
 //libraryDependencies ++= Seq(
 //  "com.chuusai" %% "shapeless" % "2.3.2"

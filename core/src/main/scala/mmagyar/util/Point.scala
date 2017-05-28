@@ -4,6 +4,9 @@ import scala.language.implicitConversions
 
 /** Magyar Máté 2016, all rights reserved */
 object Point {
+
+  type IntPoint = (Int, Int)
+
   val zero: Point     = Point(0, 0)
   val one: Point      = Point(1, 1)
   val large: Point    = Point(Double.MaxValue / 4, Double.MaxValue / 4)
@@ -24,11 +27,10 @@ object Point {
     */
   def interpolate(v1: Double, v2: Double, value: Double): Double = v1 + (v2 - v1) * value
 
-
   def apply(coordinates: (Int, Int)): Point = Point(coordinates._1, coordinates._2)
-  def apply(x: Int,y: Int): Point = Point(x.toDouble, y.toDouble)
-  def apply(x: Float,y: Float): Point = Point(x.toDouble, y.toDouble)
-  def apply(x: Long,y: Long): Point = Point(x.toDouble, y.toDouble)
+  def apply(x: Int, y: Int): Point          = Point(x.toDouble, y.toDouble)
+  def apply(x: Float, y: Float): Point      = Point(x.toDouble, y.toDouble)
+  def apply(x: Long, y: Long): Point        = Point(x.toDouble, y.toDouble)
 //  def apply(coordinates: (Double, Double)): Point = Point(coordinates._1, coordinates._2)
 }
 
@@ -215,9 +217,9 @@ case class Point(x: Double, y: Double) {
   def comma(): String = s"${this.x},${this.y} "
   def info: String =
     if (this == Point.large) "(point near infinity)"
-    else if( x > Float.MaxValue && y > Float.MaxValue)  f"(x: above Float Max, y: above Float Max)"
-    else if( x > Float.MaxValue && y < Float.MaxValue)  f"(x: above Float Max, y: ${this.y}%.2f)"
-    else if( y > Float.MaxValue && x < Float.MaxValue)  f"(x: ${this.y}%.2f, y: above Float Max)"
+    else if (x > Float.MaxValue && y > Float.MaxValue) f"(x: above Float Max, y: above Float Max)"
+    else if (x > Float.MaxValue && y < Float.MaxValue) f"(x: above Float Max, y: ${this.y}%.2f)"
+    else if (y > Float.MaxValue && x < Float.MaxValue) f"(x: ${this.y}%.2f, y: above Float Max)"
     else f"(x: ${this.x}%.2f, y: ${this.y}%.2f)"
 
   override def toString: String = info
@@ -287,19 +289,16 @@ case class BoundingBox(position: Point = Point.zero, size: Point = Point.zero) {
     BoundingBox(this.position, this.size.sub(point))
   }
 
-
   def scaleSize(point: Point): BoundingBox = {
     BoundingBox(this.position, this.size * point)
   }
-
 
   def scalePosition(point: Point): BoundingBox = {
     BoundingBox(this.position * point, this.size)
   }
 
-
   def scale(point: Point): BoundingBox = {
-    BoundingBox(this.position * point, this.size  * point)
+    BoundingBox(this.position * point, this.size * point)
   }
 
   def positionToSize: BoundingBox = BoundingBox(Point.zero, size + position.abs)

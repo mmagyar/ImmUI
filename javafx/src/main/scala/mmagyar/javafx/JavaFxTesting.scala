@@ -1,4 +1,4 @@
-package mmagyar.javax
+package mmagyar.javafx
 
 import javafx.animation.AnimationTimer
 import javafx.application.Application
@@ -16,10 +16,11 @@ import mmagyar.ui.core._
 import mmagyar.ui.group.dynamic.{Group, TransformGroup}
 import mmagyar.ui.interaction.{PointerAction, PointerInteraction, PointerState, TrackerState}
 import mmagyar.util._
+import mmagyar.util.font.bdf.FontManager
 
 object JavaFxTesting {
   def main(args: Array[String]): Unit = {
-
+    Text.defaultFont = FontManager.loadBdfFont("fonts/u_vga16.bdf")
 //    println(TestWidget.cx)
 //    val a = "class abc(val a:Int = 4, b:String = \"asc\")".parse[Source]
 //    val aa = new Accordian(Vector())

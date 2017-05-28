@@ -1,6 +1,7 @@
 package mmagyar.ui.core
 
-import mmagyar.util.font.bdf.Font.IntPoint
+import mmagyar.util.Point.IntPoint
+
 
 /** Created by Magyar Máté on 2017-02-18, All rights reserved. */
 object Font {}

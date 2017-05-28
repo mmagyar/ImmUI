@@ -1,6 +1,7 @@
-package mmagyar.util
+package mmagyar.util.font.bdf
 
 import mmagyar.layout.Material
+import mmagyar.util.Point
 
 /** Created by Magyar Máté on 2017-01-22, All rights reserved. */
 class DebugDraw(val printSize: Point = Point(90, 40), val cameraOffset: Point = Point.zero) {

@@ -47,7 +47,7 @@ object Accordian {
 
 }
 
-class Accordian(val data: Vector[Accord], val common: WidgetCommonInternal)
+class Accordian private (val data: Vector[Accord], val common: WidgetCommonInternal)
     extends DynamicWidgetBase[Accordian] {
 
   override def behaviour: Behaviour[Accordian] = Accordian.behaviour
