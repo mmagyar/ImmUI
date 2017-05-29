@@ -2,12 +2,14 @@
 <project version="4">
   <component name="JavaProjectCodeInsightSettings">
     <excluded-names>
+      <name>com.oracle</name>
       <name>com.sun</name>
       <name>java.awt.Color</name>
       <name>java.security</name>
       <name>javafx.scene.Group</name>
       <name>javafx.scene.paint.Color</name>
       <name>javafx.scene.shape.Box</name>
+      <name>javax.jws.soap</name>
       <name>javax.swing.Box</name>
       <name>javax.swing.GroupLayout</name>
       <name>scala.collection.generic.Sizing</name>

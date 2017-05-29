@@ -8,6 +8,7 @@ import mmagyar.ui.group.dynamic.{DynamicGroupBase, Group, TransformGroup}
 import mmagyar.ui.group.sizable.SizableGroup
 import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction}
 import mmagyar.ui.widget._
+import mmagyar.ui.widget.base.WidgetSizableCommon
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util._
 
@@ -203,6 +204,12 @@ object DemoScenarios {
     BoundGroupDemo(),
     BoundRquiredGroupDemo(),
     Rect(Sizing(150, 15), zOrder = -8, position = Point(4, 4)),
+    MultilineButton(
+      "Helllo this is button",
+      active = false,
+      position = Point(150, 150)
+    //  sizing = Sizing(60, 150)
+    )(Style()),
     BitmapShapey(
       (5, 20),
       Sizing(20, 180),
