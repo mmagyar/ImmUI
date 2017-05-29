@@ -2,6 +2,7 @@ package mmagyar.ui.group.dynamic
 
 import mmagyar.layout.Organize
 import mmagyar.ui.core.{ElementList, Shapey, ShapeyId}
+import mmagyar.ui.group.{GenericGroup, GenericGroupExternallyModifiable}
 import mmagyar.ui.interaction.{Behaviour, BehaviourBasic}
 import mmagyar.util.{Box, Point}
 
@@ -29,7 +30,16 @@ final case class Group(
     zOrder: Double = 1,
     id: ShapeyId = ShapeyId(),
     behaviour: Behaviour[Group] = BehaviourBasic()
-) extends DynamicGroupBase[Group] {
+) extends GenericGroupExternallyModifiable[Group] {
+
+  lazy val elementList: ElementList = _elementList.copy(
+    offset = margin.topLeft,
+    organize = _elementList.organize.subSize(margin.pointSum)
+  )
+
+  lazy val size: Point = GenericGroup.sizeForElements(elements, margin)
+
+  override def mapElements(map: (Shapey) => Shapey): Group = setElements(elementList.map(map))
 
   override def setElements(elementList: ElementList): Group =
     if (elementList == this.elementList) this else copy(elementList)

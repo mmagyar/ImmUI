@@ -26,8 +26,10 @@ object SizableGroup {
       sizing,
       position,
       zOrder,
-      margin = margin,
-      id = id)
+      id,
+      margin,
+      BehaviourBasic(),
+      Point.zero)
 
   def apply(organize: Organize, elements: Shapey*): SizableGroup =
     SizableGroup(organize, elements.toVector)
@@ -44,8 +46,10 @@ object SizableGroup {
       sizing,
       position,
       zOrder,
-      id = id,
-      margin = margin)
+      id,
+      margin,
+      BehaviourBasic(),
+      Point.zero)
 
   def selfSizedHorizontal(maxTotalWidth: Double,
                           elements: Vector[Shapey],
@@ -64,8 +68,10 @@ object SizableGroup {
       Sizing(Point(maxTotalWidth, elementHeight)),
       position,
       zOrder,
-      id = id,
-      margin = margin)
+      id,
+      margin,
+      BehaviourBasic(),
+      Point.zero)
   }
 
   def selfSizedVertical(maxTotalHeight: Double,
@@ -73,7 +79,8 @@ object SizableGroup {
                         margin: Box = Box.zero,
                         layout: Layout = defaultLayout,
                         zOrder: Double = 1,
-                        position: Point = Point.zero): SizableGroup = {
+                        position: Point = Point.zero,
+                        id: ShapeyId = ShapeyId()): SizableGroup = {
     val bound         = BoundHeight(maxTotalHeight - margin.ySum)
     val elementsWidth = TransformGroup(Vertical(layout, bound), elements: _*).size.x + margin.xSum
     new SizableGroup(
@@ -81,7 +88,10 @@ object SizableGroup {
       Sizing(Point(elementsWidth, maxTotalHeight)),
       position,
       zOrder,
-      margin = margin
+      id,
+      margin,
+      BehaviourBasic(),
+      Point.zero
     )
   }
 
@@ -122,7 +132,9 @@ object SizableGroup {
       position,
       zOrder,
       id,
-      Box.zero
+      Box.zero,
+      BehaviourBasic(),
+      Point.zero
     )
   }
 
@@ -139,7 +151,8 @@ object SizableGroup {
       zOrder,
       id,
       margin,
-      behaviour = GenericSizable.ScrollBehaviour()
+      behaviour = GenericSizable.ScrollBehaviour(),
+      Point.zero
     )
 
   }
@@ -157,35 +170,30 @@ object SizableGroup {
   * @param id        ShapeyId
   * @param behaviour Behaviour
   */
-class SizableGroup(_elements: ElementList,
-                   val sizing: Sizing,
-                   val position: Point = Point.zero,
-                   val zOrder: Double = 1,
-                   val id: ShapeyId = ShapeyId(),
-                   val margin: Box = Box.zero,
-                   val behaviour: Behaviour[SizableGroup] = BehaviourBasic(),
-                   val _offset: Point = Point.zero)
-    extends GenericSizable[SizableGroup](_elements) {
+final case class SizableGroup(_elements: ElementList,
+                              sizing: Sizing,
+                              position: Point,
+                              zOrder: Double,
+                              id: ShapeyId,
+                              margin: Box,
+                              behaviour: Behaviour[SizableGroup],
+                              _offset: Point)
+    extends GenericSizable[SizableGroup] {
 
-  def copy(elementList: ElementList = elementList,
-           position: Point = position,
-           sizing: Sizing = sizing,
-           zOrder: Double = zOrder,
-           id: ShapeyId = id,
-           margin: Box = margin,
-           offset: Point = offset,
-           behaviour: Behaviour[SizableGroup] = behaviour): SizableGroup =
-    if (this.elementList == elementList &&
-        this.offset == offset &&
-        (this.sizing: Sizing) == (sizing: Sizing) &&
-        (this.position: Point) == (position: Point) &&
-        this.id == id &&
-        this.zOrder == zOrder &&
-        this.margin == margin &&
-        this.behaviour == behaviour) this
-    else
-      new SizableGroup(elementList, sizing, position, zOrder, id, margin, behaviour, offset)
+  def this(_elements: ElementList, sizing: Sizing, margin: Box, id: ShapeyId) = {
+    this(_elements, sizing, Point.zero, 1, id, margin, BehaviourBasic(), Point.zero)
+  }
+  override def position(point: Point): SizableGroup =
+    if (point == (this.position: Point)) this else copy(position = point)
+
+  override def sizing(sizing: Sizing): SizableGroup =
+    if (sizing == this.sizing) this else copy(sizing = sizing)
+
+  override def setElements(elementList: ElementList): SizableGroup =
+    if (elementList == this.elementList) this
+    else copy(elementList)
+
+  def offset(point: Point): SizableGroup =
+    if (point == (offset: Point)) this else copy(_offset = point)
 
 }
-
-

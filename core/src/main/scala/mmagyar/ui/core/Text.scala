@@ -8,9 +8,11 @@ import sun.font.FontManager
 /** Magyar Máté 2017, all rights reserved */
 object Text {
   //TODO we might want to move this to style or somewhere else
-  var defaultFont: Font = {
+
+  var defaultFontSource: ()=> Font = () => {
     throw new MissingResourceException("Default font is not set for TEXT", "Text", "missing_font")
   }
+  lazy val  defaultFont: Font = defaultFontSource()
 }
 
 final case class Text(

@@ -1,12 +1,9 @@
 package mmagyar.ui.widget
 
-import mmagyar.ihbp.Widget
 import mmagyar.layout._
 import mmagyar.ui.core._
-import mmagyar.ui.group.dynamic.DynamicGroupBasedWidgetBase
 import mmagyar.ui.interaction.{Behaviour, BehaviourAction, BehaviourBasic}
 import mmagyar.ui.widget.base.{DynamicWidgetBase, WidgetBase, WidgetCommon, WidgetCommonInternal}
-import mmagyar.util.{Box, Point}
 
 /** Magyar Máté 2017, all rights reserved */
 case class Accord(header: Shapey, content: Shapey)

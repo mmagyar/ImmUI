@@ -3,8 +3,10 @@ package mmagyar.ui.widget
 import mmagyar.layout._
 import mmagyar.ui.core.{ElementList, Rect, ShapeyId}
 import mmagyar.ui.group.dynamic.Group
-import mmagyar.ui.group.sizable.{DecoratedSizableGroup, SizableGroup}
+import mmagyar.ui.group.sizable.SizableGroup
 import mmagyar.ui.interaction.{Behaviour, BehaviourAction, BehaviourBasic}
+import mmagyar.ui.widget.Dialogue.{buttons, buttonsGroup}
+import mmagyar.ui.widget.base.{SizableWidgetBase, WidgetSizableCommonInternal}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Point}
 
@@ -24,15 +26,17 @@ object Dialogue {
   def createButtonId(parentId: ShapeyId, dialogueOption: DialogueOption): ShapeyId =
     parentId.append("_STATUS_", dialogueOption.id)
 
-  type Dialogue = DecoratedSizableGroup[DialogueWidgetState]
-//  def buttonContainerId(parentId: ShapeyId): ShapeyId = parentId.append("_BUTTON_CTR")
-
   def buttons(stateForButtons: DialogueState, id: ShapeyId)(
       implicit style: Style): Vector[OptionButton] =
     stateForButtons.options.map(
       x =>
         OptionButton(
-          Button(x.text, position = Point.zero, id = createButtonId(id, x), active = stateForButtons.currentSelection.contains(x), behaviour = BehaviourBasic.empty),
+          Button(
+            x.text,
+            position = Point.zero,
+            id = createButtonId(id, x),
+            active = stateForButtons.currentSelection.contains(x),
+            behaviour = BehaviourBasic.empty),
           x))
 
   def buttonsGroup(buttons: Vector[Button], id: ShapeyId): Group =
@@ -80,9 +84,22 @@ object Dialogue {
           el
       }))
     )
-
   def apply(text: String, sizing: Sizing, state: DialogueState, id: ShapeyId = ShapeyId())(
       implicit style: Style): Dialogue = {
+    new Dialogue(text, state, None, WidgetSizableCommonInternal(sizing, id = id))
+  }
+}
+
+class Dialogue private (val text: String,
+                        val state: DialogueState,
+                        _data: Option[DialogueWidgetState],
+                        val common: WidgetSizableCommonInternal)(implicit style: Style)
+    extends SizableWidgetBase[Dialogue] {
+
+  override protected def copyCommon(commonValue: WidgetSizableCommonInternal): Dialogue =
+    new Dialogue(text, state, Some(data), commonValue)
+
+  lazy val elementsAndState: (DialogueWidgetState, ElementList) = {
     val margin: Box = style.defaultGroupMargin
 
     val multiText = SizableGroup.scrollableTextBox(
@@ -94,7 +111,7 @@ object Dialogue {
       id = id.append("_TEXT_BOX"))
 
     val buttonsEl = Button
-        .unifyButtonSize[OptionButton](buttons(state, id), _.button, (x, b) => x.copy(button = b))
+      .unifyButtonSize[OptionButton](buttons(state, id), _.button, (x, b) => x.copy(button = b))
     val buttonGroups = buttonsGroup(buttonsEl.map(x => x.button), id)
     val innards = ElementList(
       Vertical(Layout(Wrap.No, alignContent = Align.Stretch(Align.Center))),
@@ -102,26 +119,22 @@ object Dialogue {
       buttonGroups
     )
 
-    val list = ElementList(
-    Union(),
-      Rect(Sizing.dynamic(), looks = style.groupLooks, zOrder = -2),
-      new SizableGroup(
-        innards,
-        Sizing.dynamic(),
-        Point.zero,
-        margin = margin,
-        id = id.append("_SUB_CTR"))
-    )
-
-    val data = DialogueWidgetState(state, buttonsEl, buttonGroups)
-
-    new DecoratedSizableGroup[DialogueWidgetState](
-      list,
-      sizing,
-      data,
-      id = id,
-      behaviour = behaviour)
-
+    (
+      DialogueWidgetState(state, buttonsEl, buttonGroups),
+      ElementList(
+        Union(),
+        Rect(Sizing.dynamic(), looks = style.groupLooks, zOrder = -2),
+        new SizableGroup(innards, Sizing.dynamic(), margin, id.append("_SUB_CTR"))
+      ))
   }
-}
 
+  lazy val data: DialogueWidgetState = _data match {
+    case Some(value) => value; case None => elementsAndState._1
+  }
+
+  def data(value: DialogueWidgetState) = new Dialogue(text, value.state, Some(value), common)
+
+  override def generateElements: ElementList = elementsAndState._2
+
+  override def behaviour: Behaviour[Dialogue] = Dialogue.behaviour
+}

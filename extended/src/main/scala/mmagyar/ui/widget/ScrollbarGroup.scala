@@ -255,11 +255,12 @@ class ScrollbarGroup[T <: GenericSizable[T]](
       reSizing.shrink.changeSize(_ - scrollBarSize)
     )
 
+    //TODO remove these castings
     if (resizeProviderWhenChangingSizing && input.id != providerId)
       input
         .change({ case a: GenericSizable[T] if a.id == providerId => a.sizing(newSizing) })
-        .sizing(newSizing)
-    else input.sizing(newSizing)
+        .sizing(newSizing).asInstanceOf[GenericSizable[T]]
+    else input.sizing(newSizing).asInstanceOf[GenericSizable[T]]
   }
 
   override def sizing(sizing: Sizing): ScrollbarGroup[T] =

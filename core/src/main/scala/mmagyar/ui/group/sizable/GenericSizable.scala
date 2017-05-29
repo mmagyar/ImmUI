@@ -8,10 +8,11 @@ import mmagyar.util.number.RationalAboveZero
 import mmagyar.util.{BoundingBox, Box, Point}
 
 /** Magyar Máté 2017, all rights reserved */
-abstract class GenericSizable[T <: GenericSizable[T]](_elements: ElementList)
+trait GenericSizable[T <: GenericSizable[T]]
     extends GenericGroupExternallyModifiable[T]
     with SizableShapey { this: T =>
 
+  protected def _elements: ElementList
   def margin: Box
 
   protected def _offset: Point
@@ -25,9 +26,8 @@ abstract class GenericSizable[T <: GenericSizable[T]](_elements: ElementList)
         case a: Union      => a.copy(size = Bound((sizing: Sizing).size - margin.pointSum))
         case a =>
           System.err.println(
-            s"Sizable group needs a Bounded size organizer ${a.getClass.getCanonicalName} given, defaulting to horizontal layout")
+            s"Sizable group needs a Bounded size organizer ${a.getClass.getCanonicalName} given")
           a
-//          Horizontal(Layout(), Bound((sizing: Sizing).size - margin.pointSum))
       },
       organizeToBounds = None,
       offset = margin.topLeft + offset.invert
@@ -67,52 +67,10 @@ abstract class GenericSizable[T <: GenericSizable[T]](_elements: ElementList)
   final override lazy val elementList: ElementList =
     if (offset != preOffset) processElementList(processed, offset) else processed
 
-  final override def setElements(elementList: ElementList): T =
-    if (elementList == this.elementList) this
-    else
-      copy(elementList)
-
   final override def mapElements(map: (Shapey) => Shapey): T =
     setElements(elementList.map(map))
 
-  final override def sizing(sizing: Sizing): T =
-    copy(sizing = sizing)
-
-  /**
-    * @todo
-    * if any problem occurs with sizable group, possibly this is the culprit
-    * @param point new position
-    * @return
-    */
-  final override def position(point: Point): T =
-    if (point == (this.position: Point)) this else copy(position = point)
-//  copy(position = point)
-
-  final def offset(point: Point): T =
-    if (point == offset) this else copy(offset = point)
-
-  override def equals(obj: scala.Any): Boolean = obj match {
-    case a: GenericSizable[_] =>
-      a.elementList == elementList &&
-        a.offset == offset &&
-        (a.sizing: Sizing) == (sizing: Sizing) &&
-        (a.position: Point) == (position: Point) &&
-        a.id == id &&
-        a.zOrder == zOrder &&
-        a.margin == margin &&
-        a.behaviour == behaviour
-    case _ => false
-  }
-
-  def copy(elementList: ElementList = elementList,
-           position: Point = position,
-           sizing: Sizing = sizing,
-           zOrder: Double = zOrder,
-           id: ShapeyId = id,
-           margin: Box = margin,
-           offset: Point = offset,
-           behaviour: Behaviour[T] = behaviour): T
-
+  def offset(point: Point): T
 
 }
 
@@ -121,12 +79,12 @@ object GenericSizable {
       divider: RationalAboveZero = RationalAboveZero.two)
       extends BehaviourAction[T] {
     override def action(in: T, tracker: Tracker): T =
-      in.copy(offset = in.offset - (tracker.scroll / divider.v))
+      in.offset(in.offset - (tracker.scroll / divider.v))
   }
 
   case class ScrollDragBehaviour[T <: GenericSizable[T]]() extends BehaviourAction[T] {
     override def action(in: T, tracker: Tracker): T =
-      in.copy(offset = in.offset + (tracker.lastMove - tracker.currentPosition))
+      in.offset( in.offset + (tracker.lastMove - tracker.currentPosition))
   }
 
   case class ScrollBehaviour[T <: GenericSizable[T]]() extends EmptyBehaviour[T] {

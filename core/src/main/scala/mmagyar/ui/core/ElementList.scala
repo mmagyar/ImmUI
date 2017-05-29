@@ -69,7 +69,7 @@ class ElementList(_elements: Vector[Shapey],
     case b                                      => b
   }
 
- lazy val elements: Vector[Shapey] =
+  lazy val elements: Vector[Shapey] =
     organize.organize(_elements.map(passBounds), offsetElements, organizeToBounds)
 
   def change[K <: Shapey](changePf: PartialFunction[Shapey, K],
@@ -106,5 +106,7 @@ class ElementList(_elements: Vector[Shapey],
     case _ => false
   }
 
+  def offsetElements(point: Point): ElementList =
+    if (offsetElements == point) this else copy(offset = point)
   def setElements(elements: Vector[Shapey]): ElementList = this.copy(elements = elements)
 }

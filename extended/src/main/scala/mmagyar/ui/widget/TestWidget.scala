@@ -2,7 +2,6 @@ package mmagyar.ui.widget
 
 import mmagyar.ihbp.{MacroTest, Widget}
 import mmagyar.ui.core.{ElementList, Text}
-import mmagyar.ui.group.dynamic.DynamicGroupBasedWidgetBase
 import mmagyar.ui.interaction.{Behaviour, BehaviourBasic}
 import mmagyar.ui.widget.base.WidgetBase
 

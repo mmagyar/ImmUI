@@ -3,10 +3,12 @@ package mmagyar.ui.builder
 import mmagyar.layout._
 import mmagyar.ui.core._
 import mmagyar.ui.group._
-import mmagyar.ui.group.dynamic.{BgGroup, DecoratedGroup, Group}
+import mmagyar.ui.group.dynamic.Group
 import mmagyar.ui.group.sizable.SizableGroup
 import mmagyar.ui.interaction._
 import mmagyar.ui.widget._
+import mmagyar.ui.widget.base.WidgetCommon
+import mmagyar.ui.widget.generic.{BgGroup, DecoratedBgGroup, DecoratedGroup}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Color, Point, TriState}
 
@@ -64,7 +66,7 @@ object BuildContainer {
             Vertical(Layout(alignContent = Align.Stretch()))
           ),
           Rect(Sizing.dynamic(), looks = Looks(Color(16, 16, 16), Color.aqua, 3), zOrder = -1),
-          Box(10)
+          common = WidgetCommon(margin = Box(10))
         )
       )
     }
@@ -103,8 +105,8 @@ object BuildContainer {
                         case _                  => Vector.empty
                       }) :+ accordCreate(shapey)
                     }
-a.data( tracker.downElements.headOption.toVector.flatMap(y =>
-                        shapeyToAccord(y.shapey)))
+                    a.data(tracker.downElements.headOption.toVector.flatMap(y =>
+                      shapeyToAccord(y.shapey)))
 
                   case a: Text =>
                     val text =
