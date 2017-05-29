@@ -199,17 +199,19 @@ object DemoScenarios {
     }
   }
 
+  implicit val style = Style()
   def mainDemo: Group = Group(
     Relative(),
     BoundGroupDemo(),
     BoundRquiredGroupDemo(),
     Rect(Sizing(150, 15), zOrder = -8, position = Point(4, 4)),
-    MultilineButton(
+    MultilineButton.withStyleMargin(
       "Helllo this is button",
       active = false,
       position = Point(150, 150)
     //  sizing = Sizing(60, 150)
     )(Style()),
+    IntField(823,WidgetSizableCommon(position = Point(191,190),sizing = Sizing(128,64))),
     BitmapShapey(
       (5, 20),
       Sizing(20, 180),

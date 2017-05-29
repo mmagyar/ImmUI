@@ -8,6 +8,7 @@ import mmagyar.ui.widget.base.{SizableWidgetBase, WidgetSizableCommon, WidgetSiz
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Point}
 
+//TODO maybe internal button, that does not need style would make sense
 object MultilineButton {
   case class ToggleButtonBehaviourAction() extends BehaviourAction[MultilineButton] {
     override def action(in: MultilineButton, tracker: Tracker): MultilineButton = in.toggle
@@ -17,8 +18,8 @@ object MultilineButton {
       Some(ToggleButtonBehaviourAction())
   }
 
-  def apply(text: String,
-            active: Boolean,
+  def withStyleMargin(text: String,
+            active: Boolean = false,
             sizing: Option[Sizing] = None,
             zOrder: Double = 1,
             position: Point = Point.zero,
@@ -35,12 +36,18 @@ object MultilineButton {
       active,
       WidgetSizableCommonInternal(sizing2, zOrder, style.buttonMargin, position, id = id))
   }
+
+  def apply(text: String, active: Boolean = false, common: WidgetSizableCommon=WidgetSizableCommon())(
+      implicit style: Style): MultilineButton = {
+    new MultilineButton(text, active, common.toInternal)
+  }
+
 }
 
 /** Magyar Máté 2017, all rights reserved */
-class MultilineButton(val text: String,
-                      val active: Boolean,
-                      val common: WidgetSizableCommonInternal)(implicit style: Style)
+class MultilineButton private (val text: String,
+                               val active: Boolean,
+                               val common: WidgetSizableCommonInternal)(implicit style: Style)
     extends SizableWidgetBase[MultilineButton]
     with BackgroundGroupShapey {
 
