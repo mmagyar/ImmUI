@@ -233,7 +233,7 @@ class JavaFxTesting extends Application {
 
     val didChange = if (changed.document != this.document) {
       this.document = changed.document
-      println(changed.document.data)
+     // println(changed.document.data)
       needsUpdate = true
       true
     } else false

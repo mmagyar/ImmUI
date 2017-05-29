@@ -89,6 +89,7 @@ trait GenericGroupExternallyModifiable[T <: GenericGroupExternallyModifiable[T]]
     extends GenericGroup[T] { this: T =>
   def setElements(elementList: ElementList): T
 
+
   def setElements(elements: Vector[Shapey]): T =
     setElements(this.elementList.setElements(elements))
 
@@ -109,13 +110,22 @@ trait GenericGroupExternallyModifiable[T <: GenericGroupExternallyModifiable[T]]
   def add[K <: Shapey](element: K): T =
     setElements(elementList.copy(elementList.elements :+ element))
 
+  /**
+    * The margin of the group
+    * This does not mean that the extending classes need to have a margin
+    * If margin is not desired / handled, it can be set to a fixed Box.zero
+    * It's neccessery to have it at this level, for consistent bounds propagation
+     * @return the size of the current group's margin
+    */
+  protected def margin:Box
+
   def setBoundToDynamic(layoutSizeConstraint: LayoutSizeConstraint): T =
     elementList.organize.size match {
       case _: Dynamic =>
         setElements(
           elementList.copy(organize = elementList.organize.setSize(layoutSizeConstraint match {
-            case b: Dynamic => b
-            case b          => Dynamic(b)
+            case b: Dynamic => b.sub(margin.pointSum)
+            case b          => Dynamic(b.sub(margin.pointSum))
           })))
       case _ => this
     }

@@ -64,5 +64,4 @@ class Accordian private (val data: Vector[Accord], val common: WidgetCommonInter
     case a: Accordian if a.common == this.common && a.data == this.data => true
     case _                                                              => false
   }
-
 }

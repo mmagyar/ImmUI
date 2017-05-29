@@ -69,12 +69,12 @@ sealed trait Behaviour[T <: Shapey] {
 
   def scroll: Option[BehaviourAction[T]]
 
-  val clickEllipseSize = 10
+  val clickEllipseSize = 1
 
   final def canBehave(tracker: Tracker): Boolean =
     (tracker.state match {
       case Press => down.isDefined
-      case Release if tracker.currentPosition.len(tracker.downPos).abs < 10 =>
+      case Release if tracker.currentPosition.len(tracker.downPos).abs <= clickEllipseSize =>
         click.isDefined || up.isDefined
       case Release => up.isDefined
       case Drag    => drag.isDefined
@@ -85,7 +85,7 @@ sealed trait Behaviour[T <: Shapey] {
   final def behave(tracker: Tracker): Option[BehaviourAction[T]] = {
     val pointerAction = tracker.state match {
       case Press => down
-      case Release if tracker.currentPosition.len(tracker.downPos).abs < 10 =>
+      case Release if tracker.currentPosition.len(tracker.downPos).abs <= clickEllipseSize =>
         click.map(x => up.map(_.combine(x)).getOrElse(x))
       case Release => up
       case Drag    => drag

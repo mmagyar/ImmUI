@@ -63,6 +63,7 @@ final case class TransformGroup(elementList: ElementList,
     extends GenericGroupExternallyModifiable[TransformGroup]
     with RotatableShapey {
 
+  protected def margin: Box = Box.zero
   lazy val preRotationBbox: BoundingBox = this.elements
     .foldLeft(BoundingBox.zero)((p, c) =>
       BoundingBox(Point.zero, p.size max c.boundingBox.addSize(c.boundingBox.position).size))
