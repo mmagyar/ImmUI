@@ -132,9 +132,16 @@ class Dialogue private (val text: String,
     case Some(value) => value; case None => elementsAndState._1
   }
 
-  def data(value: DialogueWidgetState) = new Dialogue(text, value.state, Some(value), common)
+  def data(value: DialogueWidgetState): Dialogue =
+    if (value == this.data) this else new Dialogue(text, value.state, Some(value), common)
 
   override def generateElements: ElementList = elementsAndState._2
 
   override def behaviour: Behaviour[Dialogue] = Dialogue.behaviour
+
+  override def equals(obj: Any): Boolean = obj match {
+    case a: Dialogue if a.common == this.common && a.data == this.data => true
+    case _                                                             => false
+  }
+
 }
