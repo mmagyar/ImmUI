@@ -60,7 +60,7 @@ object BuildContainer {
           ElementList(
             if (shapey.isInstanceOf[SizableShapey])
               grp :+ DecoratedGroup(
-                ElementList(Button("SIZE: " + shapey.size)(Style())),
+                ElementList(Button("SIZE: " + shapey.size)),
                 shapey.id)
             else grp,
             Vertical(Layout(alignContent = Align.Stretch()))

@@ -30,16 +30,18 @@ class IntField private (val number: Int, val common: WidgetSizableCommonInternal
     ElementList(
       Horizontal(
         Layout(
-Wrap.Simple(Align.Stretch(Align.Center)), //TODO in this case the number field gets misaligned(if wrap simple(align strecth center) and align content Center
+          Wrap.Simple(Align.Stretch(Align.Center)),
+          //TODO in this case the number field gets misaligned(if wrap simple(align strecth center) and align content Center
 //          Wrap.No,
           alignContent = Align.Stretch(Align.Left),
           alignItem = Align.Left
         )),
       SizableBgGroup(
         ElementList(
-         Horizontal(Layout(alignContent = Align.Center, alignItem = Align.Center)),
+          Horizontal(Layout(alignContent = Align.Center, alignItem = Align.Center)),
           //TODO multiline text gets chopped on the front,probably renderer bug
-          MultilineText(number.toString, style.fontLooks)),
+          MultilineText(number.toString, style.fontLooks)
+        ),
         Rect(
           looks = Looks(Color.white, style.fieldLooks.stroke, style.fieldLooks.strokeLineWidth)),
         common = WidgetSizableCommon(
@@ -47,8 +49,8 @@ Wrap.Simple(Align.Stretch(Align.Center)), //TODO in this case the number field g
           sizing = Sizing.dynamic(Point(2, 2))
         )
       ),
-      MultilineButton("+"),
-      MultilineButton("-")
+      MultilineButton("+", buttonLooks = ButtonLooks(style)),
+      MultilineButton("-", buttonLooks = ButtonLooks(style))
     )
 
   override def equals(obj: scala.Any): Boolean = obj match {

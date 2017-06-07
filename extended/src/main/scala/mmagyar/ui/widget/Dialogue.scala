@@ -31,13 +31,14 @@ object Dialogue {
     stateForButtons.options.map(
       x =>
         OptionButton(
-          Button(
+          Button.styled(
             x.text,
             position = Point.zero,
             id = createButtonId(id, x),
             active = stateForButtons.currentSelection.contains(x),
             behaviour = BehaviourBasic.empty),
-          x))
+          x
+      ))
 
   def buttonsGroup(buttons: Vector[Button], id: ShapeyId): Group =
     Group(

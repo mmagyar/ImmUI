@@ -19,11 +19,12 @@ object MultilineButton {
   }
 
   def withStyleMargin(text: String,
-            active: Boolean = false,
-            sizing: Option[Sizing] = None,
-            zOrder: Double = 1,
-            position: Point = Point.zero,
-            id: ShapeyId = ShapeyId())(implicit style: Style): MultilineButton = {
+                      active: Boolean = false,
+                      buttonLooks: ButtonLooks = ButtonLooks(),
+                      sizing: Option[Sizing] = None,
+                      zOrder: Double = 1,
+                      position: Point = Point.zero,
+                      id: ShapeyId = ShapeyId())(implicit style: Style): MultilineButton = {
     val sizing2: Sizing =
       sizing match {
         case Some(value) => value
@@ -34,12 +35,15 @@ object MultilineButton {
     new MultilineButton(
       text,
       active,
+      buttonLooks,
       WidgetSizableCommonInternal(sizing2, zOrder, style.buttonMargin, position, id = id))
   }
 
-  def apply(text: String, active: Boolean = false, common: WidgetSizableCommon=WidgetSizableCommon())(
-      implicit style: Style): MultilineButton = {
-    new MultilineButton(text, active, common.toInternal)
+  def apply(text: String,
+            active: Boolean = false,
+            buttonLooks: ButtonLooks = ButtonLooks(),
+            common: WidgetSizableCommon = WidgetSizableCommon()): MultilineButton = {
+    new MultilineButton(text, active, buttonLooks, common.toInternal)
   }
 
 }
@@ -47,20 +51,22 @@ object MultilineButton {
 /** Magyar Máté 2017, all rights reserved */
 class MultilineButton private (val text: String,
                                val active: Boolean,
-                               val common: WidgetSizableCommonInternal)(implicit style: Style)
+                               val buttonLooks: ButtonLooks = ButtonLooks(),
+                               val common: WidgetSizableCommonInternal)
     extends SizableWidgetBase[MultilineButton]
     with BackgroundGroupShapey {
 
   override protected def copyCommon(commonValue: WidgetSizableCommonInternal): MultilineButton =
-    if (commonValue == common) this else new MultilineButton(text, active, commonValue)
+    if (commonValue == common) this
+    else new MultilineButton(text, active, buttonLooks, commonValue)
 
   def active(value: Boolean): MultilineButton =
-    if (value == active) this else new MultilineButton(text, value, common.reset)
+    if (value == active) this else new MultilineButton(text, value, buttonLooks, common.reset)
 
   def toggle: MultilineButton = active(!active)
 
   def text(value: String): MultilineButton =
-    if (value == text) this else new MultilineButton(value, active, common.reset)
+    if (value == text) this else new MultilineButton(value, active, buttonLooks, common.reset)
 
   override def behaviour: Behaviour[MultilineButton] = DefaultBehaviour()
 
@@ -69,7 +75,7 @@ class MultilineButton private (val text: String,
       Horizontal(Layout(alignContent = Align.Stretch(Align.Center), alignItem = Align.Center)),
       MultilineText(
         text,
-        if (active) style.fontLooksActive else style.fontLooks,
+        if (active) buttonLooks.fontActive else buttonLooks.font,
         id = id.append("_text"))
     )
 
@@ -83,7 +89,7 @@ class MultilineButton private (val text: String,
   override def background: Shapey =
     Rect(
       sizing,
-      if (active) style.buttonLooksActive else style.buttonLooks,
+      if (active) buttonLooks.buttonActive else buttonLooks.button,
       zOrder = -1,
       id = id.append("_background"))
 }
