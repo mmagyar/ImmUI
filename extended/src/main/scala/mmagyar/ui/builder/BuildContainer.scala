@@ -49,28 +49,6 @@ object BuildContainer {
     )(Style())
 
   def builder(maxSize: Point, toAnalyse: Groupable[_])(implicit style: Style): Group = {
-    def accordCreate(shapey: Shapey) = {
-      val look = Looks(stroke = Color.white)
-
-      val grp = Vector(MultilineText(shapey.stringToWithoutChild, looks = look))
-
-      Accord(
-        MultilineText("ID: " + shapey.id, looks = look),
-        BgGroup(
-          ElementList(
-            if (shapey.isInstanceOf[SizableShapey])
-              grp :+ DecoratedGroup(
-                ElementList(
-                  IntField(shapey.size.x.toInt, WidgetSizableCommon(Sizing.dynamic(48, 32)))),
-                shapey.id)
-            else grp,
-            Vertical(Layout(alignContent = Align.Stretch()))
-          ),
-          Rect(Sizing.dynamic(), looks = Looks(Color(16, 16, 16), Color.aqua, 3), zOrder = -1),
-          common = WidgetCommon(margin = Box(10))
-        )
-      )
-    }
 
     val controlPanelElement = controlPanel(Point(width, maxSize.y))
     Group(
@@ -82,52 +60,80 @@ object BuildContainer {
               val cc = tracker.downElements.map(_.shapey).collect {
                 case a: DecoratedGroup[ShapeyId @unchecked] if a.data.isInstanceOf[ShapeyId] => a
               }
-//              println("BEHAVE" + cc.size)
 
               cc.headOption
                 .map(x => {
-                  group.change({
+                val res =   group.change({
                     case a: SizableShapey if a.id == x.data =>
-//                      println("AND CHAGE: " + a.sizing)
-                      val size = x
+                      val size = group
                         .find({ case _: IntField => true; case _ => false })
                         .collect { case b: IntField => b.number }
                         .getOrElse(a.size.x.toInt)
-                      println("SIZE: " + size)
                       a.size(Point(size, size))
                     //This is noice, but updating the editor :( how?
                   })
+                  res
+                 // updateInfo(res,controlPanelElement.id, group.find(y=> y.id(x.data)))
                 })
                 .getOrElse(group)
             } else {
-              group.changeWhereParents(
-                x =>
-                  (x.shapey.id("DETAC") || x.shapey.id("SEL_ID_HERE")) && x.parents
-                    .exists(_.id == controlPanelElement.id), {
-                  case a: Accordian =>
-                    def shapeyToAccord(shapey: Shapey): Vector[Accord] = {
-                      (shapey match {
-                        case b: GenericGroup[_] => b.elementList.elements.flatMap(shapeyToAccord)
-                        case _                  => Vector.empty
-                      }) :+ accordCreate(shapey)
-                    }
-                    a.data(tracker.downElements.headOption.toVector.flatMap(y =>
-                      shapeyToAccord(y.shapey)))
+              updateInfo(
+                group,
+                controlPanelElement.id,
+                tracker.downElements.headOption.map(x => x.shapey))
 
-                  case a: Text =>
-                    val text =
-                      tracker.downElements.headOption
-                        .map(y => y.shapey.id.symbol.name)
-                        .getOrElse("")
-                    a.text(text)
-                }
-              )
             }
           }))
         ),
         controlPanelElement,
         toAnalyse
       ))
+  }
+
+  def accordCreate(shapey: Shapey)(implicit style: Style): Accord = {
+    val look = Looks(stroke = Color.white)
+
+    val grp = Vector(MultilineText(shapey.stringToWithoutChild, looks = look))
+
+    Accord(
+      MultilineText("ID: " + shapey.id, looks = look),
+      BgGroup(
+        ElementList(
+          if (shapey.isInstanceOf[SizableShapey])
+            grp :+ DecoratedGroup(
+              ElementList(
+                IntField(shapey.size.x.toInt, WidgetSizableCommon(Sizing.dynamic(48, 32)))),
+              shapey.id)
+          else grp,
+          Vertical(Layout(alignContent = Align.Stretch()))
+        ),
+        Rect(Sizing.dynamic(), looks = Looks(Color(16, 16, 16), Color.aqua, 3), zOrder = -1),
+        common = WidgetCommon(margin = Box(10))
+      )
+    )
+  }
+  def updateInfo(group: Group, controlPanelElementId: ShapeyId, element: Option[Shapey])(implicit style: Style): Group = {
+    group.changeWhereParents(
+      x =>
+        (x.shapey.id("DETAC") || x.shapey.id("SEL_ID_HERE")) && x.parents
+          .exists(_.id == controlPanelElementId), {
+        case a: Accordian =>
+          def shapeyToAccord(shapey: Shapey): Vector[Accord] = {
+            (shapey match {
+              case b: GenericGroup[_] => b.elementList.elements.flatMap(shapeyToAccord)
+              case _                  => Vector.empty
+            }) :+ accordCreate(shapey)
+          }
+          a.data(element.toVector.flatMap(y => shapeyToAccord(y)))
+
+        case a: Text =>
+          val text =
+            element
+              .map(y => y.id.symbol.name)
+              .getOrElse("")
+          a.text(text)
+      }
+    )
   }
 
 }

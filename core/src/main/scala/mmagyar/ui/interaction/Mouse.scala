@@ -46,6 +46,24 @@ object Tracker {
     lastMove = Point.zero,
     downPos = Point.zero)
 }
+
+/**
+  *
+  * @param switch is the button pressed
+  * @param currentPosition the current (or last position) of the cursor
+  * @param state the state of the interaction
+  * @param downPos the position where the button was pressed down last time
+  * @param lastMove the last position of movement
+  * @param downElements The elements where the button was pressed down
+  *                     Never use these as data source, only as conformation of the items being interacted with
+  *                     <b>WARNING</b> These elements are `stale` ,
+  *                     meaning, they might have been already changed,
+  *                     it captures the state at the moment of the button press
+  *                     Changes coming from behaviour are not included in this.
+  * @param overElements The elements the cursor is over, same <b>WARNING</b> applies as to the down elements
+  * @param upPos The position where the pointer (button) was lifted, released
+  * @param scroll current scroll
+  */
 case class Tracker(switch: Boolean,
                    currentPosition: Point,
                    state: State = State.Idle,
@@ -120,7 +138,6 @@ case class Tracker(switch: Boolean,
 
   def downElement[T](id: PartialFunction[Shapey, T]): Option[T] =
     downElements.find(x => id.isDefinedAt(x.shapey)).map(x => id(x.shapey))
-
 
 }
 

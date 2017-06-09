@@ -81,6 +81,7 @@ class PointerAction(
           case PointedElement(c, b: Behaveable[_]) if b.behaviour.canBehave(tracker) =>
             PointedElement(c, b)
         }
+
       PointerInteraction(
         input.document
           .copy(
