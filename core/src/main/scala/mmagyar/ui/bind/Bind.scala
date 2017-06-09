@@ -72,7 +72,7 @@ trait Supplied[K <: Supplied[K]] extends Bind with Drawable { this: K =>
 
   /**
     * Updated the DataProvider with this items status
-    * @param startingData The current data scructure
+    * @param startingData The current data structure
     * @return updated data structure
     */
   def supplyData(startingData: DataProvider): DataProvider

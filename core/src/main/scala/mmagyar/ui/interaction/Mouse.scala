@@ -1,6 +1,6 @@
 package mmagyar.ui.interaction
 
-import mmagyar.ui.core.Shapey
+import mmagyar.ui.core.{Shapey, ShapeyId}
 import mmagyar.util.{Point, PointTransform}
 
 /** Magyar Máté 2017, all rights reserved */
@@ -40,7 +40,7 @@ sealed trait State
 case class PointedElement(transformations: Vector[PointTransform], shapey: Shapey)
 
 object Tracker {
-  val zero:Tracker = Tracker(
+  val zero: Tracker = Tracker(
     switch = false,
     currentPosition = Point.zero,
     lastMove = Point.zero,
@@ -111,6 +111,17 @@ case class Tracker(switch: Boolean,
       upPos = transform(upPos))
 
   def drag: Point = lastMove - currentPosition
+
+  def downElement(id: ShapeyId): Option[Shapey] =
+    downElements.find(x => x.shapey.id(id)).map(x => x.shapey)
+
+  def downPointedElement[T <: Shapey](id: PartialFunction[PointedElement, T]): Option[T] =
+    downElements.find(x => id.isDefinedAt(x)).map(x => id(x))
+
+  def downElement[T](id: PartialFunction[Shapey, T]): Option[T] =
+    downElements.find(x => id.isDefinedAt(x.shapey)).map(x => id(x.shapey))
+
+
 }
 
 case class PointerState(

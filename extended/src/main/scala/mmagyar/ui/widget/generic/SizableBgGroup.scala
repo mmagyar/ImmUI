@@ -17,7 +17,7 @@ final case class SizableBgGroup(
     _background: SizableShapey,
     behaviour: Behaviour[SizableBgGroup],
     common: WidgetSizableCommonInternal
-) extends SizableWidgetBase[SizableBgGroup]
+) extends SizableGroupBaseTrait[SizableBgGroup]
     with BackgroundGroupShapey {
 
   lazy val background: SizableShapey = _background.size(size)
@@ -25,5 +25,4 @@ final case class SizableBgGroup(
   override protected def copyCommon(commonValue: WidgetSizableCommonInternal): SizableBgGroup =
     copy(common = commonValue)
 
-  override def generateElements: ElementList = common.elementList.getOrElse(ElementList.empty)
 }

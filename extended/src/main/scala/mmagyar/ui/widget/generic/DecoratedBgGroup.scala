@@ -34,12 +34,11 @@ final case class DecoratedBgGroup[T](data: T,
                                      _background: SizableShapey,
                                      behaviour: Behaviour[DecoratedBgGroup[T]],
                                      common: WidgetCommonInternal)
-    extends DynamicWidgetBase[DecoratedBgGroup[T]]
+    extends DynamicGroupBaseTrait[DecoratedBgGroup[T]]
     with BackgroundGroupShapey {
 
   lazy val background: SizableShapey = _background.size(size)
   override protected def copyCommon(commonValue: WidgetCommonInternal): DecoratedBgGroup[T] =
     copy(common = commonValue)
 
-  override def generateElements: ElementList = common.elementList.getOrElse(ElementList.empty)
 }

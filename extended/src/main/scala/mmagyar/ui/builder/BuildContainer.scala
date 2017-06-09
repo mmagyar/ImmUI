@@ -7,7 +7,7 @@ import mmagyar.ui.group.dynamic.Group
 import mmagyar.ui.group.sizable.SizableGroup
 import mmagyar.ui.interaction._
 import mmagyar.ui.widget._
-import mmagyar.ui.widget.base.WidgetCommon
+import mmagyar.ui.widget.base.{WidgetCommon, WidgetSizableCommon}
 import mmagyar.ui.widget.generic.{BgGroup, DecoratedBgGroup, DecoratedGroup}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Color, Point, TriState}
@@ -48,7 +48,7 @@ object BuildContainer {
       id = ShapeyId("__EDITOR")
     )(Style())
 
-  def builder(maxSize: Point, toAnalyse: Groupable[_]): Group = {
+  def builder(maxSize: Point, toAnalyse: Groupable[_])(implicit style: Style): Group = {
     def accordCreate(shapey: Shapey) = {
       val look = Looks(stroke = Color.white)
 
@@ -60,7 +60,8 @@ object BuildContainer {
           ElementList(
             if (shapey.isInstanceOf[SizableShapey])
               grp :+ DecoratedGroup(
-                ElementList(Button("SIZE: " + shapey.size)),
+                ElementList(
+                  IntField(shapey.size.x.toInt, WidgetSizableCommon(Sizing.dynamic(48, 32)))),
                 shapey.id)
             else grp,
             Vertical(Layout(alignContent = Align.Stretch()))
@@ -88,7 +89,12 @@ object BuildContainer {
                   group.change({
                     case a: SizableShapey if a.id == x.data =>
 //                      println("AND CHAGE: " + a.sizing)
-                      a.size(a.size + Point(1, 1))
+                      val size = x
+                        .find({ case _: IntField => true; case _ => false })
+                        .collect { case b: IntField => b.number }
+                        .getOrElse(a.size.x.toInt)
+                      println("SIZE: " + size)
+                      a.size(Point(size, size))
                     //This is noice, but updating the editor :( how?
                   })
                 })

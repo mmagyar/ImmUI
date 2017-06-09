@@ -2,8 +2,8 @@ package mmagyar.ui.widget
 
 import mmagyar.layout._
 import mmagyar.ui.core._
-import mmagyar.ui.group.sizable.SizableGroup
-import mmagyar.ui.interaction.{Behaviour, BehaviourBasic}
+import mmagyar.ui.group.GenericGroupExternallyModifiable
+import mmagyar.ui.interaction._
 import mmagyar.ui.widget.base.{SizableWidgetBase, WidgetSizableCommon, WidgetSizableCommonInternal}
 import mmagyar.ui.widget.generic.{BgGroup, SizableBgGroup}
 import mmagyar.ui.widgetHelpers.Style
@@ -24,7 +24,18 @@ class IntField private (val number: Int, val common: WidgetSizableCommonInternal
 
   override def background: Shapey = Rect(sizing, style.fieldLooks, zOrder = -1)
 
-  override def behaviour: Behaviour[IntField] = BehaviourBasic()
+  val plusId: ShapeyId  = id.append("PLUS")
+  val minusId: ShapeyId = id.append("MINUS")
+  val textId: ShapeyId  = id.append("TEXT")
+
+  override def behaviour: Behaviour[IntField] =
+    BehaviourBasic(Some(InjectedBehaviourAction((el: IntField, tracker: Tracker) => {
+      def getBtn(buttonId: ShapeyId): Boolean = tracker.downElement(buttonId).exists(x => true)
+
+      if (getBtn(plusId)) el.number(el.number + 1)
+      else if (getBtn(minusId)) el.number(el.number - 1)
+      else el
+    })))
 
   override def generateElements: ElementList =
     ElementList(
@@ -40,7 +51,7 @@ class IntField private (val number: Int, val common: WidgetSizableCommonInternal
         ElementList(
           Horizontal(Layout(alignContent = Align.Center, alignItem = Align.Center)),
           //TODO multiline text gets chopped on the front,probably renderer bug
-          MultilineText(number.toString, style.fontLooks)
+          MultilineText(number.toString, style.fontLooks, id = textId)
         ),
         Rect(
           looks = Looks(Color.white, style.fieldLooks.stroke, style.fieldLooks.strokeLineWidth)),
@@ -49,8 +60,26 @@ class IntField private (val number: Int, val common: WidgetSizableCommonInternal
           sizing = Sizing.dynamic(Point(2, 2))
         )
       ),
-      MultilineButton("+", buttonLooks = ButtonLooks(style)),
-      MultilineButton("-", buttonLooks = ButtonLooks(style))
+      MultilineButton(
+        "+",
+        buttonLooks = ButtonLooks(style),
+        common = WidgetSizableCommon(id = plusId)),
+      MultilineButton(
+        "-",
+        buttonLooks = ButtonLooks(style),
+        common = WidgetSizableCommon(id = minusId))
+    )
+
+  def number(num: Int): IntField =
+    new IntField(
+      num,
+      common.copy(elementList = common.elementList.map(x =>
+        x.map({
+          case a: MultilineButton => a.active(false)
+          case a: GenericGroupExternallyModifiable[_] =>
+            a.change({ case a: MultilineText if a.id(textId) => a.text(num.toString) })
+          case a => a
+        })))
     )
 
   override def equals(obj: scala.Any): Boolean = obj match {

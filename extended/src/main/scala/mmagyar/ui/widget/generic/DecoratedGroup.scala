@@ -29,10 +29,9 @@ object DecoratedGroup {
 final case class DecoratedGroup[T](data: T,
                                    behaviour: Behaviour[DecoratedGroup[T]],
                                    common: WidgetCommonInternal)
-    extends DynamicWidgetBase[DecoratedGroup[T]] {
+    extends DynamicGroupBaseTrait[DecoratedGroup[T]] {
 
   override protected def copyCommon(commonValue: WidgetCommonInternal): DecoratedGroup[T] =
     copy(common = commonValue)
 
-  override def generateElements: ElementList = common.elementList.getOrElse(ElementList.empty)
 }

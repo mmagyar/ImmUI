@@ -6,14 +6,18 @@ import java.util.concurrent.atomic.AtomicLong
 case class ShapeyId(symbol: Symbol) {
   def apply(string: Symbol): Boolean = symbol == string
   def apply(string: String): Boolean = symbol.name == string
+  def apply(string: ShapeyId): Boolean = symbol == string.symbol
+
+  val separator = "_"
 
   /**
     * Use this to generate ID's for widget sub elements
     * @param postFix postfix test
     * @return
     */
-  def append(postFix:String):ShapeyId = ShapeyId(symbol.name + postFix)
-  def append(midFix:String, postFix:Symbol):ShapeyId = ShapeyId(symbol.name + midFix + postFix.name)
+  def append(postFix: String): ShapeyId = ShapeyId(symbol.name + separator + postFix)
+  def append(midFix: String, postFix: Symbol): ShapeyId =
+    ShapeyId(symbol.name + separator + midFix + separator + postFix.name)
 
   override def toString: String = symbol.name
 }

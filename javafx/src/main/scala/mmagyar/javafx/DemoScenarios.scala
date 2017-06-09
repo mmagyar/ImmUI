@@ -8,7 +8,8 @@ import mmagyar.ui.group.dynamic.{DynamicGroupBase, Group, TransformGroup}
 import mmagyar.ui.group.sizable.SizableGroup
 import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction}
 import mmagyar.ui.widget._
-import mmagyar.ui.widget.base.WidgetSizableCommon
+import mmagyar.ui.widget.base.{WidgetCommon, WidgetSizableCommon}
+import mmagyar.ui.widget.generic.BoundGroup
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util._
 
@@ -199,19 +200,46 @@ object DemoScenarios {
     }
   }
 
+//
+//  override def transform(value: DataProvider): BoundRquiredGroupDemo = value match {
+//    case a: DataProviderMap =>
+//      a.get("MYSIZE") match {
+//        case Some(point: Point) => this.position(point); case _ => this
+//      }
+//
+//  }
+//
   implicit val style = Style()
   def mainDemo: Group = Group(
     Relative(),
-    BoundGroupDemo(),
-    BoundRquiredGroupDemo(),
+    BoundGroup.out(
+      ElementList(Rect(Sizing(30, 30), Looks(Color.teal, Color.purple, 4))),
+      (out, d) =>
+        d match {
+          case a: DataProviderMap => a.put("MYSIZE", out.size)
+          case a                  => a
+      },
+      common = WidgetCommon(position = Point(150, 300))
+    ),
+    BoundGroup.in(
+      ElementList(Rect(Sizing(30, 30), Looks(Color.teal, Color.purple, 4))),
+      (in, data) =>
+        data match {
+          case a: DataProviderMap =>
+            a.get("MYSIZE") match {
+              case Some(point: Point) => in.position(point); case _ => in
+            }
+
+      }
+    ),
     Rect(Sizing(150, 15), zOrder = -8, position = Point(4, 4)),
     MultilineButton.withStyleMargin(
       "Helllo this is button",
       active = false,
       position = Point(150, 150)
-    //  sizing = Sizing(60, 150)
+      //  sizing = Sizing(60, 150)
     )(Style()),
-    IntField(823,WidgetSizableCommon(position = Point(191,190),sizing = Sizing(128,64))),
+    IntField(823, WidgetSizableCommon(position = Point(191, 190), sizing = Sizing(128, 64))),
     BitmapShapey(
       (5, 20),
       Sizing(20, 180),
