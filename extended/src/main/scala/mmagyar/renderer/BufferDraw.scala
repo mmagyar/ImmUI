@@ -22,8 +22,8 @@ class BufferDraw() {
     val scale = document.transform.scale
 
     val scaled                              = (root.size * scale).min(maxSize).max(minSize)
-    val xSize                               = scaled.x.toInt
-    val ySize                               = scaled.y.toInt
+    val xSize                               = scaled.x.round.toInt
+    val ySize                               = scaled.y.round.toInt
     val elBuf: ArrayBuffer[DrawInstruction] = ArrayBuffer[DrawInstruction]()
     val bufferW                             = wholeBuffer.length
     val bufferH                             = wholeBuffer.headOption.map(_.length).getOrElse(0)
@@ -67,8 +67,8 @@ class BufferDraw() {
     //To prevent possible integer overflow
     val cp = offset.min(maxBlendSize)
 
-    val offX   = cp.x.toInt
-    val offY   = cp.y.toInt
+    val offX   = cp.x.round.toInt
+    val offY   = cp.y.round.toInt
     val yReset = if (offY < 0) offY.abs else 0
 
 //    val w      = source.length
@@ -153,7 +153,7 @@ class BufferDraw() {
           innerConstraint,
           intermediateBuffers)
 
-        val finalBuffer = Array.fill[ColorByte](scaledSize.x.toInt, scaledSize.y.toInt)(
+        val finalBuffer = Array.fill[ColorByte](scaledSize.x.round.toInt, scaledSize.y.round.toInt)(
           ColorByte(Color.transparent))
 
         drawBuffer(intermediateBuffers, finalBuffer)
@@ -194,17 +194,17 @@ class BufferDraw() {
           case Rect(sizing, looks, _, position, _) =>
             val scaled = sizing.size * scale
             val pixels = new ColorBorderMap(
-              scaled.x.toInt,
-              scaled.y.toInt,
+              scaled.x.round.toInt,
+              scaled.y.round.toInt,
               looks.fill,
               looks.stroke,
-              looks.strokeLineWidth.toInt)
+              looks.strokeLineWidth.round.toInt)
             DrawInstruction(position, constraint, pixels.pixelsArrayByte)
           case text: Text =>
             val fill   = ColorByte(text.looks.fill)
             val stroke = ColorByte(text.looks.stroke)
 
-            var bgFont = Vector.fill(text.size.x.toInt, text.size.y.toInt)(fill)
+            var bgFont = Vector.fill(text.size.x.round.toInt, text.size.y.round.toInt)(fill)
             text.font match {
               case b: FontBitmap =>
                 val chars = b.organize(text.text)
