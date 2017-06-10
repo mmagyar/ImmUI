@@ -7,8 +7,13 @@ import mmagyar.ui.group.dynamic.Group
 import mmagyar.ui.group.sizable.SizableGroup
 import mmagyar.ui.interaction._
 import mmagyar.ui.widget._
-import mmagyar.ui.widget.base.{WidgetCommon, WidgetSizableCommon}
-import mmagyar.ui.widget.generic.{BgGroup, DecoratedBgGroup, DecoratedGroup}
+import mmagyar.ui.widget.base.{
+  DynamicWidgetBase,
+  WidgetCommon,
+  WidgetCommonInternal,
+  WidgetSizableCommon
+}
+import mmagyar.ui.widget.generic.{BgGroup, DecoratedBgGroup, DecoratedGroup, DynamicGroupBaseTrait}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Color, Point, TriState}
 
@@ -56,38 +61,71 @@ object BuildContainer {
         Horizontal(Layout(Wrap.No, Fill.No, alignItem = Align.Left), Bound(maxSize)),
         BehaviourBasic(
           Some(InjectedBehaviourAction((group: Group, tracker: Tracker) => {
-            if (tracker.downElements.exists(_.shapey.id == controlPanelElement.id)) {
-              val cc = tracker.downElements.map(_.shapey).collect {
-                case a: DecoratedGroup[ShapeyId @unchecked] if a.data.isInstanceOf[ShapeyId] => a
-              }
-
-              cc.headOption
-                .map(x => {
-                val res =   group.change({
-                    case a: SizableShapey if a.id == x.data =>
-                      val size = group
-                        .find({ case _: IntField => true; case _ => false })
-                        .collect { case b: IntField => b.number }
-                        .getOrElse(a.size.x.toInt)
-                      a.size(Point(size, size))
-                    //This is noice, but updating the editor :( how?
-                  })
-                  res
-                 // updateInfo(res,controlPanelElement.id, group.find(y=> y.id(x.data)))
-                })
-                .getOrElse(group)
-            } else {
+            if (tracker.downElements.exists(_.shapey.id == controlPanelElement.id))
+              actOnChange(group, tracker)
+            else {
               updateInfo(
                 group,
                 controlPanelElement.id,
                 tracker.downElements.headOption.map(x => x.shapey))
 
             }
-          }))
+          })),
+          drag = Some(
+            InjectedBehaviourAction((grp: Group, trck: Tracker) =>
+              if (trck.downElements.exists(_.shapey.id == controlPanelElement.id))
+                actOnChange(grp, trck)
+              else grp))
         ),
         controlPanelElement,
         toAnalyse
       ))
+  }
+
+  def actOnChange(group: Group, tracker: Tracker): Group = {
+    val cc = tracker.downElements.map(_.shapey).collect {
+      case a: DecoratedGroup[ShapeyId @unchecked] if a.data.isInstanceOf[ShapeyId] => a
+    }
+
+    cc.headOption
+      .map(x => {
+        val res = group.change({
+          case a: SizableShapey if a.id == x.data =>
+            val size = group
+              .find({ case _: IntField => true; case _ => false })
+              .collect { case b: IntField => b.number }
+              .getOrElse(a.size.x.toInt)
+            a.size(Point(size, size))
+          //This is noice, but updating the editor :( how?
+        })
+        res
+        // updateInfo(res,controlPanelElement.id, group.find(y=> y.id(x.data)))
+      })
+      .getOrElse(group)
+  }
+  final case class ElementInfo(
+      shapey: Shapey,
+      common: WidgetCommonInternal = WidgetCommon(margin = Box(10)).toInternal
+  )(implicit style: Style)
+      extends DynamicWidgetBase[ElementInfo]
+      with BackgroundGroupShapey {
+
+    lazy val background: SizableShapey =
+      Rect(Sizing.dynamic(this.size), looks = Looks(Color(16, 16, 16), Color.aqua, 3), zOrder = -1)
+
+    override protected def copyCommon(commonValue: WidgetCommonInternal): ElementInfo =
+      copy(common = commonValue)
+
+    def grp =
+      Vector(MultilineText(shapey.stringToWithoutChild, looks = Looks(stroke = Color.white)))
+    override def generateElements: ElementList = ElementList(
+      if (shapey.isInstanceOf[SizableShapey])
+        grp :+ DecoratedGroup(ElementList(IntField(shapey.size.x.toInt)), shapey.id)
+      else grp,
+      Vertical(Layout(alignContent = Align.Stretch()))
+    )
+
+    override def behaviour: Behaviour[ElementInfo] = BehaviourBasic()
   }
 
   def accordCreate(shapey: Shapey)(implicit style: Style): Accord = {
@@ -97,22 +135,11 @@ object BuildContainer {
 
     Accord(
       MultilineText("ID: " + shapey.id, looks = look),
-      BgGroup(
-        ElementList(
-          if (shapey.isInstanceOf[SizableShapey])
-            grp :+ DecoratedGroup(
-              ElementList(
-                IntField(shapey.size.x.toInt, WidgetSizableCommon(Sizing.dynamic(48, 32)))),
-              shapey.id)
-          else grp,
-          Vertical(Layout(alignContent = Align.Stretch()))
-        ),
-        Rect(Sizing.dynamic(), looks = Looks(Color(16, 16, 16), Color.aqua, 3), zOrder = -1),
-        common = WidgetCommon(margin = Box(10))
-      )
+      ElementInfo(shapey)
     )
   }
-  def updateInfo(group: Group, controlPanelElementId: ShapeyId, element: Option[Shapey])(implicit style: Style): Group = {
+  def updateInfo(group: Group, controlPanelElementId: ShapeyId, element: Option[Shapey])(
+      implicit style: Style): Group = {
     group.changeWhereParents(
       x =>
         (x.shapey.id("DETAC") || x.shapey.id("SEL_ID_HERE")) && x.parents
@@ -124,6 +151,7 @@ object BuildContainer {
               case _                  => Vector.empty
             }) :+ accordCreate(shapey)
           }
+          a.data.map(x => x.content)
           a.data(element.toVector.flatMap(y => shapeyToAccord(y)))
 
         case a: Text =>

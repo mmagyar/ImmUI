@@ -1,8 +1,8 @@
 package mmagyar.ui.interaction
 
-import mmagyar.ui.core.{Behaveable, Document, Groupable, Shapey}
-import mmagyar.ui.group.dynamic.TransformGroup
-import mmagyar.util.{Degree, Point, PointTransform, Rotation}
+import mmagyar.ui.core._
+import mmagyar.ui.group.dynamic.{Group, TransformGroup}
+import mmagyar.util._
 
 /** Magyar Máté 2016, all rights reserved */
 case class TrackerState(
@@ -21,6 +21,7 @@ case class TrackerState(
   def changed: Boolean = (tracker != lastTracker) || (tracker.scroll != Point.zero)
 }
 case class PointerInteraction(document: Document, tracker: TrackerState)
+case class BehavingIteratorData(group: Group, tracker: Tracker)
 
 /**
   * Soo, quick rundown how this method should/will/does work
@@ -85,20 +86,46 @@ class PointerAction(
       PointerInteraction(
         input.document
           .copy(
-            root = behavables.foldLeft(input.document.root)(
-              (p, c) =>
-                p.change({
-                  case a: Behaveable[_] if a.id == c.shapey.id =>
-                    a.behave(tracker.transform(x =>
-                      c.transformations.foldLeft(x)((p, c) => c.transformReverse(p))))
-                })
-            ))
+            root = behavables
+              .foldLeft(BehavingIteratorData(input.document.root, tracker))(
+                (p, c) =>
+                  BehavingIteratorData(
+                    p.group.change({
+                      case a: Behaveable[_] if a.id == c.shapey.id =>
+                        a.behave(p.tracker.transform(x =>
+                          c.transformations.foldLeft(x)((p, c) => c.transformReverse(p))))
+                    }),
+                    if (p.tracker.state == State.Drag) {
+                      val drg = getResetDrag(p.group, c.shapey.id)
+                      if (drg.x && drg.y) p.tracker.copy(lastMove = p.tracker.currentPosition)
+                      else if (drg.x)
+                        p.tracker.copy(
+                          lastMove = Point(p.tracker.currentPosition.x, p.tracker.lastMove.y))
+                      else if (drg.y)
+                        p.tracker.copy(
+                          lastMove = Point(p.tracker.lastMove.x, p.tracker.currentPosition.y))
+                      else p.tracker
+                    } else p.tracker
+                )
+              )
+              .group)
           .syncData,
         nt.tracker(tracker)
       )
     } else input
 
   }
+
+  def getResetDrag(group: Group, target: ShapeyId): Xy[Boolean] =
+    group
+      .collect({
+        case a: Behaveable[_] if a.id == target =>
+          a.behaviour.drag match {
+            case Some(value: BehaviourDragAction[_]) => Some(value.resetDrag)
+            case _                                   => None
+          }
+      })
+      .foldLeft(Xy(false, false))((p, c) => c.map(x => Xy(p.x || x.x, p.y || x.y)).getOrElse(p))
 
   def getElement(document: Document,
                  pointArg: Point,

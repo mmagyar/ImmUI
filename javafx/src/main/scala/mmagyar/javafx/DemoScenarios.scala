@@ -239,7 +239,11 @@ object DemoScenarios {
       position = Point(150, 150)
       //  sizing = Sizing(60, 150)
     )(Style()),
-    IntField(823, WidgetSizableCommon(position = Point(191, 190), sizing = Sizing(128, 64))),
+    IntField(
+      823,
+      Limits(),
+      resizeToText = false,
+      WidgetSizableCommon(position = Point(191, 190), sizing = Sizing(128, 64))),
     BitmapShapey(
       (5, 20),
       Sizing(20, 180),

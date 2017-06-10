@@ -52,7 +52,15 @@ sealed trait Shapey extends Material with Positionable[Shapey] {
 
   def stringName: String = getClass.getName.split('.').lastOption.getOrElse("Shapey")
 
-  final override def toString: String = elementsPrint()
+  final override def toString: String =
+    s"\n$stringName(id: ${id.symbol} pos: $position size: $printSize${customToString match {
+      case "" => ""
+      case a  => s", $a"
+    }})" + (this match {
+      case a: Groupable[_] =>
+        " Child count: " + a.elementList.elements.size + "\n"
+      case _ => "\n"
+    })
 
 }
 

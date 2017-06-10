@@ -479,3 +479,5 @@ case class PointSwapper private (_1: (Point) => Double,
   def apply(_1A: Double, _2A: Point): Point  = _2Set(_1Set(Point.zero, _1A), _2A)
   def apply(_1A: Point, _2A: Double): Point  = _2Set(_1Set(Point.zero, _1A), _2A)
 }
+
+case class Xy[+T](x:T,y:T)

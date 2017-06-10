@@ -7,36 +7,68 @@ import mmagyar.ui.interaction._
 import mmagyar.ui.widget.base.{SizableWidgetBase, WidgetSizableCommon, WidgetSizableCommonInternal}
 import mmagyar.ui.widget.generic.{BgGroup, SizableBgGroup}
 import mmagyar.ui.widgetHelpers.Style
-import mmagyar.util.{Box, Color, Point}
+import mmagyar.util.{Box, Color, Point, Xy}
 
 /** Magyar Máté 2017, all rights reserved */
 object IntField {
-  def apply(number: Int, common: WidgetSizableCommon)(implicit style: Style): IntField =
-    new IntField(number, common.toInternal)
+  def autoSize(number: Int): Point = {
+    val fontSize = Point(Text.defaultFont.getSizeForString(number.toString + " +- "))
+    fontSize + (fontSize * 0.20 /*20% margin*/ )
+  }
+  def apply(number: Int, limits: Limits = Limits(), resizeToText: Boolean = true)(
+      implicit style: Style): IntField =
+    new IntField(
+      number,
+      limits,
+      resizeToText,
+      WidgetSizableCommonInternal(Sizing.dynamic(autoSize(number))))
+
+  def apply(number: Int, limits: Limits, resizeToText: Boolean, common: WidgetSizableCommon)(
+      implicit style: Style): IntField =
+    new IntField(number, limits, resizeToText, common.toInternal)
 }
-class IntField private (val number: Int, val common: WidgetSizableCommonInternal)(
-    implicit style: Style)
+case class Limits(min: Int = 0, max: Int = 99999)
+//TODO add drag change
+//TODO autosize field to minimum
+class IntField private (val number: Int,
+                        val limits: Limits = Limits(),
+                        val resizeToTextOnChange: Boolean = true,
+                        val common: WidgetSizableCommonInternal)(implicit style: Style)
     extends SizableWidgetBase[IntField]
     with BackgroundGroupShapey {
 
   override protected def copyCommon(commonValue: WidgetSizableCommonInternal): IntField =
-    if (commonValue == common) this else new IntField(number, commonValue)
+    if (commonValue == common) this
+    else new IntField(number, limits, resizeToTextOnChange, commonValue)
 
-  override def background: Shapey = Rect(sizing, style.fieldLooks, zOrder = -1)
+  override lazy val background: Shapey = Rect(sizing, style.fieldLooks, zOrder = -1)
 
-  val plusId: ShapeyId  = id.append("PLUS")
-  val minusId: ShapeyId = id.append("MINUS")
-  val textId: ShapeyId  = id.append("TEXT")
+  val plusId: ShapeyId       = id.append("PLUS")
+  val minusId: ShapeyId      = id.append("MINUS")
+  val textId: ShapeyId       = id.append("TEXT")
+  val dragMultiplier: Double = 1
 
   override def behaviour: Behaviour[IntField] =
-    BehaviourBasic(Some(InjectedBehaviourAction((el: IntField, tracker: Tracker) => {
-      def getBtn(buttonId: ShapeyId): Boolean = tracker.downElement(buttonId).exists(x => true)
+    BehaviourBasic(
+      Some(InjectedBehaviourAction((el: IntField, tracker: Tracker) => {
+        def getBtn(buttonId: ShapeyId): Boolean = tracker.downElement(buttonId).exists(x => true)
 
-      if (getBtn(plusId)) el.number(el.number + 1)
-      else if (getBtn(minusId)) el.number(el.number - 1)
-      else el
-    })))
+        if (getBtn(plusId)) el.number(el.number + 1)
+        else if (getBtn(minusId)) el.number(el.number - 1)
+        else el
+      })),
+      drag = Some(
+        InjectedBehaviourDragAction(
+          (el: IntField, tracker: Tracker) =>
+            el.number(el.number + (tracker.drag.y * dragMultiplier).round.toInt),
+          resetDrag = Xy(true, true)))
+    )
 
+  lazy val buttonTextSize = Point(Text.defaultFont.getSizeForString("+"))
+  lazy val buttonSize = Sizing(
+    buttonTextSize * (buttonTextSize * 0.2),
+    Grow.Until(Point(buttonTextSize.x * (buttonTextSize.x * 0.2), Point.large.y)),
+    Shrink.Until(buttonTextSize))
   override def generateElements: ElementList =
     ElementList(
       Horizontal(
@@ -63,23 +95,31 @@ class IntField private (val number: Int, val common: WidgetSizableCommonInternal
       MultilineButton(
         "+",
         buttonLooks = ButtonLooks(style),
-        common = WidgetSizableCommon(id = plusId)),
+        common = WidgetSizableCommon(buttonSize, id = plusId)),
       MultilineButton(
         "-",
         buttonLooks = ButtonLooks(style),
-        common = WidgetSizableCommon(id = minusId))
+        common = WidgetSizableCommon(buttonSize, id = minusId))
     )
 
   def number(num: Int): IntField =
     new IntField(
       num,
-      common.copy(elementList = common.elementList.map(x =>
-        x.map({
-          case a: MultilineButton => a.active(false)
-          case a: GenericGroupExternallyModifiable[_] =>
-            a.change({ case a: MultilineText if a.id(textId) => a.text(num.toString) })
-          case a => a
-        })))
+      limits,
+      resizeToTextOnChange,
+      common.copy(
+        if (resizeToTextOnChange) {
+          val autoSize = IntField.autoSize(num)
+          common.sizing.copy(baseSize = autoSize, size = autoSize)
+        } else common.sizing,
+        elementList = common.elementList.map(x =>
+          x.map({
+            case a: MultilineButton => a.active(false)
+            case a: GenericGroupExternallyModifiable[_] =>
+              a.change({ case a: MultilineText if a.id(textId) => a.text(num.toString) })
+            case a => a
+          }))
+      )
     )
 
   override def equals(obj: scala.Any): Boolean = obj match {

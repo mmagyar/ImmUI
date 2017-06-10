@@ -2,7 +2,7 @@ package mmagyar.ui.interaction
 
 import mmagyar.ui.core.Shapey
 import mmagyar.ui.interaction.State._
-import mmagyar.util.Point
+import mmagyar.util.{Point, Xy}
 
 /** Magyar Máté 2017, all rights reserved */
 object BehaviourAction {
@@ -14,10 +14,21 @@ trait BehaviourAction[T <: Shapey] {
   def combine(otherAction: BehaviourAction[T]): BehaviourAction[T] =
     InjectedBehaviourAction(
       (iIn: T, iTracker: Tracker) => otherAction.action(action(iIn, iTracker), iTracker))
+
+}
+
+trait BehaviourDragAction[T <: Shapey] extends BehaviourAction[T]{
+
+  def resetDrag:Xy[Boolean] = Xy(false,false)
 }
 
 case class InjectedBehaviourAction[T <: Shapey](act: (T, Tracker) => T)
-    extends BehaviourAction[T] {
+  extends BehaviourAction[T] {
+  override def action(in: T, tracker: Tracker): T = act(in, tracker)
+}
+
+case class InjectedBehaviourDragAction[T <: Shapey](act: (T, Tracker) => T, override val resetDrag: Xy[Boolean] = Xy(false,false))
+  extends BehaviourDragAction[T] {
   override def action(in: T, tracker: Tracker): T = act(in, tracker)
 }
 

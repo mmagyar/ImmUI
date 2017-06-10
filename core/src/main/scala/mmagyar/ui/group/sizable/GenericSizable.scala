@@ -84,7 +84,7 @@ object GenericSizable {
 
   case class ScrollDragBehaviour[T <: GenericSizable[T]]() extends BehaviourAction[T] {
     override def action(in: T, tracker: Tracker): T =
-      in.offset( in.offset + (tracker.lastMove - tracker.currentPosition))
+      in.offset(in.offset + tracker.drag)
   }
 
   case class ScrollBehaviour[T <: GenericSizable[T]]() extends EmptyBehaviour[T] {

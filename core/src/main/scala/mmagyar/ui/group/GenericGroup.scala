@@ -4,12 +4,15 @@ import mmagyar.layout.{Dynamic, LayoutSizeConstraint}
 import mmagyar.ui.core._
 import mmagyar.util.{BoundingBox, Box, Point}
 
+import scala.collection.generic.CanBuildFrom
+
 /** Magyar Máté 2017, all rights reserved */
-object GenericGroup{
-  def sizeForElements(elements:Vector[Shapey], margin:Box = Box.zero):Point = elements
-    .foldLeft(BoundingBox.zero)((p, c) =>
-      BoundingBox(Point.zero, p.size max c.boundingBox.addSize(c.boundingBox.position).size))
-    .size + margin.bottomRight
+object GenericGroup {
+  def sizeForElements(elements: Vector[Shapey], margin: Box = Box.zero): Point =
+    elements
+      .foldLeft(BoundingBox.zero)((p, c) =>
+        BoundingBox(Point.zero, p.size max c.boundingBox.addSize(c.boundingBox.position).size))
+      .size + margin.bottomRight
 }
 trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]
     extends GroupableWithBehaveableChildren[T]
@@ -59,13 +62,20 @@ trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]
   }
 
   def find(where: (Shapey) => Boolean, recursive: Boolean = true): Option[Shapey] =
-    get(where,recursive).headOption
+    get(where, recursive).headOption
 
   def get(where: (Shapey) => Boolean, recursive: Boolean = true): Vector[Shapey] =
     elements.collect {
       case a if where(a)                   => Vector(a)
       case a: GenericGroup[_] if recursive => a.get(where, recursive)
     }.flatten
+
+  def collect[B](pf: PartialFunction[Shapey, B], recursive: Boolean = true): Vector[B] = {
+    elements.collect {
+      case a if pf.isDefinedAt(a)          => Vector(pf(a))
+      case a: GenericGroup[_] if recursive => a.collect(pf, recursive)
+    }.flatten
+  }
 
   def getFullyRecursive(where: (Shapey) => Boolean): Vector[Shapey] =
     elements.collect {
@@ -88,7 +98,6 @@ trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]
 trait GenericGroupExternallyModifiable[T <: GenericGroupExternallyModifiable[T]]
     extends GenericGroup[T] { this: T =>
   def setElements(elementList: ElementList): T
-
 
   def setElements(elements: Vector[Shapey]): T =
     setElements(this.elementList.setElements(elements))
@@ -115,9 +124,9 @@ trait GenericGroupExternallyModifiable[T <: GenericGroupExternallyModifiable[T]]
     * This does not mean that the extending classes need to have a margin
     * If margin is not desired / handled, it can be set to a fixed Box.zero
     * It's neccessery to have it at this level, for consistent bounds propagation
-     * @return the size of the current group's margin
+    * @return the size of the current group's margin
     */
-  protected def margin:Box
+  protected def margin: Box
 
   def setBoundToDynamic(layoutSizeConstraint: LayoutSizeConstraint): T =
     elementList.organize.size match {
