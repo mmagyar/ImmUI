@@ -4,7 +4,7 @@ import mmagyar.layout._
 import mmagyar.ui.core._
 import mmagyar.ui.group._
 import mmagyar.ui.group.dynamic.Group
-import mmagyar.ui.group.sizable.SizableGroup
+import mmagyar.ui.group.sizable.{GenericSizable, SizableGroup}
 import mmagyar.ui.interaction._
 import mmagyar.ui.widget._
 import mmagyar.ui.widget.base.{
@@ -90,12 +90,28 @@ object BuildContainer {
     cc.headOption
       .map(x => {
         val res = group.change({
-          case a: SizableShapey if a.id == x.data =>
-            val size = group
-              .find({ case _: IntField => true; case _ => false })
-              .collect { case b: IntField => b.number }
-              .getOrElse(a.size.x.toInt)
-            a.size(Point(size, size))
+          case a: Shapey if a.id == x.data =>
+            def getNumOr(id: ShapeyId, default: Double): Double =
+              group
+                .collect({ case b: IntField if b.id(id) => b.number.toDouble })
+                .headOption
+                .getOrElse(default)
+            val sx = Point(
+              getNumOr(x.data.append("SIZE_X"), a.size.x),
+              getNumOr(x.data.append("SIZE_Y"), a.size.y))
+
+            val pos = Point(
+              getNumOr(x.data.append("POS_X"), a.position.x),
+              getNumOr(x.data.append("POS_Y"), a.position.y))
+
+            val offset = Point(
+              getNumOr(x.data.append("OFFSET_X"), a.position.x),
+              getNumOr(x.data.append("OFFSET_Y"), a.position.y))
+
+            (a.position(pos) match { case b: SizableShapey => b.size(sx); case b => b }) match {
+              case b: GenericSizable[_] => b.offset(offset); case b => b
+            }
+
           //This is noice, but updating the editor :( how?
         })
         res
@@ -118,12 +134,61 @@ object BuildContainer {
 
     def grp =
       Vector(MultilineText(shapey.stringToWithoutChild, looks = Looks(stroke = Color.white)))
-    override def generateElements: ElementList = ElementList(
-      if (shapey.isInstanceOf[SizableShapey])
-        grp :+ DecoratedGroup(ElementList(IntField(shapey.size.x.toInt)), shapey.id)
-      else grp,
-      Vertical(Layout(alignContent = Align.Stretch()))
+
+    val lineOrg = Horizontal(
+      Layout(Wrap.Simple(), fill = Fill.No, alignItem = Align.SpaceBetween(Spacing.Default)))
+
+    def line(text: String, idAppend: String, value: Double, limits: Limits): Group = Group(
+      lineOrg,
+      Text(text),
+      IntField(
+        value.round,
+        limits,
+        resizeToText = true,
+        WidgetSizableCommon(id = shapey.id.append(idAppend))
+      )
     )
+
+    override def generateElements: ElementList = {
+      val posSetter = Vector(
+        line("Position X", "POS_X", shapey.position.x, Limits(-9999)),
+        line("Position Y", "POS_Y", shapey.position.y, Limits(-9999)))
+
+      val sizing = shapey match {
+        case a: SizableShapey =>
+          Vector(
+            line(
+              "Size X",
+              "SIZE_X",
+              shapey.size.x,
+              Limits(a.sizing.minSize.x, a.sizing.maxSize.x)),
+            line("Size Y", "SIZE_Y", shapey.size.y, Limits(a.sizing.minSize.y, a.sizing.maxSize.y))
+          ) ++
+            (a match {
+              case b: GenericSizable[_] =>
+                (if (b.canOffset._1)
+                   Vector(line("Offset X", "OFFSET_X", b.offset.x, Limits(0, b.diff.x)))
+                 else Vector.empty) ++
+                  (if (b.canOffset._2)
+                     Vector(line("Offset Y", "OFFSET_Y", b.offset.y, Limits(0, b.diff.y)))
+                   else Vector.empty)
+              case _ => Vector.empty
+            })
+
+        case _ => Vector.empty
+      }
+
+      ElementList(
+        grp :+ DecoratedGroup(
+          ElementList(
+            posSetter ++ sizing,
+            Vertical(Layout())
+          ),
+          shapey.id
+        ),
+        Vertical(Layout(alignContent = Align.Stretch()))
+      )
+    }
 
     override def behaviour: Behaviour[ElementInfo] = BehaviourBasic()
   }

@@ -213,7 +213,10 @@ object DemoScenarios {
   def mainDemo: Group = Group(
     Relative(),
     BoundGroup.out(
-      ElementList(Rect(Sizing(30, 30), Looks(Color.teal, Color.purple, 4))),
+      ElementList(
+        Rect(
+          Sizing(Point(30, 30), Grow.Until(Point(500, 500)), Shrink.Until(Point(10, 10))),
+          Looks(Color.teal, Color.purple, 4))),
       (out, d) =>
         d match {
           case a: DataProviderMap => a.put("MYSIZE", out.size)

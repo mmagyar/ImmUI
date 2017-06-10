@@ -47,7 +47,7 @@ trait GenericSizable[T <: GenericSizable[T]]
             .size))
     .size
 
-  private lazy val diff = (childrenSize + margin.pointSum) - size
+  lazy val diff: Point = (childrenSize + margin.pointSum) - size
 
   final lazy val offset: Point =
     preOffset.union((x, ps) => {

@@ -6,7 +6,8 @@ import mmagyar.util.{Point, Xy}
 
 /** Magyar Máté 2017, all rights reserved */
 object BehaviourAction {
-  def apply[T <: Shapey](act: (T, Tracker) => T):BehaviourAction[T] = InjectedBehaviourAction[T](act)
+  def apply[T <: Shapey](act: (T, Tracker) => T): BehaviourAction[T] =
+    InjectedBehaviourAction[T](act)
 }
 trait BehaviourAction[T <: Shapey] {
   def action(in: T, tracker: Tracker): T
@@ -17,18 +18,21 @@ trait BehaviourAction[T <: Shapey] {
 
 }
 
-trait BehaviourDragAction[T <: Shapey] extends BehaviourAction[T]{
+trait BehaviourDragAction[T <: Shapey] extends BehaviourAction[T] {
 
-  def resetDrag:Xy[Boolean] = Xy(false,false)
+  def resetDrag: Xy[Boolean] = Xy(false, false)
 }
 
 case class InjectedBehaviourAction[T <: Shapey](act: (T, Tracker) => T)
-  extends BehaviourAction[T] {
+    extends BehaviourAction[T] {
   override def action(in: T, tracker: Tracker): T = act(in, tracker)
 }
 
-case class InjectedBehaviourDragAction[T <: Shapey](act: (T, Tracker) => T, override val resetDrag: Xy[Boolean] = Xy(false,false))
-  extends BehaviourDragAction[T] {
+//TODO we might want the same thing for scrolling
+case class InjectedBehaviourDragAction[T <: Shapey](act: (T, Tracker) => T,
+                                                    override val resetDrag: Xy[Boolean] =
+                                                      Xy(false, false))
+    extends BehaviourDragAction[T] {
   override def action(in: T, tracker: Tracker): T = act(in, tracker)
 }
 
@@ -131,15 +135,14 @@ class EmptyBehaviour[T <: Shapey] extends Behaviour[T] {
 
   override def scroll: Option[BehaviourAction[T]] = None
 
-
 }
 
 final case class BehaviourBasic[T <: Shapey](click: Option[BehaviourAction[T]] = None,
-                                       move: Option[BehaviourAction[T]] = None,
-                                       down: Option[BehaviourAction[T]] = None,
-                                       up: Option[BehaviourAction[T]] = None,
-                                       drag: Option[BehaviourAction[T]] = None,
-                                       scroll: Option[BehaviourAction[T]] = None)
+                                             move: Option[BehaviourAction[T]] = None,
+                                             down: Option[BehaviourAction[T]] = None,
+                                             up: Option[BehaviourAction[T]] = None,
+                                             drag: Option[BehaviourAction[T]] = None,
+                                             scroll: Option[BehaviourAction[T]] = None)
     extends Behaviour[T] {
 
   def combine(element: Behaviour[T]): Behaviour[T] = {
@@ -152,6 +155,5 @@ final case class BehaviourBasic[T <: Shapey](click: Option[BehaviourAction[T]] =
       element.scroll.map(x => Some(scroll.map(_.combine(x)).getOrElse(x))).getOrElse(scroll)
     )
   }
-
 
 }
