@@ -1,19 +1,21 @@
 package mmagyar.ui.builder
 
+import mmagyar.layout.Wrap.{EqualLines, No, Simple}
 import mmagyar.layout._
-import mmagyar.ui.core._
+import mmagyar.ui.core.{ElementList, _}
 import mmagyar.ui.group._
 import mmagyar.ui.group.dynamic.Group
 import mmagyar.ui.group.sizable.{GenericSizable, SizableGroup}
 import mmagyar.ui.interaction._
 import mmagyar.ui.widget._
 import mmagyar.ui.widget.base.{
-  DynamicWidgetBase,
-  WidgetCommon,
-  WidgetCommonInternal,
-  WidgetSizableCommon
+DynamicWidgetBase,
+WidgetCommon,
+WidgetCommonInternal,
+WidgetSizableCommon
 }
 import mmagyar.ui.widget.generic.{BgGroup, DecoratedBgGroup, DecoratedGroup, DynamicGroupBaseTrait}
+import mmagyar.ui.widget.util.{OptionsState, Select}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Color, Point, TriState}
 
@@ -22,6 +24,7 @@ import mmagyar.util.{Box, Color, Point, TriState}
 object BuildContainer {
 
   val width: Double = 280
+
   def controlPanel(size: Point): Groupable[_] =
     new ScrollbarGroup(
       SizableGroup.scrollableWithBackground(
@@ -84,7 +87,7 @@ object BuildContainer {
 
   def actOnChange(group: Group, tracker: Tracker): Group = {
     val cc = tracker.downElements.map(_.shapey).collect {
-      case a: DecoratedGroup[ShapeyId @unchecked] if a.data.isInstanceOf[ShapeyId] => a
+      case a: DecoratedGroup[ShapeyId@unchecked] if a.data.isInstanceOf[ShapeyId] => a
     }
 
     cc.headOption
@@ -96,6 +99,7 @@ object BuildContainer {
                 .collect({ case b: IntField if b.id(id) => b.number.toDouble })
                 .headOption
                 .getOrElse(default)
+
             val sx = Point(
               getNumOr(x.data.append("SIZE_X"), a.size.x),
               getNumOr(x.data.append("SIZE_Y"), a.size.y))
@@ -108,22 +112,63 @@ object BuildContainer {
               getNumOr(x.data.append("OFFSET_X"), a.position.x),
               getNumOr(x.data.append("OFFSET_Y"), a.position.y))
 
-            (a.position(pos) match { case b: SizableShapey => b.size(sx); case b => b }) match {
-              case b: GenericSizable[_] => b.offset(offset); case b => b
+            val xd = group.collect({
+              case b: RadioButtons if b.id(x.data.append("WRAP")) =>
+                b.state.currentSelection match {
+                  case Some(value) => value
+                  case None =>
+                }
+            })
+
+            ((a.position(pos) match {
+              case b: SizableShapey => b.size(sx);
+              case b => b
+            }) match {
+              case b: GenericSizable[_] => b.offset(offset);
+              case b => b
+            }) match {
+              case b: GenericGroupExternallyModifiable[_] =>
+                val radioButton = group
+                  .collect({
+                    case b: RadioButtons if b.id(x.data.append("WRAP")) =>
+                      b.state.currentSelection.toVector
+                  })
+                  .flatten
+                  .headOption
+
+                def get(c: Layout) = radioButton.map(x =>
+                  if (x.id == 'LINE)
+                    if (c.wrap.isInstanceOf[Wrap.EqualLines]) c.wrap
+                    else Wrap.EqualLines()
+                  else if (x.id == 'WRAP)
+                    if (c.wrap.isInstanceOf[Wrap.Simple]) c.wrap
+                    else Wrap.Simple()
+                  else Wrap.No)
+                  .getOrElse(c.wrap)
+
+                val org: Organize = b.elementList.organize match {
+                  case c: Horizontal => c.copy(layout = c.layout.copy(wrap = get(c.layout)))
+                  case c: Vertical => c.copy(layout = c.layout.copy(wrap = get(c.layout)))
+                  case c => c
+                }
+                b.setElements(b.elementList.copy(organize = org))
+              case b => b
             }
 
           //This is noice, but updating the editor :( how?
         })
         res
+
         // updateInfo(res,controlPanelElement.id, group.find(y=> y.id(x.data)))
       })
       .getOrElse(group)
   }
+
   final case class ElementInfo(
-      shapey: Shapey,
-      common: WidgetCommonInternal = WidgetCommon(margin = Box(10)).toInternal
+    shapey: Shapey,
+    common: WidgetCommonInternal = WidgetCommon(margin = Box(10)).toInternal
   )(implicit style: Style)
-      extends DynamicWidgetBase[ElementInfo]
+    extends DynamicWidgetBase[ElementInfo]
       with BackgroundGroupShapey {
 
     lazy val background: SizableShapey =
@@ -167,21 +212,56 @@ object BuildContainer {
             (a match {
               case b: GenericSizable[_] =>
                 (if (b.canOffset._1)
-                   Vector(line("Offset X", "OFFSET_X", b.offset.x, Limits(0, b.diff.x)))
-                 else Vector.empty) ++
+                  Vector(line("Offset X", "OFFSET_X", b.offset.x, Limits(0, b.diff.x)))
+                else Vector.empty) ++
                   (if (b.canOffset._2)
-                     Vector(line("Offset Y", "OFFSET_Y", b.offset.y, Limits(0, b.diff.y)))
-                   else Vector.empty)
+                    Vector(line("Offset Y", "OFFSET_Y", b.offset.y, Limits(0, b.diff.y)))
+                  else Vector.empty)
               case _ => Vector.empty
             })
 
         case _ => Vector.empty
       }
 
+      val wrap = shapey match {
+        case b: GenericGroupExternallyModifiable[_] =>
+          val current = b.elementList.organize match {
+            case Horizontal(layout, _) => Some(layout)
+            case Vertical(layout, _) => Some(layout)
+            case _ => None
+          }
+
+          val noWrap = Select("No Wrap", 'NO)
+          val simpleWrap = Select("Simple Wrap", 'WRAP)
+          val equalWrap = Select("Equal Line Wrap", 'LINE)
+          val wrapTypes =
+            Vector(noWrap, simpleWrap)
+          val options = current match {
+            case Some(value: Layout) =>
+              value.wrap match {
+                case No => OptionsState(wrapTypes, Some(noWrap))
+                case Simple(alignContent, stretchLinesToBounds, uniformLineSize) =>
+                  OptionsState(wrapTypes, Some(simpleWrap))
+                case EqualLines(alignContent, stretchLinesToBounds, uniformLineSize) =>
+                  OptionsState(wrapTypes, Some(equalWrap))
+              }
+            case None => OptionsState(Vector(noWrap), Some(noWrap))
+          }
+          println("OPTIONS: " + options)
+          Vector(
+            RadioButtons(
+              options,
+              WidgetCommon(id = shapey.id.append("WRAP"))
+              //, WidgetSizableCommon(Sizing(Point(100,50),Grow.Affinity,Shrink.No))
+            )
+          )
+        case _ => Vector()
+      }
+
       ElementList(
         grp :+ DecoratedGroup(
           ElementList(
-            posSetter ++ sizing,
+            posSetter ++ sizing ++ wrap,
             Vertical(Layout())
           ),
           shapey.id
@@ -203,29 +283,31 @@ object BuildContainer {
       ElementInfo(shapey)
     )
   }
-  def updateInfo(group: Group, controlPanelElementId: ShapeyId, element: Option[Shapey])(
-      implicit style: Style): Group = {
-    group.changeWhereParents(
-      x =>
-        (x.shapey.id("DETAC") || x.shapey.id("SEL_ID_HERE")) && x.parents
-          .exists(_.id == controlPanelElementId), {
-        case a: Accordian =>
-          def shapeyToAccord(shapey: Shapey): Vector[Accord] = {
-            (shapey match {
-              case b: GenericGroup[_] => b.elementList.elements.flatMap(shapeyToAccord)
-              case _                  => Vector.empty
-            }) :+ accordCreate(shapey)
-          }
-          a.data.map(x => x.content)
-          a.data(element.toVector.flatMap(y => shapeyToAccord(y)))
 
-        case a: Text =>
-          val text =
-            element
-              .map(y => y.id.symbol.name)
-              .getOrElse("")
-          a.text(text)
-      }
+  def updateInfo(group: Group, controlPanelElementId: ShapeyId, element: Option[Shapey])(
+    implicit style: Style): Group = {
+    group.changeWhereParents(
+    x =>
+      (x.shapey.id("DETAC") || x.shapey.id("SEL_ID_HERE")) && x.parents
+        .exists(_.id == controlPanelElementId), {
+      case a: Accordian =>
+        def shapeyToAccord(shapey: Shapey): Vector[Accord] = {
+          (shapey match {
+            case b: GenericGroup[_] => b.elementList.elements.flatMap(shapeyToAccord)
+            case _ => Vector.empty
+          }) :+ accordCreate(shapey)
+        }
+
+        a.data.map(x => x.content)
+        a.data(element.toVector.flatMap(y => shapeyToAccord(y)))
+
+      case a: Text =>
+        val text =
+          element
+            .map(y => y.id.symbol.name)
+            .getOrElse("")
+        a.text(text)
+    }
     )
   }
 

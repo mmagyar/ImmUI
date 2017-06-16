@@ -7,26 +7,17 @@ import mmagyar.ui.group.sizable.SizableGroup
 import mmagyar.ui.interaction.{Behaviour, BehaviourAction, BehaviourBasic}
 import mmagyar.ui.widget.Dialogue.{buttons, buttonsGroup}
 import mmagyar.ui.widget.base.{SizableWidgetBase, WidgetSizableCommonInternal}
+import mmagyar.ui.widget.util.{OptionButton, OptionWidgetState, OptionsState, Select}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Point}
 
 /** Magyar Máté 2017, all rights reserved */
-case class DialogueState(options: Vector[DialogueOption],
-                         currentSelection: Option[DialogueOption] = None)
-object DialogueOption {
-  def apply(text: String): DialogueOption = DialogueOption(text, Symbol(text))
-}
-case class DialogueOption(text: String, id: Symbol)
-case class OptionButton(button: Button, option: DialogueOption)
-case class DialogueWidgetState(state: DialogueState,
-                               buttons: Vector[OptionButton],
-                               buttonContainer: Group)
 object Dialogue {
 
-  def createButtonId(parentId: ShapeyId, dialogueOption: DialogueOption): ShapeyId =
+  def createButtonId(parentId: ShapeyId, dialogueOption: Select): ShapeyId =
     parentId.append("_STATUS_", dialogueOption.id)
 
-  def buttons(stateForButtons: DialogueState, id: ShapeyId)(
+  def buttons(stateForButtons: OptionsState, id: ShapeyId)(
       implicit style: Style): Vector[OptionButton] =
     stateForButtons.options.map(
       x =>
@@ -53,7 +44,7 @@ object Dialogue {
       id = id.append("_BUTTON_CTR")
     )
 
-  def select(option: Option[DialogueOption], in: Dialogue): Dialogue =
+  def select(option: Option[Select], in: Dialogue): Dialogue =
     in.data(in.data.copy(state = in.data.state.copy(currentSelection = option)))
       .change({
         case a: Group if a.id == in.data.buttonContainer.id =>
@@ -85,22 +76,22 @@ object Dialogue {
           el
       }))
     )
-  def apply(text: String, sizing: Sizing, state: DialogueState, id: ShapeyId = ShapeyId())(
+  def apply(text: String, sizing: Sizing, state: OptionsState, id: ShapeyId = ShapeyId())(
       implicit style: Style): Dialogue = {
     new Dialogue(text, state, None, WidgetSizableCommonInternal(sizing, id = id))
   }
 }
 
 class Dialogue private (val text: String,
-                        val state: DialogueState,
-                        _data: Option[DialogueWidgetState],
+                        val state: OptionsState,
+                        _data: Option[OptionWidgetState],
                         val common: WidgetSizableCommonInternal)(implicit style: Style)
     extends SizableWidgetBase[Dialogue] {
 
   override protected def copyCommon(commonValue: WidgetSizableCommonInternal): Dialogue =
     new Dialogue(text, state, Some(data), commonValue)
 
-  lazy val elementsAndState: (DialogueWidgetState, ElementList) = {
+  lazy val elementsAndState: (OptionWidgetState, ElementList) = {
     val margin: Box = style.defaultGroupMargin
 
     val multiText = SizableGroup.scrollableTextBox(
@@ -121,7 +112,7 @@ class Dialogue private (val text: String,
     )
 
     (
-      DialogueWidgetState(state, buttonsEl, buttonGroups),
+      OptionWidgetState(state, buttonsEl, buttonGroups),
       ElementList(
         Union(),
         Rect(Sizing.dynamic(), looks = style.groupLooks, zOrder = -2),
@@ -129,11 +120,11 @@ class Dialogue private (val text: String,
       ))
   }
 
-  lazy val data: DialogueWidgetState = _data match {
+  lazy val data: OptionWidgetState = _data match {
     case Some(value) => value; case None => elementsAndState._1
   }
 
-  def data(value: DialogueWidgetState): Dialogue =
+  def data(value: OptionWidgetState): Dialogue =
     if (value == this.data) this else new Dialogue(text, value.state, Some(value), common)
 
   override def generateElements: ElementList = elementsAndState._2
