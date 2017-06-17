@@ -1,7 +1,8 @@
 package mmagyar.ui.builder
 
+import mmagyar.layout.Align.{Center, SpaceAround, SpaceBetween, Stretch}
 import mmagyar.layout.Wrap.{EqualLines, No, Simple}
-import mmagyar.layout._
+import mmagyar.layout.{Align, _}
 import mmagyar.ui.core.{ElementList, _}
 import mmagyar.ui.group._
 import mmagyar.ui.group.dynamic.Group
@@ -9,13 +10,13 @@ import mmagyar.ui.group.sizable.{GenericSizable, SizableGroup}
 import mmagyar.ui.interaction._
 import mmagyar.ui.widget._
 import mmagyar.ui.widget.base.{
-DynamicWidgetBase,
-WidgetCommon,
-WidgetCommonInternal,
-WidgetSizableCommon
+  DynamicWidgetBase,
+  WidgetCommon,
+  WidgetCommonInternal,
+  WidgetSizableCommon
 }
 import mmagyar.ui.widget.generic.{BgGroup, DecoratedBgGroup, DecoratedGroup, DynamicGroupBaseTrait}
-import mmagyar.ui.widget.util.{OptionsState, Select}
+import mmagyar.ui.widget.util.{OptionsExpanded, OptionsState, Select, SelectExtended}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Color, Point, TriState}
 
@@ -87,7 +88,7 @@ object BuildContainer {
 
   def actOnChange(group: Group, tracker: Tracker): Group = {
     val cc = tracker.downElements.map(_.shapey).collect {
-      case a: DecoratedGroup[ShapeyId@unchecked] if a.data.isInstanceOf[ShapeyId] => a
+      case a: DecoratedGroup[ShapeyId @unchecked] if a.data.isInstanceOf[ShapeyId] => a
     }
 
     cc.headOption
@@ -112,43 +113,73 @@ object BuildContainer {
               getNumOr(x.data.append("OFFSET_X"), a.position.x),
               getNumOr(x.data.append("OFFSET_Y"), a.position.y))
 
-            val xd = group.collect({
-              case b: RadioButtons if b.id(x.data.append("WRAP")) =>
-                b.state.currentSelection match {
-                  case Some(value) => value
-                  case None =>
-                }
-            })
-
             ((a.position(pos) match {
               case b: SizableShapey => b.size(sx);
+              case b                => b
+            }) match {
+              case b: GenericSizable[_] =>
+                b.offset(offset);
               case b => b
             }) match {
-              case b: GenericSizable[_] => b.offset(offset);
-              case b => b
-            }) match {
-              case b: GenericGroupExternallyModifiable[_] =>
-                val radioButton = group
-                  .collect({
-                    case b: RadioButtons if b.id(x.data.append("WRAP")) =>
-                      b.state.currentSelection.toVector
-                  })
-                  .flatten
-                  .headOption
+              case b: GenericGroupExternallyModifiable[_]
+                  //    if tracker.downElements.exists(y => y.shapey.id(x.data.append("WRAP")))
+                  =>
+                def getRadio(id: String): Option[Select] = {
+                  group
+                    .collect({
+                      case b: RadioButtons if b.id(x.data.append(id)) =>
+                        b.state.currentSelection.toVector
+                    })
+                    .flatten
+                    .headOption
+                }
 
-                def get(c: Layout) = radioButton.map(x =>
-                  if (x.id == 'LINE)
-                    if (c.wrap.isInstanceOf[Wrap.EqualLines]) c.wrap
-                    else Wrap.EqualLines()
-                  else if (x.id == 'WRAP)
-                    if (c.wrap.isInstanceOf[Wrap.Simple]) c.wrap
-                    else Wrap.Simple()
-                  else Wrap.No)
-                  .getOrElse(c.wrap)
+                def getWrap(c: Layout) =
+                  getRadio("WRAP")
+                    .map(
+                      x =>
+                        if (x.id == 'LINE)
+                          if (c.wrap.isInstanceOf[Wrap.EqualLines]) c.wrap
+                          else Wrap.EqualLines()
+                        else if (x.id == 'WRAP)
+                          if (c.wrap.isInstanceOf[Wrap.Simple]) c.wrap
+                          else Wrap.Simple()
+                        else Wrap.No)
+                    .getOrElse(c.wrap)
+
+                def getAlignItem(c: Layout): AlignNonSizing = {
+                 val xxcv =  group
+                    .collectFirst({
+                      case b: AlignNonSizingEdit if b.id(x.data.append("ALIGN_ITEM")) =>
+                        b.alignNonSizing
+                    })
+
+                  println(xxcv)
+                   xxcv
+                    .getOrElse(c.alignItem)
+                }
+
+                def getAlignContent(c: Layout): AlignSimple =
+                  group
+                    .collectFirst({
+                      case b: AlignSimpleEdit if b.id(x.data.append("ALIGN_CONTENT")) =>
+                        b.alignSimple
+                    })
+                    .getOrElse(c.alignContent)
 
                 val org: Organize = b.elementList.organize match {
-                  case c: Horizontal => c.copy(layout = c.layout.copy(wrap = get(c.layout)))
-                  case c: Vertical => c.copy(layout = c.layout.copy(wrap = get(c.layout)))
+                  case c: Horizontal =>
+                    c.copy(
+                      layout = c.layout.copy(
+                        getWrap(c.layout),
+                        alignItem = getAlignItem(c.layout),
+                        alignContent = getAlignContent(c.layout)))
+                  case c: Vertical =>
+                    c.copy(
+                      layout = c.layout.copy(
+                        getWrap(c.layout),
+                        alignItem = getAlignItem(c.layout),
+                        alignContent = getAlignContent(c.layout)))
                   case c => c
                 }
                 b.setElements(b.elementList.copy(organize = org))
@@ -165,10 +196,10 @@ object BuildContainer {
   }
 
   final case class ElementInfo(
-    shapey: Shapey,
-    common: WidgetCommonInternal = WidgetCommon(margin = Box(10)).toInternal
+      shapey: Shapey,
+      common: WidgetCommonInternal = WidgetCommon(margin = Box(10)).toInternal
   )(implicit style: Style)
-    extends DynamicWidgetBase[ElementInfo]
+      extends DynamicWidgetBase[ElementInfo]
       with BackgroundGroupShapey {
 
     lazy val background: SizableShapey =
@@ -212,11 +243,11 @@ object BuildContainer {
             (a match {
               case b: GenericSizable[_] =>
                 (if (b.canOffset._1)
-                  Vector(line("Offset X", "OFFSET_X", b.offset.x, Limits(0, b.diff.x)))
-                else Vector.empty) ++
+                   Vector(line("Offset X", "OFFSET_X", b.offset.x, Limits(0, b.diff.x)))
+                 else Vector.empty) ++
                   (if (b.canOffset._2)
-                    Vector(line("Offset Y", "OFFSET_Y", b.offset.y, Limits(0, b.diff.y)))
-                  else Vector.empty)
+                     Vector(line("Offset Y", "OFFSET_Y", b.offset.y, Limits(0, b.diff.y)))
+                   else Vector.empty)
               case _ => Vector.empty
             })
 
@@ -225,36 +256,88 @@ object BuildContainer {
 
       val wrap = shapey match {
         case b: GenericGroupExternallyModifiable[_] =>
-          val current = b.elementList.organize match {
-            case Horizontal(layout, _) => Some(layout)
-            case Vertical(layout, _) => Some(layout)
-            case _ => None
+          val layout = b.elementList.organize match {
+            case Horizontal(layout1, _) => Some(layout1)
+            case Vertical(layout1, _)   => Some(layout1)
+            case _                      => None
           }
 
-          val noWrap = Select("No Wrap", 'NO)
-          val simpleWrap = Select("Simple Wrap", 'WRAP)
-          val equalWrap = Select("Equal Line Wrap", 'LINE)
-          val wrapTypes =
-            Vector(noWrap, simpleWrap)
-          val options = current match {
-            case Some(value: Layout) =>
-              value.wrap match {
-                case No => OptionsState(wrapTypes, Some(noWrap))
-                case Simple(alignContent, stretchLinesToBounds, uniformLineSize) =>
-                  OptionsState(wrapTypes, Some(simpleWrap))
-                case EqualLines(alignContent, stretchLinesToBounds, uniformLineSize) =>
-                  OptionsState(wrapTypes, Some(equalWrap))
-              }
-            case None => OptionsState(Vector(noWrap), Some(noWrap))
-          }
-          println("OPTIONS: " + options)
-          Vector(
-            RadioButtons(
-              options,
-              WidgetCommon(id = shapey.id.append("WRAP"))
-              //, WidgetSizableCommon(Sizing(Point(100,50),Grow.Affinity,Shrink.No))
-            )
+          val aLeft         = Select("Left", 'LEFT)
+          val aRight        = Select("Right", 'RIGHT)
+          val aCenter       = Select("Center", 'CENTER)
+          val aSpaceBetween = Select("Space between", 'BETWEEN)
+          val aSpaceAround  = Select("Space around", 'AROUND)
+
+          val alignNonSizing = Vector(
+            aLeft,
+            aCenter,
+            aRight,
+            aSpaceBetween,
+            aSpaceAround
           )
+
+          val aStretch    = Select("Stretch", 'STRETCH)
+          val alignSizing = Vector(aLeft, aCenter, aRight, aStretch)
+
+          val noWrap     = Select("No Wrap", 'NO)
+          val simpleWrap = Select("Simple Wrap", 'WRAP)
+          val equalWrap  = Select("Equal Line Wrap", 'LINE)
+          val wrapTypes =
+            Vector(
+              SelectExtended(noWrap, None),
+              SelectExtended(simpleWrap, Some(Button("OHH HAY"))))
+          layout match {
+            case Some(value: Layout) =>
+              val alignItem = value.alignItem match {
+                case Align.Left                         => aLeft
+                case Align.Right                        => aRight
+                case Align.Center                       => aCenter
+                case Align.SpaceBetween(spacing, align) => aSpaceBetween
+                case Align.SpaceAround(spacing, align)  => aSpaceAround
+              }
+
+              val alignContent = value.alignContent match {
+                case Align.Left             => aLeft
+                case Align.Right            => aRight
+                case Center                 => aCenter
+                case Stretch(forNonSizable) => aStretch
+              }
+
+              Vector(
+                MultilineText("Align item"),
+                new AlignNonSizingEdit(
+                  value.alignItem,
+                  common = WidgetCommonInternal(id = shapey.id.append("ALIGN_ITEM"))),
+//                RadioButtons(
+//                  OptionsExpanded.selected(alignNonSizing, alignItem),
+//                  WidgetCommon(id = shapey.id.append("ALIGN_ITEM"))
+//                ),
+                MultilineText("Align Content"),
+                new AlignSimpleEdit(
+                  value.alignContent,
+                  common = WidgetCommonInternal(id = shapey.id.append("ALIGN_CONTENT"))),
+//                RadioButtons(
+//                  OptionsExpanded.selected(alignSizing, alignContent),
+//                  WidgetCommon(id = shapey.id.append("ALIGN_CONTENT"))
+//                ),
+                MultilineText("Wrap"),
+                RadioButtons(
+                  value.wrap match {
+                    case No => OptionsExpanded(wrapTypes, Some(noWrap))
+                    case Simple(_, stretchLinesToBounds, uniformLineSize) =>
+                      OptionsExpanded(wrapTypes, Some(simpleWrap))
+                    case EqualLines(_, stretchLinesToBounds, uniformLineSize) =>
+                      OptionsExpanded(wrapTypes, Some(equalWrap))
+                  },
+                  WidgetCommon(id = shapey.id.append("WRAP"))
+                  //, WidgetSizableCommon(Sizing(Point(100,50),Grow.Affinity,Shrink.No))
+                )
+              )
+            case None =>
+              Vector()
+//              OptionsExpanded(Vector((noWrap, None)), Some(noWrap))
+          }
+
         case _ => Vector()
       }
 
@@ -285,29 +368,29 @@ object BuildContainer {
   }
 
   def updateInfo(group: Group, controlPanelElementId: ShapeyId, element: Option[Shapey])(
-    implicit style: Style): Group = {
+      implicit style: Style): Group = {
     group.changeWhereParents(
-    x =>
-      (x.shapey.id("DETAC") || x.shapey.id("SEL_ID_HERE")) && x.parents
-        .exists(_.id == controlPanelElementId), {
-      case a: Accordian =>
-        def shapeyToAccord(shapey: Shapey): Vector[Accord] = {
-          (shapey match {
-            case b: GenericGroup[_] => b.elementList.elements.flatMap(shapeyToAccord)
-            case _ => Vector.empty
-          }) :+ accordCreate(shapey)
-        }
+      x =>
+        (x.shapey.id("DETAC") || x.shapey.id("SEL_ID_HERE")) && x.parents
+          .exists(_.id == controlPanelElementId), {
+        case a: Accordian =>
+          def shapeyToAccord(shapey: Shapey): Vector[Accord] = {
+            (shapey match {
+              case b: GenericGroup[_] => b.elementList.elements.flatMap(shapeyToAccord)
+              case _                  => Vector.empty
+            }) :+ accordCreate(shapey)
+          }
 
-        a.data.map(x => x.content)
-        a.data(element.toVector.flatMap(y => shapeyToAccord(y)))
+          a.data.map(x => x.content)
+          a.data(element.toVector.flatMap(y => shapeyToAccord(y)))
 
-      case a: Text =>
-        val text =
-          element
-            .map(y => y.id.symbol.name)
-            .getOrElse("")
-        a.text(text)
-    }
+        case a: Text =>
+          val text =
+            element
+              .map(y => y.id.symbol.name)
+              .getOrElse("")
+          a.text(text)
+      }
     )
   }
 

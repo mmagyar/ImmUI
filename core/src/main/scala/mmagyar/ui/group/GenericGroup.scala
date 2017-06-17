@@ -77,6 +77,14 @@ trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]
     }.flatten
   }
 
+  def collectFirst[B](pf: PartialFunction[Shapey, B], recursive: Boolean = true): Option[B] = {
+    //TODO optimize this
+    elements.collect {
+      case a if pf.isDefinedAt(a)          => Some(pf(a))
+      case a: GenericGroup[_] if recursive => a.collectFirst(pf, recursive)
+    }.flatten.headOption
+  }
+
   def getFullyRecursive(where: (Shapey) => Boolean): Vector[Shapey] =
     elements.collect {
       case a if where(a) =>

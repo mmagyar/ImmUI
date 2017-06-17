@@ -11,7 +11,7 @@ import mmagyar.ui.widget.UpdateReason.Position
 import mmagyar.ui.widget._
 import mmagyar.ui.widget.base.{WidgetCommon, WidgetSizableCommon}
 import mmagyar.ui.widget.generic.BoundGroup
-import mmagyar.ui.widget.util.{OptionsState, Select}
+import mmagyar.ui.widget.util.{OptionsExpanded, OptionsPlain, OptionsState, Select}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util._
 
@@ -244,7 +244,7 @@ object DemoScenarios {
       position = Point(150, 150)
       //  sizing = Sizing(60, 150)
     )(Style()),
-    RadioButtons(OptionsState(Vector(Select("1 option 1"),Select("2 option 2"),Select("3 option 3"))), Point(250,170)),
+    RadioButtons(OptionsExpanded(Vector(Select("1 option 1"),Select("2 option 2"),Select("3 option 3"))), Point(250,170)),
     IntField(
       823,
       Limits(),
@@ -260,7 +260,7 @@ object DemoScenarios {
     Dialogue(
       "ohh hacky this text overlaps thought multiple lines of text,\nit's destiny is to test the scrolling functionality, and it's agility",
       Sizing(Point(240, 110)),
-      OptionsState(
+      OptionsPlain(
         Vector(
           Select("OK"),
           Select("CANCEL"),

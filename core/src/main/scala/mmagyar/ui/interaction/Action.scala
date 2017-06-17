@@ -70,6 +70,7 @@ object BehaviourBasic {
   *
   * @tparam T Behaviour's type
   */
+//TODO maybe crate a behaviour option that can run on any action
 sealed trait Behaviour[T <: Shapey] {
   //  trait Behaviour[T <: Shapey, A <: Behaviour[T, A]] { this: A =>
   def click: Option[BehaviourAction[T]]

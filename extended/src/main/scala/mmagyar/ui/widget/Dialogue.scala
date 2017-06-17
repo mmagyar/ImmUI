@@ -7,7 +7,7 @@ import mmagyar.ui.group.sizable.SizableGroup
 import mmagyar.ui.interaction.{Behaviour, BehaviourAction, BehaviourBasic}
 import mmagyar.ui.widget.Dialogue.{buttons, buttonsGroup}
 import mmagyar.ui.widget.base.{SizableWidgetBase, WidgetSizableCommonInternal}
-import mmagyar.ui.widget.util.{OptionButton, OptionWidgetState, OptionsState, Select}
+import mmagyar.ui.widget.util.{OptionButton, OptionWidgetState, OptionsPlain, Select}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Point}
 
@@ -17,7 +17,7 @@ object Dialogue {
   def createButtonId(parentId: ShapeyId, dialogueOption: Select): ShapeyId =
     parentId.append("_STATUS_", dialogueOption.id)
 
-  def buttons(stateForButtons: OptionsState, id: ShapeyId)(
+  def buttons(stateForButtons: OptionsPlain, id: ShapeyId)(
       implicit style: Style): Vector[OptionButton] =
     stateForButtons.options.map(
       x =>
@@ -45,7 +45,7 @@ object Dialogue {
     )
 
   def select(option: Option[Select], in: Dialogue): Dialogue =
-    in.data(in.data.copy(state = in.data.state.copy(currentSelection = option)))
+    in.data(in.data.copy(state = in.data.state.asInstanceOf[OptionsPlain].copy(currentSelection = option)))
       .change({
         case a: Group if a.id == in.data.buttonContainer.id =>
           a mapElements {
@@ -76,14 +76,14 @@ object Dialogue {
           el
       }))
     )
-  def apply(text: String, sizing: Sizing, state: OptionsState, id: ShapeyId = ShapeyId())(
+  def apply(text: String, sizing: Sizing, state: OptionsPlain, id: ShapeyId = ShapeyId())(
       implicit style: Style): Dialogue = {
     new Dialogue(text, state, None, WidgetSizableCommonInternal(sizing, id = id))
   }
 }
 
 class Dialogue private (val text: String,
-                        val state: OptionsState,
+                        val state: OptionsPlain,
                         _data: Option[OptionWidgetState],
                         val common: WidgetSizableCommonInternal)(implicit style: Style)
     extends SizableWidgetBase[Dialogue] {
@@ -125,7 +125,7 @@ class Dialogue private (val text: String,
   }
 
   def data(value: OptionWidgetState): Dialogue =
-    if (value == this.data) this else new Dialogue(text, value.state, Some(value), common)
+    if (value == this.data) this else new Dialogue(text, value.state.asInstanceOf[OptionsPlain], Some(value), common)
 
   override def generateElements: ElementList = elementsAndState._2
 

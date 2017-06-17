@@ -4,7 +4,7 @@ import mmagyar.layout._
 import mmagyar.ui.core.{ElementList, ShapeyId}
 import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction}
 import mmagyar.ui.widget.base._
-import mmagyar.ui.widget.util.{OptionsState, Select}
+import mmagyar.ui.widget.util._
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.Point
 
@@ -25,27 +25,23 @@ object RadioButtons {
           behaviour = BehaviourBasic.empty)
     )
 
-  def apply(state: OptionsState, common: WidgetCommon)(implicit style: Style): RadioButtons =
+  def apply(state: OptionsExpanded, common: WidgetCommon)(implicit style: Style): RadioButtons =
     new RadioButtons(state, common.toInternal)
 
-  def vertical(state: OptionsState, position: Point = Point.zero)(
-      implicit style: Style): RadioButtons = {
-    val buttonProto = buttons(ShapeyId(""), state)
+  def apply(state: OptionsExpanded, id: ShapeyId)(implicit style: Style): RadioButtons =
+    new RadioButtons(state, WidgetCommonInternal(id = id))
 
-    val cc = buttonProto.foldLeft(Point.zero)((p, c) => Point(p.x.max(c.size.x), p.y + c.size.y))
-    new RadioButtons(state, WidgetCommonInternal(position = position))
-  }
-
-  def apply(state: OptionsState, position: Point = Point.zero)(
+  def apply(state: OptionsExpanded, position: Point = Point.zero)(
       implicit style: Style): RadioButtons = {
     new RadioButtons(state, WidgetCommonInternal(position = position))
   }
 }
 class RadioButtons private (
-    val state: OptionsState,
+    val state: OptionsExpanded,
     val common: WidgetCommonInternal
 )(implicit style: Style)
-    extends DynamicWidgetBase[RadioButtons] {
+    extends DynamicWidgetBase[RadioButtons]
+    with Optionable {
 
   override protected def copyCommon(commonValue: WidgetCommonInternal): RadioButtons =
     if (commonValue == common) this
@@ -60,15 +56,48 @@ class RadioButtons private (
             state.options.find(x => RadioButtons.createButtonId(id, x) == a.shapey.id)
         })
         .flatten match {
-        case Some(value) => rBtn.select(value)
-        case None        => rBtn
+        case Some(value) =>
+          rBtn.select(value)
+
+        case None =>
+          /** This code is responsible to keep the state of the widgets paired with options updated*/
+          val activeIds   = state.optionsWithExtends.flatMap(x => x.shapey.map(_.id))
+          val activeClick = tracker.downElements.find(x => activeIds.contains(x.shapey.id))
+          if (activeClick.isDefined) {
+            state.optionsWithExtends
+              .find(x => state.currentSelection.contains(x.select))
+              .flatMap(x => x.shapey) match {
+              case Some(innerShapey) =>
+                new RadioButtons(
+                  OptionsExpanded(
+                    state.optionsWithExtends.map(
+                      x =>
+                        if (state.currentSelection.contains(x.select))
+                          SelectExtended(
+                            x.select,
+                            rBtn.find(x => x.id(innerShapey.id)).getOrElse(innerShapey))
+                        else x),
+                    state.currentSelection
+                  ),
+                  common
+                )
+              case None =>
+                rBtn
+            }
+          } else rBtn
+
       }
     })))
 
   override def generateElements: ElementList =
     ElementList(
-      Button.unifyButtonSize[Button](RadioButtons.buttons(id, state), x => x, (_, b) => b),
-      Horizontal(Layout(Wrap.Simple())))
+      Button
+        .unifyButtonSize[Button](RadioButtons.buttons(id, state), x => x, (_, b) => b) ++ state.optionsWithExtends
+        .find(x => state.currentSelection.contains(x.select))
+        .flatMap(x => x.shapey)
+        .toVector,
+      Horizontal(Layout(Wrap.Simple()))
+    )
 
   def select(select: Select): RadioButtons = new RadioButtons(state.select(select), common.reset)
 
