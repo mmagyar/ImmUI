@@ -32,7 +32,8 @@ class AlignNonSizingEdit(val alignNonSizing: AlignNonSizing,
     Text("spacing"),
     new AlignSimpleEdit(
       current._2.align,
-      common = WidgetCommonInternal(id = id.append("SPACING", tpe)))
+      common = WidgetCommonInternal(id = id.append("SPACING_1", tpe))),
+    new SpacingEditor(current._2.spacing,(0,0),common = WidgetCommonInternal(id = id.append("SPACING_2", tpe)))
   )
   val aLeft: SelectExtended   = SelectExtended(Select("Left", 'LEFT))
   val aRight: SelectExtended  = SelectExtended(Select("Right", 'RIGHT))

@@ -53,6 +53,7 @@ case class Limits(min: Long = 0, max: Long = 99999) {
 }
 //TODO add drag change
 //TODO autosize field to minimum
+//TODO change this to non sizable
 class IntField private (_number: Long,
                         val limits: Limits = Limits(),
                         val resizeToTextOnChange: Boolean = true,
