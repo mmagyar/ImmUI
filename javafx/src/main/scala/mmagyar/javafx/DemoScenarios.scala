@@ -244,12 +244,10 @@ object DemoScenarios {
       position = Point(150, 150)
       //  sizing = Sizing(60, 150)
     )(Style()),
-    RadioButtons(OptionsExpanded(Vector(Select("1 option 1"),Select("2 option 2"),Select("3 option 3"))), Point(250,170)),
-    IntField(
-      823,
-      Limits(),
-      resizeToText = false,
-      WidgetSizableCommon(position = Point(191, 190), sizing = Sizing(128, 64))),
+    RadioButtons(
+      OptionsExpanded(Vector(Select("1 option 1"), Select("2 option 2"), Select("3 option 3"))),
+      Point(250, 170)),
+    IntField(823, Limits(), WidgetCommon(position = Point(191, 190))),
     BitmapShapey(
       (5, 20),
       Sizing(20, 180),

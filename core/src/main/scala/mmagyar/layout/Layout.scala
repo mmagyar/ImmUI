@@ -9,6 +9,12 @@ object Layout {
     Align.Center,
     Align.Center)
 
+  val centerNoWrapNoFlex: Layout = Layout(
+    Wrap.No,
+    Fill.No,
+    Align.Center,
+    Align.Center)
+
   val centeredDown: Layout = Layout(
     wrap = Wrap
       .Simple(Align.Right, stretchLinesToBounds = true, uniformLineSize = true),
@@ -27,6 +33,6 @@ object Layout {
   * @param alignItem  alignment of the items on rows that does not fully fill the line
   */
 case class Layout(wrap: Wrap = Wrap.No,
-                  fill: Fill = Fill.Flex,
+                  fill: Fill = Fill.No,
                   alignContent: AlignSimple = Align.Left,
                   alignItem: AlignNonSizing = Align.Left)

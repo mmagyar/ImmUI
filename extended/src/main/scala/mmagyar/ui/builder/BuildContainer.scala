@@ -1,6 +1,5 @@
 package mmagyar.ui.builder
 
-import mmagyar.layout.Align.{Center, SpaceAround, SpaceBetween, Stretch}
 import mmagyar.layout.Wrap.{EqualLines, No, Simple}
 import mmagyar.layout.{Align, _}
 import mmagyar.ui.core.{ElementList, _}
@@ -9,14 +8,9 @@ import mmagyar.ui.group.dynamic.Group
 import mmagyar.ui.group.sizable.{GenericSizable, SizableGroup}
 import mmagyar.ui.interaction._
 import mmagyar.ui.widget._
-import mmagyar.ui.widget.base.{
-  DynamicWidgetBase,
-  WidgetCommon,
-  WidgetCommonInternal,
-  WidgetSizableCommon
-}
-import mmagyar.ui.widget.generic.{BgGroup, DecoratedBgGroup, DecoratedGroup, DynamicGroupBaseTrait}
-import mmagyar.ui.widget.util.{OptionsExpanded, OptionsState, Select, SelectExtended}
+import mmagyar.ui.widget.base.{DynamicWidgetBase, WidgetCommon, WidgetCommonInternal}
+import mmagyar.ui.widget.generic.DecoratedGroup
+import mmagyar.ui.widget.util.{OptionsExpanded, Select, SelectExtended}
 import mmagyar.ui.widgetHelpers.Style
 import mmagyar.util.{Box, Color, Point, TriState}
 
@@ -148,14 +142,14 @@ object BuildContainer {
                     .getOrElse(c.wrap)
 
                 def getAlignItem(c: Layout): AlignNonSizing = {
-                 val xxcv =  group
+                  val xxcv = group
                     .collectFirst({
                       case b: AlignNonSizingEdit if b.id(x.data.append("ALIGN_ITEM")) =>
                         b.alignNonSizing
                     })
 
                   println(xxcv)
-                   xxcv
+                  xxcv
                     .getOrElse(c.alignItem)
                 }
 
@@ -217,12 +211,7 @@ object BuildContainer {
     def line(text: String, idAppend: String, value: Double, limits: Limits): Group = Group(
       lineOrg,
       Text(text),
-      IntField(
-        value.round,
-        limits,
-        resizeToText = true,
-        WidgetSizableCommon(id = shapey.id.append(idAppend))
-      )
+      IntField(value.round, limits, shapey.id.append(idAppend))
     )
 
     override def generateElements: ElementList = {
@@ -262,23 +251,6 @@ object BuildContainer {
             case _                      => None
           }
 
-          val aLeft         = Select("Left", 'LEFT)
-          val aRight        = Select("Right", 'RIGHT)
-          val aCenter       = Select("Center", 'CENTER)
-          val aSpaceBetween = Select("Space between", 'BETWEEN)
-          val aSpaceAround  = Select("Space around", 'AROUND)
-
-          val alignNonSizing = Vector(
-            aLeft,
-            aCenter,
-            aRight,
-            aSpaceBetween,
-            aSpaceAround
-          )
-
-          val aStretch    = Select("Stretch", 'STRETCH)
-          val alignSizing = Vector(aLeft, aCenter, aRight, aStretch)
-
           val noWrap     = Select("No Wrap", 'NO)
           val simpleWrap = Select("Simple Wrap", 'WRAP)
           val equalWrap  = Select("Equal Line Wrap", 'LINE)
@@ -288,21 +260,6 @@ object BuildContainer {
               SelectExtended(simpleWrap, Some(Button("OHH HAY"))))
           layout match {
             case Some(value: Layout) =>
-              val alignItem = value.alignItem match {
-                case Align.Left                         => aLeft
-                case Align.Right                        => aRight
-                case Align.Center                       => aCenter
-                case Align.SpaceBetween(spacing, align) => aSpaceBetween
-                case Align.SpaceAround(spacing, align)  => aSpaceAround
-              }
-
-              val alignContent = value.alignContent match {
-                case Align.Left             => aLeft
-                case Align.Right            => aRight
-                case Center                 => aCenter
-                case Stretch(forNonSizable) => aStretch
-              }
-
               Vector(
                 MultilineText("Align item"),
                 new AlignNonSizingEdit(

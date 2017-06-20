@@ -13,8 +13,8 @@ import mmagyar.ui.widgetHelpers.Style
 /** Magyar Máté 2017, all rights reserved */
 class AlignSimpleEdit(
     val alignSimple: AlignSimple,
-    stretchAlign: AlignSimple = Align.Left,
-    drawStretchSubContainer: Boolean = true,
+    val stretchAlign: AlignSimple = Align.Left,
+    val drawStretchSubContainer: Boolean = true,
     val common: WidgetCommonInternal = WidgetCommonInternal())(implicit style: Style)
     extends DynamicWidgetBase[AlignSimpleEdit] {
 
@@ -114,4 +114,18 @@ class AlignSimpleEdit(
     ElementList(
       Horizontal(Layout(Wrap.Simple())),
       RadioButtons(OptionsExpanded(alignSimpleOptions, activeSelect), buttonsId))
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case a: AlignSimpleEdit
+        if a.common == this.common &&
+          a.alignSimple == this.alignSimple &&
+          a.stretchAlign == this.stretchAlign &&
+          a.drawStretchSubContainer == this.drawStretchSubContainer =>
+      true
+    case _ => false
+  }
+
+  //TODO this is reconstructed on scroll
+//  println(("SIMPLE: " + elementList.organize.size, id, activeSelect))
+
 }

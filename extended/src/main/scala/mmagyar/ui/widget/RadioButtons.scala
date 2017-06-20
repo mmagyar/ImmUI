@@ -2,6 +2,8 @@ package mmagyar.ui.widget
 
 import mmagyar.layout._
 import mmagyar.ui.core.{ElementList, ShapeyId}
+import mmagyar.ui.group.GenericGroupExternallyModifiable
+import mmagyar.ui.group.dynamic.Group
 import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction}
 import mmagyar.ui.widget.base._
 import mmagyar.ui.widget.util._
@@ -91,12 +93,17 @@ class RadioButtons private (
 
   override def generateElements: ElementList =
     ElementList(
-      Button
-        .unifyButtonSize[Button](RadioButtons.buttons(id, state), x => x, (_, b) => b) ++ state.optionsWithExtends
-        .find(x => state.currentSelection.contains(x.select))
-        .flatMap(x => x.shapey)
-        .toVector,
-      Horizontal(Layout(Wrap.Simple()))
+      Vertical(Layout(Wrap.Simple())),
+      Group(
+        Horizontal(Layout(Wrap.Simple())),
+        Button
+          .unifyButtonSize[Button](RadioButtons.buttons(id, state), x => x, (_, b) => b)),
+      Group(
+        Vertical(),
+        state.optionsWithExtends
+          .find(x => state.currentSelection.contains(x.select))
+          .flatMap(x => x.shapey)
+          .toVector)
     )
 
   def select(select: Select): RadioButtons = new RadioButtons(state.select(select), common.reset)

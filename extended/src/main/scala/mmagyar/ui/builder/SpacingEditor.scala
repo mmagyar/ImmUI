@@ -24,7 +24,7 @@ class SpacingEditor(
   val sMinMax  = 'MINMAX
 
   val current: (Symbol, Double, Double) = spacing match {
-    case Default          => (sDefault, numeric._1,numeric._2)
+    case Default          => (sDefault, numeric._1, numeric._2)
     case Minimum(value)   => (sMinimum, value, numeric._2)
     case Set(value)       => (sSet, value, numeric._2)
     case Maximum(value)   => (sMaximum, value, numeric._2)
@@ -32,40 +32,27 @@ class SpacingEditor(
   }
 
   val maxSpacing = 999
-  def widget(text:String, tpe: Symbol) =
+  def widget(text: String, tpe: Symbol) =
     Group(
-      Vertical(Layout(Wrap.Simple())),
+      Vertical(),
       Text(text),
-      IntField(
-        current._2.toLong,
-        Limits(0, maxSpacing),
-        resizeToText = true,
-        WidgetSizableCommon(id = id.append("SPACING", tpe)))
+      IntField(current._2.toLong, Limits(0, maxSpacing), id = id.append("SPACING", tpe))
     )
 
-
-   def widgetDual() =
+  def widgetDual() =
     Group(
-      Vertical(Layout(Wrap.Simple())),
+      Vertical(Layout(Wrap.No,Fill.No)), //,  Align.Right, Align.Right)),
       Text("Minimum"),
-      IntField(
-        current._2.toLong,
-        Limits(0, maxSpacing),
-        resizeToText = true,
-        WidgetSizableCommon(id = id.append("SPACING_MINMAX_1"))),
+      IntField(current._2.toLong, Limits(0, maxSpacing), id.append("SPACING_MINMAX_1")),
       Text("Maximum"),
-      IntField(
-        current._3.toLong,
-        Limits(0, maxSpacing),
-        resizeToText = true,
-        WidgetSizableCommon(id = id.append("SPACING_MINMAX_2")))
+      IntField(current._3.toLong, Limits(0, maxSpacing), id.append("SPACING_MINMAX_2"))
     )
 
   lazy val aDef = SelectExtended(Select("Default", sDefault))
-  lazy val aMin = SelectExtended(Select("Minimum", sMinimum),widget("Minimum Spacing", 'MIN))
-  lazy val aSet = SelectExtended(Select("Set", sSet),widget("Fixed Size", 'SET))
-  lazy val aMax = SelectExtended(Select("Maximum", sMaximum),widget("Maximum Spacing", 'MAX))
-  lazy val aMam = SelectExtended(Select("MinMaX", sMinMax),widgetDual())
+  lazy val aMin = SelectExtended(Select("Minimum", sMinimum), widget("Minimum Spacing", 'MIN))
+  lazy val aSet = SelectExtended(Select("Set", sSet), widget("Fixed Size", 'SET))
+  lazy val aMax = SelectExtended(Select("Maximum", sMaximum), widget("Maximum Spacing", 'MAX))
+  lazy val aMam = SelectExtended(Select("MinMaX", sMinMax), widgetDual())
 
   lazy val options = Vector(aDef, aMin, aSet, aMax, aMam)
 
@@ -89,7 +76,7 @@ class SpacingEditor(
 
   override def generateElements: ElementList =
     ElementList(
-      Horizontal(Layout(Wrap.Simple())),
+      Vertical(Layout(Wrap.Simple())),
       RadioButtons(OptionsExpanded(options, activeSelect), buttonsId))
 
   override protected def copyCommon(commonValue: WidgetCommonInternal): SpacingEditor =

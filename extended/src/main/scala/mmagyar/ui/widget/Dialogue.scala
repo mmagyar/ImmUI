@@ -37,7 +37,8 @@ object Dialogue {
         buttons,
         Horizontal(
           Layout(
-            wrap = Wrap.Simple(),
+             Wrap.Simple(),
+            Fill.Flex,
             alignItem = Align.Left //SpaceAround(Spacing.Default)
           ))
       ),
@@ -106,7 +107,7 @@ class Dialogue private (val text: String,
       .unifyButtonSize[OptionButton](buttons(state, id), _.button, (x, b) => x.copy(button = b))
     val buttonGroups = buttonsGroup(buttonsEl.map(x => x.button), id)
     val innards = ElementList(
-      Vertical(Layout(Wrap.No, alignContent = Align.Stretch(Align.Center))),
+      Vertical(Layout(Wrap.No,Fill.Flex, alignContent = Align.Stretch(Align.Center))),
       ScrollbarGroup(multiText, id = id.append("_SBC")),
       buttonGroups
     )
