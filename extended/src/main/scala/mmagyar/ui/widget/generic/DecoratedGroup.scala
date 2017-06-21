@@ -27,7 +27,7 @@ object DecoratedGroup {
   * `case a: DecoratedGroup[Accords @unchecked] if a.data.isInstanceOf[Accords] =>`
   */
 final case class DecoratedGroup[T](data: T,
-                                   behaviour: Behaviour[DecoratedGroup[T]],
+                                   override val behaviour: Behaviour[DecoratedGroup[T]],
                                    common: WidgetCommonInternal)
     extends DynamicGroupBaseTrait[DecoratedGroup[T]] {
 

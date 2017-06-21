@@ -57,6 +57,8 @@ case class OptionsExpanded(optionsWithExtends: Vector[SelectExtended],
     */
   override def select(select: Select): OptionsExpanded =
     if (options.contains(select)) copy(currentSelection = Some(select)) else this
+
+  def active: Option[SelectExtended] = optionsWithExtends.find(y => currentSelection.contains(y.select))
 }
 case class OptionWidgetState(state: OptionsState,
                              buttons: Vector[OptionButton],

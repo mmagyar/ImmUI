@@ -17,7 +17,7 @@ object BgGroup {
 }
 final case class BgGroup(
     _background: SizableShapey,
-    behaviour: Behaviour[BgGroup],
+    override val behaviour: Behaviour[BgGroup],
     common: WidgetCommonInternal
 ) extends DynamicGroupBaseTrait[BgGroup]
     with BackgroundGroupShapey {

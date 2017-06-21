@@ -53,7 +53,7 @@ object BoundGroup {
 }
 
 final case class BoundGroupOut(supply: (BoundGroupOut, DataProvider) => DataProvider,
-  behaviour: Behaviour[BoundGroupOut],
+                               override val behaviour: Behaviour[BoundGroupOut],
   common: WidgetCommonInternal)
   extends DynamicGroupBaseTrait[BoundGroupOut]
     with Supplied[BoundGroupOut] {
@@ -65,7 +65,7 @@ final case class BoundGroupOut(supply: (BoundGroupOut, DataProvider) => DataProv
 }
 
 final case class BoundGroupIn(require: (BoundGroupIn, DataProvider) => BoundGroupIn,
-  behaviour: Behaviour[BoundGroupIn],
+                              override val behaviour: Behaviour[BoundGroupIn],
   common: WidgetCommonInternal)
   extends DynamicGroupBaseTrait[BoundGroupIn]
     with Required[BoundGroupIn] {
@@ -79,7 +79,7 @@ final case class BoundGroupIn(require: (BoundGroupIn, DataProvider) => BoundGrou
 final case class BoundGroupBiDirection(
   supply: (BoundGroupBiDirection, DataProvider) => DataProvider,
   require: (BoundGroupBiDirection, DataProvider) => BoundGroupBiDirection,
-  behaviour: Behaviour[BoundGroupBiDirection],
+  override val behaviour: Behaviour[BoundGroupBiDirection],
   common: WidgetCommonInternal)
   extends DynamicGroupBaseTrait[BoundGroupBiDirection]
     with BiDirectional[BoundGroupBiDirection] {

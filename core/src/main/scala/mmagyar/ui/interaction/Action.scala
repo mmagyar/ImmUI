@@ -60,6 +60,16 @@ object BehaviourBasic {
       println(("scroll", in, track)); in
     }))
   )
+
+  def allAction[T <: Shapey](inj: InjectedBehaviourAction[T]): BehaviourBasic[T] = {
+    val defined = Some(inj)
+    BehaviourBasic[T](
+      click = defined,
+      down = defined,
+      up = defined,
+      drag = defined,
+      scroll = defined)
+  }
 }
 
 /**

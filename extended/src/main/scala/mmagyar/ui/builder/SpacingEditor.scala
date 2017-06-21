@@ -4,7 +4,7 @@ import mmagyar.layout._
 import mmagyar.layout.Spacing._
 import mmagyar.ui.core.{ElementList, ShapeyId, Text}
 import mmagyar.ui.group.dynamic.Group
-import mmagyar.ui.interaction.{Behaviour, BehaviourBasic}
+import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction}
 import mmagyar.ui.widget.{IntField, Limits, RadioButtons}
 import mmagyar.ui.widget.base.{DynamicWidgetBase, WidgetCommonInternal, WidgetSizableCommon}
 import mmagyar.ui.widget.util.{OptionsExpanded, Select, SelectExtended}
@@ -32,6 +32,10 @@ class SpacingEditor(
   }
 
   val maxSpacing = 999
+
+  val subIdMin: ShapeyId = id.append("SPACING_1")
+  val subIdMax: ShapeyId = id.append("SPACING_2")
+
   def widget(text: String, tpe: Symbol) =
     Group(
       Vertical(),
@@ -41,11 +45,11 @@ class SpacingEditor(
 
   def widgetDual() =
     Group(
-      Vertical(Layout(Wrap.No,Fill.No)), //,  Align.Right, Align.Right)),
+      Vertical(Layout(Wrap.No, Fill.No)), //,  Align.Right, Align.Right)),
       Text("Minimum"),
-      IntField(current._2.toLong, Limits(0, maxSpacing), id.append("SPACING_MINMAX_1")),
+      IntField(current._2.toLong, Limits(0, maxSpacing), subIdMin),
       Text("Maximum"),
-      IntField(current._3.toLong, Limits(0, maxSpacing), id.append("SPACING_MINMAX_2"))
+      IntField(current._3.toLong, Limits(0, maxSpacing), subIdMax)
     )
 
   lazy val aDef = SelectExtended(Select("Default", sDefault))
@@ -83,5 +87,53 @@ class SpacingEditor(
     if (commonValue == common) this
     else new SpacingEditor(spacing, numeric, commonValue)
 
-  override def behaviour: Behaviour[SpacingEditor] = BehaviourBasic()
+  def updateFromChildren(): SpacingEditor = {
+    val a      = this
+    val active = RadioButtons.findActiveSelect(a, buttonsId)
+
+    val intFields = active.toVector
+      .flatMap(
+        _.shapey
+          .collectFirst({
+            case a: Group => a.collect({ case b: IntField => b })
+          })
+          .toVector)
+      .flatten
+
+    val newNumeric: (Double, Double) = if (intFields.size == 1) {
+      (intFields.headOption.map(_.number.toDouble).getOrElse(numeric._1), numeric._2)
+    } else {
+      (
+        intFields.find(x => x.id(subIdMin)).map(_.number.toDouble).getOrElse(numeric._1),
+        intFields.find(x => x.id(subIdMax)).map(_.number.toDouble).getOrElse(numeric._2))
+    }
+
+    active.map(_.select) match {
+      case Some(value) => a.select(value, newNumeric)
+      case None =>
+        if (numeric != newNumeric) activeSelect.map(a.select(_, newNumeric)).getOrElse(a)
+        else a
+
+    }
+  }
+
+  override def behaviour: Behaviour[SpacingEditor] =
+    BehaviourBasic.allAction(InjectedBehaviourAction(act = (a, tracker) => {
+      if (tracker.downElements.exists(x => x.shapey.id(buttonsId))) {
+        updateFromChildren()
+      } else a
+    }))
+
+  def select(value: Select, newNumeric: (Double, Double)): SpacingEditor =
+    if (activeSelect.contains(value) && newNumeric == numeric) this
+    else new SpacingEditor(getAlignFromSelect(value, newNumeric), newNumeric, common)
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case a: SpacingEditor
+        if a.common == this.common &&
+          a.spacing == this.spacing &&
+          a.numeric == this.numeric =>
+      true
+    case _ => false
+  }
 }

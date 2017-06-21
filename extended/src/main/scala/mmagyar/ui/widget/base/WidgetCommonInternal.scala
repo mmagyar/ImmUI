@@ -10,5 +10,7 @@ case class WidgetCommonInternal(zOrder: Double = 1,
                                 id: ShapeyId = ShapeyId(),
                                 elementList: Option[ElementList] = None) {
   def reset: WidgetCommonInternal = copy(elementList = None)
-  def toExternal: WidgetCommon = WidgetCommon(zOrder,margin,position,id)
+  def toExternal: WidgetCommon    = WidgetCommon(zOrder, margin, position, id)
+  def elementList(value: ElementList): WidgetCommonInternal =
+    if (this.elementList.contains(value)) this else copy(elementList = Some(value))
 }

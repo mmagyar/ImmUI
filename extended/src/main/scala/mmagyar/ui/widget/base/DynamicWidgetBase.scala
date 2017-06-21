@@ -3,6 +3,7 @@ package mmagyar.ui.widget.base
 import mmagyar.layout.{Dynamic, LayoutSizeConstraint}
 import mmagyar.ui.core.{ElementList, Shapey, ShapeyId}
 import mmagyar.ui.group.{GenericGroup, GenericGroupExternallyModifiable}
+import mmagyar.ui.interaction.{Behaviour, BehaviourBasic}
 import mmagyar.ui.widget.Accordian
 import mmagyar.util.{Box, Point}
 
@@ -14,13 +15,20 @@ trait DynamicWidgetBase[T <: GenericGroupExternallyModifiable[T]]
   def common: WidgetCommonInternal
 
   protected def copyCommon(commonValue: WidgetCommonInternal): T
+  final protected def elementListChange(value: ElementList): T =
+    copyCommon(common.elementList(value))
 
   final override def position(point: Point): T =
     if (point == position) this else copyCommon(common.copy(position = point))
 
-  override def setElements(elementList: ElementList): T =
-    if (elementList == this.elementList) this
-    else copyCommon(common.copy(elementList = Some(elementList)))
+  def childrenChanged(value: ElementList): T = elementListChange(value)
+
+  private lazy val behaviourEmpty =  BehaviourBasic[T]()
+
+  override def behaviour: Behaviour[T] = behaviourEmpty
+
+  final override def setElements(elementList: ElementList): T =
+    if (elementList == this.elementList) this else childrenChanged(elementList)
 
   final def id: ShapeyId    = common.id
   final def position: Point = common.position
@@ -32,7 +40,7 @@ trait DynamicWidgetBase[T <: GenericGroupExternallyModifiable[T]]
     case None        => generateElements.offsetElements(margin.topLeft)
   }
 
-  lazy val size: Point = GenericGroup.sizeForElements(elements, margin)
+  final lazy val size: Point = GenericGroup.sizeForElements(elements, margin)
 
   final override def mapElements(map: (Shapey) => Shapey): T = setElements(elementList.map(map))
 }

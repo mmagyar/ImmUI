@@ -32,7 +32,7 @@ object DecoratedBgGroup {
   */
 final case class DecoratedBgGroup[T](data: T,
                                      _background: SizableShapey,
-                                     behaviour: Behaviour[DecoratedBgGroup[T]],
+                                     override val behaviour: Behaviour[DecoratedBgGroup[T]],
                                      common: WidgetCommonInternal)
     extends DynamicGroupBaseTrait[DecoratedBgGroup[T]]
     with BackgroundGroupShapey {

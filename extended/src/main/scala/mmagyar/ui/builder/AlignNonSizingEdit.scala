@@ -10,7 +10,14 @@ import mmagyar.ui.widget.util.{OptionsExpanded, Select, SelectExtended}
 import mmagyar.ui.widgetHelpers.Style
 
 /** Magyar Máté 2017, all rights reserved */
-case class RetainSpacing(spacing: Spacing, align: AlignSimple)
+case class RetainSpacing(spacing: Spacing, align: AlignSimple) {
+  def optionModify(spacingOption: Option[Spacing],
+                   alignOption: Option[AlignSimple]): RetainSpacing = {
+    if (spacingOption.isDefined || alignOption.isDefined)
+      RetainSpacing(spacingOption.getOrElse(spacing), alignOption.getOrElse(align))
+    else this
+  }
+}
 class AlignNonSizingEdit(val alignNonSizing: AlignNonSizing,
                          val retainSpacing: RetainSpacing =
                            RetainSpacing(Spacing.Default, Align.Left),
@@ -58,45 +65,30 @@ class AlignNonSizingEdit(val alignNonSizing: AlignNonSizing,
     if (commonValue == common) this
     else new AlignNonSizingEdit(alignNonSizing, current._2, commonValue)
 
-  override def behaviour: Behaviour[AlignNonSizingEdit] =
-    BehaviourBasic(click = Some(InjectedBehaviourAction((a, tracker) => {
-      if (tracker.downElements.exists(x => x.shapey.id(buttonsId))) {
-        val radioSelect: Option[SelectExtended] = a
+  override def childrenChanged(value: ElementList): AlignNonSizingEdit = {
+    val radioSelect = value.elements.collectFirst({ case a: RadioButtons => a }).flatMap(_.active)
+
+    val stretchAlign = radioSelect.flatMap(
+      _.shapey
+        .collectFirst({
+          case a: Group => a.collectFirst({ case b: AlignSimpleEdit => b.alignSimple })
+        })
+        .flatten)
+
+    radioSelect match {
+      case b
+          if b.exists(x => activeSelect.contains(x.select)) && stretchAlign.contains(current._2) =>
+        this.elementListChange(value)
+      case Some(value2) =>
+        val spacing = value2.shapey
           .collectFirst({
-            case x: RadioButtons if x.id == buttonsId =>
-              x.state.optionsWithExtends.find(y => x.state.currentSelection.contains(y.select))
+            case a: Group => a.collectFirst({ case b: SpacingEditor => b.spacing })
           })
           .flatten
-
-        val stretchAlign = radioSelect.flatMap(
-          _.shapey
-            .collectFirst({
-              case a: Group => a.collectFirst({ case b: AlignSimpleEdit => b.alignSimple })
-            })
-            .flatten)
-
-        radioSelect match {
-          case b
-              if b.exists(x => activeSelect.contains(x.select)) && stretchAlign.contains(
-                a.current._2) =>
-            a
-          case Some(value) =>
-            println("OLD SPACING: " + a.retainSpacing)
-            println(
-              "NEW SPACING: " + RetainSpacing(
-                a.retainSpacing.spacing,
-                stretchAlign.getOrElse(a.retainSpacing.align)))
-            a.select(
-              value.select,
-              //TODO spacing
-              Some(
-                RetainSpacing(
-                  a.retainSpacing.spacing,
-                  stretchAlign.getOrElse(a.retainSpacing.align))))
-          case None => a
-        }
-      } else a
-    })))
+        select(value2.select, retainSpacing.optionModify(spacing, stretchAlign), value)
+      case None => this.elementListChange(value)
+    }
+  }
 
   def getAlignFromSelect(select: Select, retainSpacing: RetainSpacing): AlignNonSizing =
     select.id match {
@@ -108,12 +100,10 @@ class AlignNonSizingEdit(val alignNonSizing: AlignNonSizing,
       case aSpaceAround.select.id => Align.SpaceAround(retainSpacing.spacing, retainSpacing.align)
     }
 
-  def select(select: Select, retain: Option[RetainSpacing]): AlignNonSizingEdit =
-    if (activeSelect.contains(select) && retain.contains(current._2)) this
-    else {
-      val retainSpacingV = retain.getOrElse(current._2)
-      new AlignNonSizingEdit(getAlignFromSelect(select, retainSpacingV), retainSpacingV, common)
-    }
+  def select(select: Select, retain: RetainSpacing, el: ElementList): AlignNonSizingEdit =
+    if (activeSelect.contains(select) && retain == current._2 && common.elementList.contains(el))
+      this
+    else new AlignNonSizingEdit(getAlignFromSelect(select, retain), retain, common.elementList(el))
 
   def activeSelect: Option[Select] =
     alignNonSizingOptions.collectFirst({
@@ -134,5 +124,5 @@ class AlignNonSizingEdit(val alignNonSizing: AlignNonSizing,
     case _ => false
   }
 //TODO it seems to be re rendered on scroll, where it should not
-  println("HAVING:  " + id + elementList.organize.size)
+//  println("HAVING:  " + id + elementList.organize.size)
 }

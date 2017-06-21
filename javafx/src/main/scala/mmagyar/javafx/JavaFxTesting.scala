@@ -268,8 +268,15 @@ class JavaFxTesting extends Application {
     if (!printToScreen) return
     var x = 0
     var y = 0
-    val w = buf.length
-    val h = buf.head.length
+    val w:Int = buf.length
+    val h:Int = buf.headOption match {
+      case Some(value) => value.length
+      case None =>
+        println("SOMETHING IS WRONG, 0 BUFFER HEIGHT")
+        0
+    }
+
+
 
     val arg = new Array[Int](w * (h + 1))
     while (x < w) {

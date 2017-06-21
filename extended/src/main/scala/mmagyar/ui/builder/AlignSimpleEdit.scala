@@ -64,43 +64,39 @@ class AlignSimpleEdit(
     if (commonValue == common) this
     else new AlignSimpleEdit(alignSimple, current._2, drawStretchSubContainer, commonValue)
 
-  override def behaviour: Behaviour[AlignSimpleEdit] =
-    BehaviourBasic(click = Some(InjectedBehaviourAction((a, tracker) => {
-      if (tracker.downElements.exists(x => x.shapey.id(buttonsId))) {
-        val radioSelect: Option[SelectExtended] = a
-          .collectFirst({
-            case x: RadioButtons if x.id == buttonsId =>
-              x.state.optionsWithExtends.find(y => x.state.currentSelection.contains(y.select))
-          })
-          .flatten
+  override def childrenChanged(value: ElementList): AlignSimpleEdit = {
+    val radio  = value.elements.collectFirst({ case a: RadioButtons => a })
+    val active = radio.flatMap(_.active)
 
-        val stretchAlign = radioSelect.flatMap(
-          _.shapey
-            .collectFirst({
-              case a: Group => a.collectFirst({ case b: AlignSimpleEdit => b.alignSimple })
-            })
-            .flatten)
+    val stretchAlign = active.flatMap(
+      _.shapey
+        .collectFirst({
+          case a: Group => a.collectFirst({ case b: AlignSimpleEdit => b.alignSimple })
+        })
+        .flatten)
 
-        radioSelect match {
-          case b
-              if b.exists(x => activeSelect.contains(x.select)) && stretchAlign.contains(
-                a.current._2) =>
-            a
-          case Some(value) => a.select(value.select, stretchAlign)
-          case None        => a
-        }
-      } else a
-    })))
+    active match {
+      case b
+          if b.exists(x => activeSelect.contains(x.select)) && stretchAlign.contains(current._2) =>
+        this.elementListChange(value)
+      case Some(value2) => this.select(value2.select, stretchAlign, Some(value))
+      case None         => this.elementListChange(value)
+    }
 
-  def select(select: Select, stretch: Option[AlignSimple]): AlignSimpleEdit =
-    if (activeSelect.contains(select) && stretch.contains(current._2)) this
+  }
+
+
+  def select(select: Select,
+             stretch: Option[AlignSimple],
+             elementList: Option[ElementList]): AlignSimpleEdit =
+    if (activeSelect.contains(select) && stretch.contains(current._2) && common.elementList == elementList) this
     else {
       val stretchAlign = stretch.getOrElse(current._2)
       new AlignSimpleEdit(
         getAlignFromSelect(select, stretchAlign),
         stretchAlign,
         drawStretchSubContainer,
-        common)
+        elementList.map(x => common.elementList(x)).getOrElse(common))
     }
 
   def stretch(stretch: AlignSimple): AlignSimpleEdit =
