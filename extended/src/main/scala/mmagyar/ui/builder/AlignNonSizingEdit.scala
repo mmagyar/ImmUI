@@ -10,7 +10,7 @@ import mmagyar.ui.widget.util.{OptionsExpanded, Select, SelectExtended}
 import mmagyar.ui.widgetHelpers.Style
 
 /** Magyar Máté 2017, all rights reserved */
-case class RetainSpacing(spacing: Spacing, align: AlignSimple) {
+final case class RetainSpacing(spacing: Spacing, align: AlignSimple) {
   def optionModify(spacingOption: Option[Spacing],
                    alignOption: Option[AlignSimple]): RetainSpacing = {
     if (spacingOption.isDefined || alignOption.isDefined)
@@ -18,10 +18,10 @@ case class RetainSpacing(spacing: Spacing, align: AlignSimple) {
     else this
   }
 }
-class AlignNonSizingEdit(val alignNonSizing: AlignNonSizing,
-                         val retainSpacing: RetainSpacing =
-                           RetainSpacing(Spacing.Default, Align.Left),
-                         val common: WidgetCommonInternal)(implicit style: Style)
+final case class AlignNonSizingEdit(alignNonSizing: AlignNonSizing,
+                              retainSpacing: RetainSpacing =
+                                RetainSpacing(Spacing.Default, Align.Left),
+                              common: WidgetCommonInternal)(implicit style: Style)
     extends DynamicWidgetBase[AlignNonSizingEdit] {
 
   val buttonsId: ShapeyId = id.append("RADIO")
@@ -62,8 +62,7 @@ class AlignNonSizingEdit(val alignNonSizing: AlignNonSizing,
   )
 
   override protected def copyCommon(commonValue: WidgetCommonInternal): AlignNonSizingEdit =
-    if (commonValue == common) this
-    else new AlignNonSizingEdit(alignNonSizing, current._2, commonValue)
+    if (commonValue == common) this else copy(common = commonValue)
 
   override def childrenChanged(value: ElementList): AlignNonSizingEdit = {
     val active = RadioButtons.findActive(value)
@@ -102,26 +101,16 @@ class AlignNonSizingEdit(val alignNonSizing: AlignNonSizing,
   def select(select: Select, retain: RetainSpacing, el: ElementList): AlignNonSizingEdit =
     if (activeSelect.contains(select) && retain == current._2 && common.elementList.contains(el))
       this
-    else new AlignNonSizingEdit(getAlignFromSelect(select, retain), retain, common.elementList(el))
+    else AlignNonSizingEdit(getAlignFromSelect(select, retain), retain, common.elementList(el))
 
   def activeSelect: Option[Select] =
-    alignNonSizingOptions.collectFirst({
-      case x if x.select.id == current._1 => x.select
-    })
+    alignNonSizingOptions.collectFirst({ case x if x.select.id == current._1 => x.select })
 
   override def generateElements: ElementList =
     ElementList(
       Horizontal(Layout(Wrap.Simple())),
       RadioButtons(OptionsExpanded(alignNonSizingOptions, activeSelect), buttonsId))
 
-  override def equals(obj: scala.Any): Boolean = obj match {
-    case a: AlignNonSizingEdit
-        if a.common == this.common &&
-          a.alignNonSizing == this.alignNonSizing &&
-          a.retainSpacing == this.retainSpacing =>
-      true
-    case _ => false
-  }
 //TODO it seems to be re rendered on scroll, where it should not
 //  println("HAVING:  " + id + elementList.organize.size)
 }

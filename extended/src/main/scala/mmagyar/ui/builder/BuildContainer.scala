@@ -262,21 +262,13 @@ object BuildContainer {
             case Some(value: Layout) =>
               Vector(
                 MultilineText("Align item"),
-                new AlignNonSizingEdit(
+                AlignNonSizingEdit(
                   value.alignItem,
                   common = WidgetCommonInternal(id = shapey.id.append("ALIGN_ITEM"))),
-//                RadioButtons(
-//                  OptionsExpanded.selected(alignNonSizing, alignItem),
-//                  WidgetCommon(id = shapey.id.append("ALIGN_ITEM"))
-//                ),
                 MultilineText("Align Content"),
-                new AlignSimpleEdit(
+                AlignSimpleEdit(
                   value.alignContent,
                   common = WidgetCommonInternal(id = shapey.id.append("ALIGN_CONTENT"))),
-//                RadioButtons(
-//                  OptionsExpanded.selected(alignSizing, alignContent),
-//                  WidgetCommon(id = shapey.id.append("ALIGN_CONTENT"))
-//                ),
                 MultilineText("Wrap"),
                 RadioButtons(
                   value.wrap match {

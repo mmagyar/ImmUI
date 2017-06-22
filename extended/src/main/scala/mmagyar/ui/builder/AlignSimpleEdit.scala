@@ -1,21 +1,20 @@
 package mmagyar.ui.builder
 
-import mmagyar.layout.Align.{Center, Stretch}
+import mmagyar.layout.Align.Stretch
 import mmagyar.layout.{Align, _}
-import mmagyar.ui.core.{ElementList, Shapey, ShapeyId, Text}
+import mmagyar.ui.core.{ElementList, ShapeyId, Text}
 import mmagyar.ui.group.dynamic.Group
-import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction}
 import mmagyar.ui.widget.RadioButtons
 import mmagyar.ui.widget.base.{DynamicWidgetBase, WidgetCommonInternal}
 import mmagyar.ui.widget.util.{OptionsExpanded, Select, SelectExtended}
 import mmagyar.ui.widgetHelpers.Style
 
 /** Magyar Máté 2017, all rights reserved */
-class AlignSimpleEdit(
-    val alignSimple: AlignSimple,
-    val stretchAlign: AlignSimple = Align.Left,
-    val drawStretchSubContainer: Boolean = true,
-    val common: WidgetCommonInternal = WidgetCommonInternal())(implicit style: Style)
+final case class AlignSimpleEdit(
+    alignSimple: AlignSimple,
+    stretchAlign: AlignSimple = Align.Left,
+    drawStretchSubContainer: Boolean = true,
+    common: WidgetCommonInternal = WidgetCommonInternal())(implicit style: Style)
     extends DynamicWidgetBase[AlignSimpleEdit] {
 
   val current: (Symbol, AlignSimple) = alignSimple match {
@@ -34,7 +33,7 @@ class AlignSimpleEdit(
       Vertical(Layout(Wrap.Simple())),
       Vector(
         Text("Fallback: "),
-        new AlignSimpleEdit(current._2, current._2 match {
+        AlignSimpleEdit(current._2, current._2 match {
           case Stretch(forNonSizable) => forNonSizable
           case _                      => Align.Left
         }, false, WidgetCommonInternal(id = id.append("STRETCH_RECURSIVE")))
@@ -61,8 +60,7 @@ class AlignSimpleEdit(
   val buttonsId: ShapeyId = id.append("RADIO")
 
   override protected def copyCommon(commonValue: WidgetCommonInternal): AlignSimpleEdit =
-    if (commonValue == common) this
-    else new AlignSimpleEdit(alignSimple, current._2, drawStretchSubContainer, commonValue)
+    if (commonValue == common) this else copy(common = commonValue)
 
   override def childrenChanged(value: ElementList): AlignSimpleEdit = {
     val active = RadioButtons.findActive(value)
@@ -90,34 +88,26 @@ class AlignSimpleEdit(
       this
     else {
       val stretchAlign = stretch.getOrElse(current._2)
-      new AlignSimpleEdit(
+      copy(
         getAlignFromSelect(select, stretchAlign),
         stretchAlign,
-        drawStretchSubContainer,
-        elementList.map(x => common.elementList(x)).getOrElse(common))
+        common = elementList.map(x => common.elementList(x)).getOrElse(common))
+
     }
 
   def stretch(stretch: AlignSimple): AlignSimpleEdit =
     if (current._2 == stretch) this
     else
-      new AlignSimpleEdit(alignSimple match {
-        case Stretch(forNonSizable) => Stretch(stretch); case a => a
-      }, stretch, drawStretchSubContainer, common)
+      AlignSimpleEdit(
+        alignSimple match { case Stretch(_) => Stretch(stretch); case a => a },
+        stretch,
+        drawStretchSubContainer,
+        common)
 
   override def generateElements: ElementList =
     ElementList(
       Horizontal(Layout(Wrap.Simple())),
       RadioButtons(OptionsExpanded(alignSimpleOptions, activeSelect), buttonsId))
-
-  override def equals(obj: scala.Any): Boolean = obj match {
-    case a: AlignSimpleEdit
-        if a.common == this.common &&
-          a.alignSimple == this.alignSimple &&
-          a.stretchAlign == this.stretchAlign &&
-          a.drawStretchSubContainer == this.drawStretchSubContainer =>
-      true
-    case _ => false
-  }
 
   //TODO this is reconstructed on scroll
 //  println(("SIMPLE: " + elementList.organize.size, id, activeSelect))

@@ -4,17 +4,16 @@ import mmagyar.layout._
 import mmagyar.layout.Spacing._
 import mmagyar.ui.core.{ElementList, ShapeyId, Text}
 import mmagyar.ui.group.dynamic.Group
-import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction}
 import mmagyar.ui.widget.{IntField, Limits, RadioButtons}
-import mmagyar.ui.widget.base.{DynamicWidgetBase, WidgetCommonInternal, WidgetSizableCommon}
+import mmagyar.ui.widget.base.{DynamicWidgetBase, WidgetCommonInternal}
 import mmagyar.ui.widget.util.{OptionsExpanded, Select, SelectExtended}
 import mmagyar.ui.widgetHelpers.Style
 
 /** Magyar Máté 2017, all rights reserved */
-class SpacingEditor(
-    val spacing: Spacing,
-    val numeric: (Double, Double),
-    val common: WidgetCommonInternal = WidgetCommonInternal())(implicit style: Style)
+final case class SpacingEditor(
+    spacing: Spacing,
+    numeric: (Double, Double),
+    common: WidgetCommonInternal = WidgetCommonInternal())(implicit style: Style)
     extends DynamicWidgetBase[SpacingEditor] {
 
   val sDefault = 'DEFAULT
@@ -84,38 +83,7 @@ class SpacingEditor(
       RadioButtons(OptionsExpanded(options, activeSelect), buttonsId))
 
   override protected def copyCommon(commonValue: WidgetCommonInternal): SpacingEditor =
-    if (commonValue == common) this
-    else new SpacingEditor(spacing, numeric, commonValue)
-
-//  def updateFromChildren(): SpacingEditor = {
-//    val a      = this
-//    val active = RadioButtons.findActiveSelect(a, buttonsId)
-//
-//    val intFields = active.toVector
-//      .flatMap(
-//        _.shapey
-//          .collectFirst({
-//            case a: Group => a.collect({ case b: IntField => b })
-//          })
-//          .toVector)
-//      .flatten
-//
-//    val newNumeric: (Double, Double) = if (intFields.size == 1) {
-//      (intFields.headOption.map(_.number.toDouble).getOrElse(numeric._1), numeric._2)
-//    } else {
-//      (
-//        intFields.find(x => x.id(subIdMin)).map(_.number.toDouble).getOrElse(numeric._1),
-//        intFields.find(x => x.id(subIdMax)).map(_.number.toDouble).getOrElse(numeric._2))
-//    }
-//
-//    active.map(_.select) match {
-//      case Some(value) => a.select(value, newNumeric)
-//      case None =>
-//        if (numeric != newNumeric) activeSelect.map(a.select(_, newNumeric)).getOrElse(a)
-//        else a
-//
-//    }
-//  }
+    if (commonValue == common) this else copy(common = commonValue)
 
   override def childrenChanged(value: ElementList): SpacingEditor = {
     val active = RadioButtons.findActive(value)
@@ -131,7 +99,7 @@ class SpacingEditor(
         intFields.find(x => x.id(subIdMin)).map(_.number.toDouble).getOrElse(numeric._1),
         intFields.find(x => x.id(subIdMax)).map(_.number.toDouble).getOrElse(numeric._2))
     }
-println(("SELECT" , active.map(_._2) ,newNumeric))
+    println(("SELECT", active.map(_._2), newNumeric))
     active.map(_._2) match {
       case Some(value2) => this.select(value2, newNumeric, value)
       case None =>
@@ -147,15 +115,6 @@ println(("SELECT" , active.map(_._2) ,newNumeric))
   def select(value: Select, newNumeric: (Double, Double), el: ElementList): SpacingEditor =
     if (activeSelect.contains(value) && newNumeric == numeric && common.elementList.contains(el))
       this
-    else
-      new SpacingEditor(getAlignFromSelect(value, newNumeric), newNumeric, common.elementList(el))
+    else SpacingEditor(getAlignFromSelect(value, newNumeric), newNumeric, common.elementList(el))
 
-  override def equals(obj: scala.Any): Boolean = obj match {
-    case a: SpacingEditor
-        if a.common == this.common &&
-          a.spacing == this.spacing &&
-          a.numeric == this.numeric =>
-      true
-    case _ => false
-  }
 }
