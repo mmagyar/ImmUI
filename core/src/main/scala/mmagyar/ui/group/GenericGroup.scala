@@ -61,29 +61,21 @@ trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]
       }
   }
 
-  def find(where: (Shapey) => Boolean, recursive: Boolean = true): Option[Shapey] =
-    get(where, recursive).headOption
+  /**
+    * Alias for collectFirst
+    * @param pf find element that is defined first
+    * @param recursive search resursively
+    * @tparam B return type
+    * @return
+    */
+  def find[B](pf: PartialFunction[Shapey, B], recursive: Boolean = true): Option[B] =
+    collectFirst(pf, recursive)
 
-  def get(where: (Shapey) => Boolean, recursive: Boolean = true): Vector[Shapey] =
-    elements.collect {
-      case a if where(a)                   => Vector(a)
-      case a: GenericGroup[_] if recursive => a.get(where, recursive)
-    }.flatten
+  def collect[B](pf: PartialFunction[Shapey, B], recursive: Boolean = true): Vector[B] =
+    elementList.collect(pf, recursive)
 
-  def collect[B](pf: PartialFunction[Shapey, B], recursive: Boolean = true): Vector[B] = {
-    elements.collect {
-      case a if pf.isDefinedAt(a)          => Vector(pf(a))
-      case a: GenericGroup[_] if recursive => a.collect(pf, recursive)
-    }.flatten
-  }
-
-  def collectFirst[B](pf: PartialFunction[Shapey, B], recursive: Boolean = true): Option[B] = {
-    //TODO optimize this
-    elements.collect {
-      case a if pf.isDefinedAt(a)          => Some(pf(a))
-      case a: GenericGroup[_] if recursive => a.collectFirst(pf, recursive)
-    }.flatten.headOption
-  }
+  def collectFirst[B](pf: PartialFunction[Shapey, B], recursive: Boolean = true): Option[B] =
+    elementList.collectFirst(pf, recursive)
 
   def getFullyRecursive(where: (Shapey) => Boolean): Vector[Shapey] =
     elements.collect {
@@ -96,7 +88,7 @@ trait GenericGroup[T <: GroupableWithBehaveableChildren[T] with Behaveable[T]]
     }.flatten
 
   def exists(where: (Shapey) => Boolean, recursive: Boolean = true): Boolean =
-    get(where, recursive).nonEmpty
+    elementList.exists(where, recursive)
 
 //  override def behave(tracker: Tracker): T =
 //    behaviour.behave(tracker).map(x => x.action(this, tracker)).getOrElse(this)

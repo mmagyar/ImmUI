@@ -1,7 +1,7 @@
 package mmagyar.ui.widget
 
 import mmagyar.layout._
-import mmagyar.ui.core.{ElementList, ShapeyId}
+import mmagyar.ui.core.{ElementList, Shapey, ShapeyId}
 import mmagyar.ui.group.{GenericGroup, GenericGroupExternallyModifiable}
 import mmagyar.ui.group.dynamic.Group
 import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction}
@@ -21,6 +21,28 @@ object RadioButtons {
     findMe(parentGroup, radioButtonsId).flatMap(x =>
       x.state.optionsWithExtends.find(y => x.state.currentSelection.contains(y.select)))
   }
+
+  /**
+    * Finds and returns a RadioButtons element from an ElementList
+    * A result is only returned if it has an active selection
+    * @param elementList source element list that may contain RadioButtons
+    * @return
+    */
+  def findActive(elementList: ElementList): Option[(RadioButtons, Select, Option[Shapey])] =
+  elementList.elements
+      .collectFirst({
+        case a: RadioButtons => a.active.map(x => (a, x.select, x.shapey))
+      })
+      .flatten
+
+  /**
+    *  elementList.elements
+      .collectFirst({
+        case a: RadioButtons => a.active.map(x => (a, x.select,
+          x.shapey.flatMap(y=> a.collectFirst({case b if b.id== y.id => b}))))
+      })
+      .flatten
+    */
 
   private def createButtonId(parentId: ShapeyId, dialogueOption: Select): ShapeyId =
     parentId.append("_STATUS_", dialogueOption.id)
@@ -60,27 +82,23 @@ class RadioButtons private (
     else new RadioButtons(state, commonValue)
 
   override def childrenChanged(value: ElementList): RadioButtons = {
-    val rBtn = this
+    val newId = state.active.flatMap(_.shapey.map(_.id))
 
     /** This code is responsible to keep the state of the widgets paired with options updated*/
-    state.optionsWithExtends
-      .find(x => state.currentSelection.contains(x.select))
-      .flatMap(x => x.shapey) match {
+   value.collectFirst({case a if newId.contains(a.id) => a} ) match {
       case Some(innerShapey) =>
         new RadioButtons(
           OptionsExpanded(
             state.optionsWithExtends.map(
               x =>
                 if (state.currentSelection.contains(x.select))
-                  SelectExtended(
-                    x.select,
-                    rBtn.find(x => x.id(innerShapey.id)).getOrElse(innerShapey))
+                  SelectExtended(  x.select,innerShapey)
                 else x),
             state.currentSelection
           ),
           common.elementList(value)
         )
-      case None => rBtn.elementListChange(value)
+      case None => elementListChange(value)
     }
 
   }

@@ -107,7 +107,7 @@ class ScrollbarGroup[T <: GenericSizable[T]](
     scrollProviderId match {
       case ScrollbarProvider.Id(idProvider) =>
         genericSizable
-          .find(_.id == idProvider)
+          .find({case a if a.id == idProvider => a})
           .collect({ case a: GenericSizable[T @unchecked] => a })
           .getOrElse(genericSizable)
       case FirstSizableChild =>

@@ -29,7 +29,7 @@ object ElementList {
           recursive: Boolean = true): Vector[Shapey] =
     source.collect {
       case a if where(a)                   => Vector(a)
-      case a: GenericGroup[_] if recursive => a.get(where, recursive)
+      case a: GenericGroup[_] if recursive => a.collect({ case a if where(a) => a }, recursive)
     }.flatten
 }
 
@@ -108,5 +108,28 @@ class ElementList(_elements: Vector[Shapey],
 
   def offsetElements(point: Point): ElementList =
     if (offsetElements == point) this else copy(offset = point)
+
   def setElements(elements: Vector[Shapey]): ElementList = this.copy(elements = elements)
+
+  def collect[B](pf: PartialFunction[Shapey, B], recursive: Boolean = true): Vector[B] = {
+    elements.collect {
+      case a if pf.isDefinedAt(a)          => Vector(pf(a))
+      case a: GenericGroup[_] if recursive => a.collect(pf, recursive)
+    }.flatten
+  }
+
+  def collectFirst[B](pf: PartialFunction[Shapey, B], recursive: Boolean = true): Option[B] = {
+    //TODO optimize this
+    elements
+      .collect {
+        case a if pf.isDefinedAt(a)          => Some(pf(a))
+        case a: GenericGroup[_] if recursive => a.collectFirst(pf, recursive)
+      }
+      .flatten
+      .headOption
+  }
+
+  def exists(where: (Shapey) => Boolean, recursive: Boolean = true): Boolean =
+    collectFirst({ case a if where(a) => a }, recursive).isDefined
+
 }

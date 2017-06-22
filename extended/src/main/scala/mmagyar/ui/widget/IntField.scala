@@ -108,4 +108,7 @@ class IntField private (_number: Long,
     case a: IntField if a.number == this.number && a.common == this.common => true
     case _                                                                 => false
   }
+
+ override   def customToString: String = s"Number: $number, Limits: $limits"
+
 }

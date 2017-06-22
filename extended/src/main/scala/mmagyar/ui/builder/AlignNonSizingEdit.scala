@@ -66,26 +66,25 @@ class AlignNonSizingEdit(val alignNonSizing: AlignNonSizing,
     else new AlignNonSizingEdit(alignNonSizing, current._2, commonValue)
 
   override def childrenChanged(value: ElementList): AlignNonSizingEdit = {
-    val radioSelect = value.elements.collectFirst({ case a: RadioButtons => a }).flatMap(_.active)
+    val active = RadioButtons.findActive(value)
 
-    val stretchAlign = radioSelect.flatMap(
-      _.shapey
-        .collectFirst({
+    val stretchAlign = active
+      .flatMap(x =>
+        x._3.collect({
           case a: Group => a.collectFirst({ case b: AlignSimpleEdit => b.alignSimple })
-        })
-        .flatten)
+        }))
+      .flatten
 
-    radioSelect match {
-      case b
-          if b.exists(x => activeSelect.contains(x.select)) && stretchAlign.contains(current._2) =>
+    active match {
+      case b if b.exists(x => activeSelect.contains(x._2)) && stretchAlign.contains(current._2) =>
         this.elementListChange(value)
       case Some(value2) =>
-        val spacing = value2.shapey
+        val spacing = value2._3
           .collectFirst({
             case a: Group => a.collectFirst({ case b: SpacingEditor => b.spacing })
           })
           .flatten
-        select(value2.select, retainSpacing.optionModify(spacing, stretchAlign), value)
+        select(value2._2, retainSpacing.optionModify(spacing, stretchAlign), value)
       case None => this.elementListChange(value)
     }
   }

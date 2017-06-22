@@ -65,31 +65,29 @@ class AlignSimpleEdit(
     else new AlignSimpleEdit(alignSimple, current._2, drawStretchSubContainer, commonValue)
 
   override def childrenChanged(value: ElementList): AlignSimpleEdit = {
-    val radio  = value.elements.collectFirst({ case a: RadioButtons => a })
-    val active = radio.flatMap(_.active)
+    val active = RadioButtons.findActive(value)
 
-    val stretchAlign = active.flatMap(
-      _.shapey
-        .collectFirst({
+    val stretchAlign = active
+      .flatMap(x =>
+        x._3.collect({
           case a: Group => a.collectFirst({ case b: AlignSimpleEdit => b.alignSimple })
-        })
-        .flatten)
+        }))
+      .flatten
 
     active match {
-      case b
-          if b.exists(x => activeSelect.contains(x.select)) && stretchAlign.contains(current._2) =>
+      case b if b.exists(x => activeSelect.contains(x._2)) && stretchAlign.contains(current._2) =>
         this.elementListChange(value)
-      case Some(value2) => this.select(value2.select, stretchAlign, Some(value))
+      case Some(value2) => this.select(value2._2, stretchAlign, Some(value))
       case None         => this.elementListChange(value)
     }
 
   }
 
-
   def select(select: Select,
              stretch: Option[AlignSimple],
              elementList: Option[ElementList]): AlignSimpleEdit =
-    if (activeSelect.contains(select) && stretch.contains(current._2) && common.elementList == elementList) this
+    if (activeSelect.contains(select) && stretch.contains(current._2) && common.elementList == elementList)
+      this
     else {
       val stretchAlign = stretch.getOrElse(current._2)
       new AlignSimpleEdit(

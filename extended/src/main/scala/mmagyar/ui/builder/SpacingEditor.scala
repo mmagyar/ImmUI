@@ -87,17 +87,41 @@ class SpacingEditor(
     if (commonValue == common) this
     else new SpacingEditor(spacing, numeric, commonValue)
 
-  def updateFromChildren(): SpacingEditor = {
-    val a      = this
-    val active = RadioButtons.findActiveSelect(a, buttonsId)
+//  def updateFromChildren(): SpacingEditor = {
+//    val a      = this
+//    val active = RadioButtons.findActiveSelect(a, buttonsId)
+//
+//    val intFields = active.toVector
+//      .flatMap(
+//        _.shapey
+//          .collectFirst({
+//            case a: Group => a.collect({ case b: IntField => b })
+//          })
+//          .toVector)
+//      .flatten
+//
+//    val newNumeric: (Double, Double) = if (intFields.size == 1) {
+//      (intFields.headOption.map(_.number.toDouble).getOrElse(numeric._1), numeric._2)
+//    } else {
+//      (
+//        intFields.find(x => x.id(subIdMin)).map(_.number.toDouble).getOrElse(numeric._1),
+//        intFields.find(x => x.id(subIdMax)).map(_.number.toDouble).getOrElse(numeric._2))
+//    }
+//
+//    active.map(_.select) match {
+//      case Some(value) => a.select(value, newNumeric)
+//      case None =>
+//        if (numeric != newNumeric) activeSelect.map(a.select(_, newNumeric)).getOrElse(a)
+//        else a
+//
+//    }
+//  }
 
-    val intFields = active.toVector
-      .flatMap(
-        _.shapey
-          .collectFirst({
-            case a: Group => a.collect({ case b: IntField => b })
-          })
-          .toVector)
+  override def childrenChanged(value: ElementList): SpacingEditor = {
+    val active = RadioButtons.findActive(value)
+    val intFields = active
+      .flatMap(x => x._3.collect({ case a: Group => a.collect({ case b: IntField => b }) }))
+      .toVector
       .flatten
 
     val newNumeric: (Double, Double) = if (intFields.size == 1) {
@@ -107,26 +131,24 @@ class SpacingEditor(
         intFields.find(x => x.id(subIdMin)).map(_.number.toDouble).getOrElse(numeric._1),
         intFields.find(x => x.id(subIdMax)).map(_.number.toDouble).getOrElse(numeric._2))
     }
-
-    active.map(_.select) match {
-      case Some(value) => a.select(value, newNumeric)
+println(("SELECT" , active.map(_._2) ,newNumeric))
+    active.map(_._2) match {
+      case Some(value2) => this.select(value2, newNumeric, value)
       case None =>
-        if (numeric != newNumeric) activeSelect.map(a.select(_, newNumeric)).getOrElse(a)
-        else a
+        if (numeric != newNumeric)
+          activeSelect
+            .map(this.select(_, newNumeric, value))
+            .getOrElse(this.elementListChange(value))
+        else this.elementListChange(value)
 
     }
   }
 
-  override def behaviour: Behaviour[SpacingEditor] =
-    BehaviourBasic.allAction(InjectedBehaviourAction(act = (a, tracker) => {
-      if (tracker.downElements.exists(x => x.shapey.id(buttonsId))) {
-        updateFromChildren()
-      } else a
-    }))
-
-  def select(value: Select, newNumeric: (Double, Double)): SpacingEditor =
-    if (activeSelect.contains(value) && newNumeric == numeric) this
-    else new SpacingEditor(getAlignFromSelect(value, newNumeric), newNumeric, common)
+  def select(value: Select, newNumeric: (Double, Double), el: ElementList): SpacingEditor =
+    if (activeSelect.contains(value) && newNumeric == numeric && common.elementList.contains(el))
+      this
+    else
+      new SpacingEditor(getAlignFromSelect(value, newNumeric), newNumeric, common.elementList(el))
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case a: SpacingEditor

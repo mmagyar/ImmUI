@@ -21,6 +21,12 @@ trait DynamicWidgetBase[T <: GenericGroupExternallyModifiable[T]]
   final override def position(point: Point): T =
     if (point == position) this else copyCommon(common.copy(position = point))
 
+  /**
+    * Override this function if your widget's state depends on it's sub components
+    * Always update from the supplied `value` parameter, otherwise your objects state will lag behind on cycle.
+    * @param value the current, up to date ElementList, don't forget to create/update your object with this ElementList
+    * @return
+    */
   def childrenChanged(value: ElementList): T = elementListChange(value)
 
   private lazy val behaviourEmpty =  BehaviourBasic[T]()
