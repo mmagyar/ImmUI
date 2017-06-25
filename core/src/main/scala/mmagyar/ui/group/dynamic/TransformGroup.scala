@@ -37,7 +37,7 @@ object TransformGroup {
     TransformGroup(ElementList(Horizontal(layout, size), elements: _*), position)
 
   def relative(position: Point, elements: Shapey*): TransformGroup =
-    TransformGroup(ElementList(Relative(Point.zero), elements: _*), position)
+    TransformGroup(ElementList(Relative( ), elements: _*), position)
 
 }
 

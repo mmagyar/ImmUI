@@ -84,7 +84,7 @@ final case class MultilineText(
         font,
         ShapeyId(id.symbol + "_text_line_" + x._2)))
 
-  override lazy val elementList: ElementList = ElementList(lineElements, Relative.zero)
+  override lazy val elementList: ElementList = ElementList(lineElements, Relative())
 
   override def customToString: String = s"text: $text"
 

@@ -14,7 +14,6 @@ import scala.annotation.tailrec
   * @todo better handling Vertical and Horizontal layout when elements can not fit
   */
 sealed trait Organize {
-//  def layout: Layout
 
   /**
     *
@@ -36,7 +35,6 @@ sealed trait Organize {
   def setSize(sizeConstraint: LayoutSizeConstraint): Organize = this match {
     case a: Horizontal => a.copy(size = sizeConstraint)
     case a: Vertical   => a.copy(size = sizeConstraint)
-    case a: FreeForm   => a
     case a: Relative   => a
     case a: Union      => a.copy(sizeConstraint)
 
@@ -45,7 +43,6 @@ sealed trait Organize {
   def subSize(point: Point): Organize = this match {
     case a: Horizontal => a.copy(size = a.size.sub(point))
     case a: Vertical   => a.copy(size = a.size.sub(point))
-    case a: FreeForm   => a
     case a: Relative   => a
     case a: Union      => a.copy(a.size.sub(point))
 
@@ -54,7 +51,6 @@ sealed trait Organize {
   def addSize(point: Point): Organize = this match {
     case a: Horizontal => a.copy(size = a.size.add(point))
     case a: Vertical   => a.copy(size = a.size.add(point))
-    case a: FreeForm   => a
     case a: Relative   => a
     case a: Union      => a.copy(a.size.add(point))
 
@@ -113,16 +109,6 @@ object Organize {
       case a => a
     }
 
-//    val withAlignInfo = alignItem.complex(ps._1(lineSize), ps, preAlignContent)
-//    val organized = withAlignInfo
-//      .foldLeft((ps._1(startPosition), Vector[T]()))((pp, cc) => {
-//        val initPosition = cc.element.position(ps._1Add(startPosition, cc.offset))
-//        val alignResult  = alignContent.align(ps._2(lineSize), ps._2(initPosition.size))
-//        val positioned = initPosition.position(
-//          ps._2Set(initPosition.position, alignResult.offset + ps._2(startPosition)))
-//        (pp._1 + ps._1(positioned.size), pp._2 ++ Vector[T](positioned))
-//      })
-//      ._2
     val organized            = preAlignContent
     val summedSize           = getSummed_1(organized, ps)
     val spacingSize          = alignItem.addedSpace(lineSize._1, ps, organized)
@@ -547,39 +533,17 @@ final case class Vertical(layout: Layout = Layout(), size: LayoutSizeConstraint 
 }
 
 /**
-  * FreeForm layout, akin to absolute position, this layout always starts at Point zero
-  */
-case class FreeForm() extends Organize {
-  val layout: Layout             = Layout()
-  val size: LayoutSizeConstraint = Dynamic()
-
-  //  def size(point:Point):FreeForm     =  copy(size.)
-  override def organize[T <: Positionable[T] with Material](elements: Vector[T],
-                                                            offset: Point,
-                                                            organizeToBounds: Option[Boolean] =
-                                                              None): Vector[T] =
-    elements
-
-}
-
-/**
   * Simple layout, keeps the relative coordinates of the elements, does not change their position or size
+  * @todo maybe implement offset of organize?
   */
-object Relative {
-  val zero              = Relative(Point.zero)
-  def apply(): Relative = zero
-}
-case class Relative(position: Point) extends Organize {
-
+case class Relative() extends Organize {
   val size: LayoutSizeConstraint = Dynamic()
 
   override def organize[T <: Positionable[T] with Material](elements: Vector[T],
                                                             offset: Point,
-                                                            organizeToBounds: Option[Boolean] =
-                                                              None): Vector[T] =
-    elements
+                                                            organizeToBounds: Option[Boolean] = None): Vector[T] = elements
 
-//  def position(point: Point): Relative = this.copy(position = point)
+
 }
 
 sealed trait UnionLayoutSetting

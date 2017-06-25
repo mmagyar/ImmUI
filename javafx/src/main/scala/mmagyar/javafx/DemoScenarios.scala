@@ -32,9 +32,9 @@ object DemoScenarios {
 
   lazy val g2: TransformGroup =
     TransformGroup(
-      Relative(Point(200, 10)),
+      Relative(),
       TransformGroup(
-        Relative(Point(20, 70)),
+        Relative(),
         Rect(
           Sizing(100, 100),
           Looks(fill = Color.white, stroke = Color.red, strokeLineWidth = 5),
@@ -50,10 +50,10 @@ object DemoScenarios {
     ).copy(position = Point.zero, rotation = Degree(-12), zOrder = 2)
 
   lazy val group: TransformGroup = TransformGroup(
-    Relative(Point(0, 10)),
+    Relative(),
     g2,
     TransformGroup(
-      Relative(Point(10, 170)),
+      Relative(),
       Rect(
         Sizing(100, 100),
         Looks(fill = Color.white, stroke = Color.red, strokeLineWidth = 5),

@@ -22,7 +22,7 @@ object ElementList {
     new ElementList(elements.toVector, organize)
 
   def apply(elements: Shapey*): ElementList =
-    new ElementList(elements.toVector, Relative(Point.zero))
+    new ElementList(elements.toVector, Relative())
 
   def get(source: Vector[Shapey],
           where: (Shapey) => Boolean,
