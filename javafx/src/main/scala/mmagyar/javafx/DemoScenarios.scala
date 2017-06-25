@@ -152,7 +152,7 @@ object DemoScenarios {
           Rect(Sizing(50, 50), Looks(Color.red)),
           Rect(Sizing(49, 50), Looks(Color.olive)),
           Rect(Sizing(50, 50), Looks(Color.amber)),
-          Rect(Sizing(50, 50), Looks(Color.lime)),
+          Rect(Sizing(50, 70), Looks(Color.lime)),
           Rect(Sizing(50, 50), Looks(Color.fuchsia)),
           Rect(Sizing(50, 50), Looks(Color.maroon))
         ),
@@ -247,7 +247,7 @@ object DemoScenarios {
     RadioButtons(
       OptionsExpanded(Vector(Select("1 option 1"), Select("2 option 2"), Select("3 option 3"))),
       Point(250, 170)),
-    IntField(823, Limits(), WidgetCommon(position = Point(191, 190))),
+    IntField(823, IntLimits(), WidgetCommon(position = Point(191, 190))),
     BitmapShapey(
       (5, 20),
       Sizing(20, 180),

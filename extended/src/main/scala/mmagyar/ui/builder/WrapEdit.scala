@@ -38,7 +38,7 @@ final case class WrapEdit(wrap: Wrap,
 
   lazy val optionsGen: Group =
     Group(
-      Horizontal(),
+      Vertical(Layout(Wrap.Simple())),
       Text("Align wrap content", id = id.append("TEXT1")),
       AlignSimpleEdit(wrap.alignContent, common = WidgetCommonInternal(id = alignId)),
       Text("Stretch lines to bounds: ", id = id.append("TEXT2")),
@@ -50,7 +50,7 @@ final case class WrapEdit(wrap: Wrap,
   val radioId: ShapeyId = id.append("RADIO")
   override def generateElements: ElementList =
     ElementList(
-      Vertical(),
+      Vertical(Layout(Wrap.Simple())),
       RadioButtons(
         OptionsExpanded(
           Vector(

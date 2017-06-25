@@ -11,21 +11,21 @@ import mmagyar.util.{Box, Color, Xy}
 /** Magyar Máté 2017, all rights reserved */
 object IntField {
 
-  def apply(number: Long, limits: Limits = Limits())(implicit style: Style): IntField =
+  def apply(number: Long, limits: IntLimits = IntLimits())(implicit style: Style): IntField =
     new IntField(
       number,
       limits,
       WidgetCommonInternal()
     )
 
-  def apply(number: Long, limits: Limits, id: ShapeyId)(implicit style: Style): IntField =
+  def apply(number: Long, limits: IntLimits, id: ShapeyId)(implicit style: Style): IntField =
     new IntField(
       number,
       limits,
       WidgetCommonInternal(id = id)
     )
 
-  def apply(number: Long, limits: Limits, common: WidgetCommon)(implicit style: Style): IntField =
+  def apply(number: Long, limits: IntLimits, common: WidgetCommon)(implicit style: Style): IntField =
     new IntField(
       number,
       limits,
@@ -33,16 +33,16 @@ object IntField {
     )
 }
 
-object Limits {
-  def apply(min: Double, max: Double): Limits = Limits(min.round, max.round)
+object IntLimits {
+  def apply(min: Double, max: Double): IntLimits = IntLimits(min.round, max.round)
 
 }
-case class Limits(min: Long = 0, max: Long = 99999) {
+case class IntLimits(min: Long = 0, max: Long = 99999) {
   def clamp(in: Long): Long = in.max(min).min(max)
 }
 
 class IntField private (_number: Long,
-                        val limits: Limits = Limits(),
+                        val limits: IntLimits = IntLimits(),
                         val common: WidgetCommonInternal)(implicit style: Style)
     extends DynamicWidgetBase[IntField]
     with BackgroundGroupShapey {

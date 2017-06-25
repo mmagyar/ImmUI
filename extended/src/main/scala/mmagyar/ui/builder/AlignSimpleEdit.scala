@@ -32,11 +32,16 @@ final case class AlignSimpleEdit(
     Group(
       Vertical(Layout(Wrap.Simple())),
       Vector(
-        Text("Fallback: "),
-        AlignSimpleEdit(current._2, current._2 match {
-          case Stretch(forNonSizable) => forNonSizable
-          case _                      => Align.Left
-        }, false, WidgetCommonInternal(id = id.append("STRETCH_RECURSIVE")))
+        Text("Fallback: ", id = id.append("FALLBACK_TEXT")),
+        AlignSimpleEdit(
+          current._2,
+          current._2 match {
+            case Stretch(forNonSizable) => forNonSizable
+            case _                      => Align.Left
+          },
+          drawStretchSubContainer = false,
+          WidgetCommonInternal(id = id.append("STRETCH_RECURSIVE"))
+        )
       )
     )
   )

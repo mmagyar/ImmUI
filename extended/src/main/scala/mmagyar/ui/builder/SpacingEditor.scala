@@ -1,12 +1,12 @@
 package mmagyar.ui.builder
 
-import mmagyar.layout._
 import mmagyar.layout.Spacing._
+import mmagyar.layout._
 import mmagyar.ui.core.{ElementList, ShapeyId, Text}
 import mmagyar.ui.group.dynamic.Group
-import mmagyar.ui.widget.{IntField, Limits, RadioButtons}
 import mmagyar.ui.widget.base.{DynamicWidgetBase, WidgetCommonInternal}
 import mmagyar.ui.widget.util.{OptionsExpanded, Select, SelectExtended}
+import mmagyar.ui.widget.{DoubleField, Limits, RadioButtons}
 import mmagyar.ui.widgetHelpers.Style
 
 /** Magyar Máté 2017, all rights reserved */
@@ -39,16 +39,16 @@ final case class SpacingEditor(
     Group(
       Vertical(),
       Text(text),
-      IntField(current._2.toLong, Limits(0, maxSpacing), id = id.append("SPACING", tpe))
+      DoubleField(current._2, Limits(0, maxSpacing), id = id.append("SPACING", tpe))
     )
 
   def widgetDual() =
     Group(
       Vertical(Layout(Wrap.No, Fill.No)), //,  Align.Right, Align.Right)),
       Text("Minimum"),
-      IntField(current._2.toLong, Limits(0, maxSpacing), subIdMin),
+      DoubleField(current._2, Limits(0, maxSpacing), subIdMin),
       Text("Maximum"),
-      IntField(current._3.toLong, Limits(0, maxSpacing), subIdMax)
+      DoubleField(current._3, Limits(0, maxSpacing), subIdMax)
     )
 
   lazy val aDef = SelectExtended(Select("Default", sDefault))
@@ -87,19 +87,18 @@ final case class SpacingEditor(
 
   override def childrenChanged(value: ElementList): SpacingEditor = {
     val active = RadioButtons.findActive(value)
-    val intFields = active
-      .flatMap(x => x._3.collect({ case a: Group => a.collect({ case b: IntField => b }) }))
+    val doubleFields = active
+      .flatMap(x => x._3.collect({ case a: Group => a.collect({ case b: DoubleField => b }) }))
       .toVector
       .flatten
 
-    val newNumeric: (Double, Double) = if (intFields.size == 1) {
-      (intFields.headOption.map(_.number.toDouble).getOrElse(numeric._1), numeric._2)
+    val newNumeric: (Double, Double) = if (doubleFields.size == 1) {
+      (doubleFields.headOption.map(_.number.toDouble).getOrElse(numeric._1), numeric._2)
     } else {
       (
-        intFields.find(x => x.id(subIdMin)).map(_.number.toDouble).getOrElse(numeric._1),
-        intFields.find(x => x.id(subIdMax)).map(_.number.toDouble).getOrElse(numeric._2))
+        doubleFields.find(x => x.id(subIdMin)).map(_.number).getOrElse(numeric._1),
+        doubleFields.find(x => x.id(subIdMax)).map(_.number).getOrElse(numeric._2))
     }
-    println(("SELECT", active.map(_._2), newNumeric))
     active.map(_._2) match {
       case Some(value2) => this.select(value2, newNumeric, value)
       case None =>
