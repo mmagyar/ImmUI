@@ -37,6 +37,8 @@ object Point {
 case class Point(x: Double, y: Double) {
   def isNaN: Boolean = x.isNaN || y.isNaN
 
+  if (isNaN) println("HOW THE FUCK DID THIS HAPPEN, A POINT CAN'T BE NAN")
+
   def subX(amount: Double): Point = this.copy(x = this.x - amount)
   def subY(amount: Double): Point = this.copy(y = this.y - amount)
 
@@ -480,4 +482,4 @@ case class PointSwapper private (_1: (Point) => Double,
   def apply(_1A: Point, _2A: Double): Point  = _2Set(_1Set(Point.zero, _1A), _2A)
 }
 
-case class Xy[+T](x:T,y:T)
+case class Xy[+T](x: T, y: T)

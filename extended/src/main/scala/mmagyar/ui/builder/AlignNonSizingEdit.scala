@@ -19,9 +19,9 @@ final case class RetainSpacing(spacing: Spacing, align: AlignSimple) {
   }
 }
 final case class AlignNonSizingEdit(alignNonSizing: AlignNonSizing,
-                              retainSpacing: RetainSpacing =
-                                RetainSpacing(Spacing.Default, Align.Left),
-                              common: WidgetCommonInternal)(implicit style: Style)
+                                    retainSpacing: RetainSpacing =
+                                      RetainSpacing(Spacing.Default, Align.Left),
+                                    common: WidgetCommonInternal)(implicit style: Style)
     extends DynamicWidgetBase[AlignNonSizingEdit] {
 
   val buttonsId: ShapeyId = id.append("RADIO")
@@ -74,15 +74,20 @@ final case class AlignNonSizingEdit(alignNonSizing: AlignNonSizing,
         }))
       .flatten
 
-    active match {
-      case b if b.exists(x => activeSelect.contains(x._2)) && stretchAlign.contains(current._2) =>
-        this.elementListChange(value)
-      case Some(value2) =>
-        val spacing = value2._3
+    val spacing = active.flatMap(
+      x =>
+        x._3
           .collectFirst({
             case a: Group => a.collectFirst({ case b: SpacingEditor => b.spacing })
           })
-          .flatten
+          .flatten)
+
+    active match {
+      case b
+          if b.exists(x => activeSelect.contains(x._2)) && stretchAlign.contains(current._2.align) && spacing
+            .contains(current._2.spacing) =>
+        this.elementListChange(value)
+      case Some(value2) =>
         select(value2._2, retainSpacing.optionModify(spacing, stretchAlign), value)
       case None => this.elementListChange(value)
     }

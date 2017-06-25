@@ -52,7 +52,8 @@ sealed trait Align {
                        spacing: Spacing,
                        remainingSpace: Double,
                        alignSimple: AlignSimple): SpacingCalculation = {
-    val space  = spacing.modifyFillingSpace((remainingSpace / numberOfElements).max(0))
+    val nn     = if (numberOfElements == 0) 1 else numberOfElements
+    val space  = spacing.modifyFillingSpace((remainingSpace / nn).max(0))
     val rest   = remainingSpace - (space * numberOfElements)
     val offset = alignSimple.getByCalculatedRightOffset(rest)
     SpacingCalculation(offset, space)
@@ -204,7 +205,8 @@ object Align {
                                            ps: PointSwapper,
                                            elements: Vector[T]): Double = {
       val elementNum = elements.size + 1
-      calculateSpacing(elementNum, spacing, maxSize - sumElements(elements, ps), align).space * elementNum
+      calculateSpacing(elementNum, spacing, maxSize - sumElements(elements, ps), align).space *
+        elementNum
     }
 
     override def minimumRequireSpace[T <: Material](elements: Vector[T]): Double =
