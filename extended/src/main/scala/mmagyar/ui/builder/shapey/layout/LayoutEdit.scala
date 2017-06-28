@@ -1,4 +1,4 @@
-package mmagyar.ui.builder
+package mmagyar.ui.builder.shapey.layout
 
 import mmagyar.layout._
 import mmagyar.ui.core.{ElementList, ShapeyId, Text}

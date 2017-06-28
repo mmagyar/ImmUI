@@ -1,9 +1,8 @@
-package mmagyar.ui.builder
+package mmagyar.ui.builder.shapey.layout
 
 import mmagyar.layout._
 import mmagyar.ui.core.{ElementList, ShapeyId, Text}
 import mmagyar.ui.group.dynamic.Group
-import mmagyar.ui.interaction.{Behaviour, BehaviourBasic, InjectedBehaviourAction}
 import mmagyar.ui.widget.RadioButtons
 import mmagyar.ui.widget.base.{DynamicWidgetBase, WidgetCommonInternal}
 import mmagyar.ui.widget.util.{OptionsExpanded, Select, SelectExtended}

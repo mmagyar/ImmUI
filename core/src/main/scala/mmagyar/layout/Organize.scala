@@ -59,8 +59,6 @@ sealed trait Organize {
 }
 
 object Organize {
-//  def maxSize(elements: Vector[hasSize]): Point =
-//    elements.foldLeft(Point.zero)((p, c) => p.max(c.size))
 
   implicit class SwapPoint(point: Point) {
     def _1(implicit psw: PointSwapper): Double = psw._1(point)

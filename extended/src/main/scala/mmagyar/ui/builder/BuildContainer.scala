@@ -2,6 +2,7 @@ package mmagyar.ui.builder
 
 import mmagyar.layout.Wrap.{EqualLines, No, Simple}
 import mmagyar.layout.{Align, _}
+import mmagyar.ui.builder.shapey.layout.LayoutEdit
 import mmagyar.ui.core.{ElementList, _}
 import mmagyar.ui.group._
 import mmagyar.ui.group.dynamic.Group
@@ -102,7 +103,7 @@ object BuildContainer {
 
             val sx = group
               .collectFirst({ case b: PointEdit if b.id == x.data.append("SIZE") => b.point })
-              .getOrElse(a.position)
+              .getOrElse(a.size)
 
             val offset = Point(
               getNumOr(x.data.append("OFFSET_X"), a.position.x),
@@ -183,10 +184,10 @@ object BuildContainer {
             PointEdit(
               shapey.size,
               "Size X",
-              "SizeY",
+              "Size Y",
               Limits(a.sizing.minSize.x, a.sizing.maxSize.x),
               Limits(a.sizing.minSize.y, a.sizing.maxSize.y),
-              WidgetCommonInternal(id = shapey.id.append("SIZING"))
+              WidgetCommonInternal(id = shapey.id.append("SIZE"))
             )
           ) ++
             (a match {

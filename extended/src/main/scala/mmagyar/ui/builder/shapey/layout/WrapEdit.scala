@@ -1,12 +1,12 @@
-package mmagyar.ui.builder
+package mmagyar.ui.builder.shapey.layout
 
 import mmagyar.layout.Wrap.{EqualLines, No, Simple}
 import mmagyar.layout._
 import mmagyar.ui.core.{ElementList, ShapeyId, Text}
 import mmagyar.ui.group.dynamic.Group
-import mmagyar.ui.widget.{Button, RadioButtons}
 import mmagyar.ui.widget.base.{DynamicWidgetBase, WidgetCommonInternal}
 import mmagyar.ui.widget.util.{OptionsExpanded, Select, SelectExtended}
+import mmagyar.ui.widget.{Button, RadioButtons}
 import mmagyar.ui.widgetHelpers.Style
 
 /** Created by Magyar Máté on 2017-06-23, All rights reserved. */

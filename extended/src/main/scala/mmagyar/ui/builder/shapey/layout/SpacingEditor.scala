@@ -1,4 +1,4 @@
-package mmagyar.ui.builder
+package mmagyar.ui.builder.shapey.layout
 
 import mmagyar.layout.Spacing._
 import mmagyar.layout._
