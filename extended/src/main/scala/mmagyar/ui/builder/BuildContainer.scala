@@ -2,6 +2,7 @@ package mmagyar.ui.builder
 
 import mmagyar.layout.Wrap.{EqualLines, No, Simple}
 import mmagyar.layout.{Align, _}
+import mmagyar.ui.builder.shapey.ShapeyEditor
 import mmagyar.ui.builder.shapey.layout.LayoutEdit
 import mmagyar.ui.core.{ElementList, _}
 import mmagyar.ui.group._
@@ -82,158 +83,21 @@ object BuildContainer {
       ))
   }
 
+
   def actOnChange(group: Group, tracker: Tracker): Group = {
-    val cc = tracker.downElements.map(_.shapey).collect {
-      case a: DecoratedGroup[ShapeyId @unchecked] if a.data.isInstanceOf[ShapeyId] => a
-    }
+    val updatedEditor =
+      tracker.downElements
+        .map(_.shapey)
+        .collect {
+          case a: ShapeyEditor =>
+            group.collectFirst({ case n: ShapeyEditor if n.id == a.id => n }).toVector
+        }
+        .flatten
 
-    cc.headOption
-      .map(x => {
-        val res = group.change({
-          case a: Shapey if a.id == x.data =>
-            def getNumOr(id: ShapeyId, default: Double): Double =
-              group
-                .collect({ case b: IntField if b.id(id) => b.number.toDouble })
-                .headOption
-                .getOrElse(default)
-
-            val pos = group
-              .collectFirst({ case b: PointEdit if b.id == x.data.append("POSITION") => b.point })
-              .getOrElse(a.position)
-
-            val sx = group
-              .collectFirst({ case b: PointEdit if b.id == x.data.append("SIZE") => b.point })
-              .getOrElse(a.size)
-
-            val offset = Point(
-              getNumOr(x.data.append("OFFSET_X"), a.position.x),
-              getNumOr(x.data.append("OFFSET_Y"), a.position.y))
-
-            ((a.position(pos) match {
-              case b: SizableShapey => b.size(sx);
-              case b                => b
-            }) match {
-              case b: GenericSizable[_] =>
-                b.offset(offset);
-              case b => b
-            }) match {
-              case b: GenericGroupExternallyModifiable[_]
-                  //    if tracker.downElements.exists(y => y.shapey.id(x.data.append("WRAP")))
-                  =>
-                def getLayout(c: Layout) =
-                  group
-                    .collectFirst({
-                      case b: LayoutEdit  if b.id == x.data.append("LAYOUT_EDIT") => b.layout
-                    })
-                    .getOrElse(c)
-
-                val org: Organize = b.elementList.organize match {
-                  case c: Horizontal => c.copy(layout = getLayout(c.layout))
-                  case c: Vertical   => c.copy(layout = getLayout(c.layout))
-                  case c             => c
-                }
-                b.setElements(b.elementList.copy(organize = org))
-              case b => b
-            }
-
-          //This is noice, but updating the editor :( how?
-        })
-        res
-
-        // updateInfo(res,controlPanelElement.id, group.find(y=> y.id(x.data)))
-      })
-      .getOrElse(group)
-  }
-
-  final case class ElementInfo(
-      shapey: Shapey,
-      common: WidgetCommonInternal = WidgetCommon(margin = Box(10)).toInternal
-  )(implicit style: Style)
-      extends DynamicWidgetBase[ElementInfo]
-      with BackgroundGroupShapey {
-
-    lazy val background: SizableShapey =
-      Rect(Sizing.dynamic(this.size), looks = Looks(Color(16, 16, 16), Color.aqua, 3), zOrder = -1)
-
-    override protected def copyCommon(commonValue: WidgetCommonInternal): ElementInfo =
-      copy(common = commonValue)
-
-    def grp =
-      Vector(MultilineText(shapey.stringToWithoutChild, looks = Looks(stroke = Color.white)))
-
-    val lineOrg = Horizontal(
-      Layout(Wrap.Simple(), fill = Fill.No, alignItem = Align.SpaceBetween(Spacing.Default)))
-
-    def line(text: String, idAppend: String, value: Double, limits: Limits): Group = Group(
-      lineOrg,
-      Text(text),
-      DoubleField(value, limits, common = WidgetCommon(id = shapey.id.append(idAppend)))
-    )
-
-    override def generateElements: ElementList = {
-      val posSetter = Vector(
-        PointEdit(
-          shapey.position,
-          "Position X",
-          "Position Y",
-          common = WidgetCommonInternal(id = shapey.id.append("POSITION"))))
-
-      val sizing = shapey match {
-        case a: SizableShapey =>
-          Vector(
-            PointEdit(
-              shapey.size,
-              "Size X",
-              "Size Y",
-              Limits(a.sizing.minSize.x, a.sizing.maxSize.x),
-              Limits(a.sizing.minSize.y, a.sizing.maxSize.y),
-              WidgetCommonInternal(id = shapey.id.append("SIZE"))
-            )
-          ) ++
-            (a match {
-              case b: GenericSizable[_] =>
-                (if (b.canOffset._1)
-                   Vector(line("Offset X", "OFFSET_X", b.offset.x, Limits(0, b.diff.x)))
-                 else Vector.empty) ++
-                  (if (b.canOffset._2)
-                     Vector(line("Offset Y", "OFFSET_Y", b.offset.y, Limits(0, b.diff.y)))
-                   else Vector.empty)
-              case _ => Vector.empty
-            })
-
-        case _ => Vector.empty
-      }
-
-      val wrap = shapey match {
-        case b: GenericGroupExternallyModifiable[_] =>
-          val layout = b.elementList.organize match {
-            case Horizontal(layout1, _) => Some(layout1)
-            case Vertical(layout1, _)   => Some(layout1)
-            case _                      => None
-          }
-
-          layout match {
-            case Some(value: Layout) =>
-              Vector(LayoutEdit(value, WidgetCommonInternal(id = shapey.id.append("LAYOUT_EDIT"))))
-            case None => Vector()
-          }
-
-        case _ => Vector()
-      }
-
-      ElementList(
-        grp :+ DecoratedGroup(
-          ElementList(
-            posSetter ++ sizing ++ wrap,
-            Vertical(Layout())
-          ),
-          shapey.id
-        ),
-        Vertical(Layout(alignContent = Align.Stretch()))
-      )
-    }
-
-    override def behaviour: Behaviour[ElementInfo] = BehaviourBasic()
+    group.change({
+      case a: Shapey if updatedEditor.exists(x => x.shapey.id == a.id && x.shapey != a) =>
+        updatedEditor.find(_.shapey.id == a.id).map(_.shapey).getOrElse(a)
+    })
   }
 
   def accordCreate(shapey: Shapey)(implicit style: Style): Accord = {
@@ -243,7 +107,7 @@ object BuildContainer {
 
     Accord(
       MultilineText("ID: " + shapey.id, looks = look),
-      ElementInfo(shapey)
+      ShapeyEditor(shapey)
     )
   }
 
