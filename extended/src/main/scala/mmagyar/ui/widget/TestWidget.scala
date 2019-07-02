@@ -1,6 +1,6 @@
 package mmagyar.ui.widget
 
-import mmagyar.ihbp.{MacroTest, Widget}
+//import mmagyar.ihbp.MacroTest
 import mmagyar.ui.core.{ElementList, Text}
 import mmagyar.ui.interaction.{Behaviour, BehaviourBasic}
 import mmagyar.ui.widget.base.WidgetBase

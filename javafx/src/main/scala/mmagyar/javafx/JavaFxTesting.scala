@@ -103,9 +103,16 @@ class JavaFxTesting extends Application {
       case a: KeyEvent if a.getText == "b" =>
         benchmark()
       case a: KeyEvent if a.getText == "[" =>
-        val b = DemoScenarios.mainDemo
-        println(b)
+        //val zz = DemoScenarios.interactionDev
+        val zz = DemoScenarios.simpleGroup2
+        println(zz)
+        val abc = Document(root = Group(zz), transform = Transform(scale = Point(1, 1)), data = DataProviderMap())
 
+//        val root = document.root.change({
+//          case b: TransformGroup if b.id("AHOY") =>
+//            zz
+//        })
+        document(abc)
       case a: KeyEvent if a.getText == "r" =>
         println("RELOADING mainDemo")
         document(baseDoc)
@@ -160,7 +167,7 @@ class JavaFxTesting extends Application {
       case a: KeyEvent if a.getText == "i" =>
         writeRenderTime = !writeRenderTime
 
-      case a: KeyEvent if a.getText == "rzx" =>
+      case a: KeyEvent if a.getText == "u" =>
         val root = document.root.change({
           case b: TransformGroup if b.id("AHOY") =>
             b.copy(position = Point.zero, rotation = Degree(b.rotation.value + 5))
@@ -210,9 +217,9 @@ class JavaFxTesting extends Application {
     })
     stage.setScene(scene)
     stage.setTitle("Shapey Reference")
-    stage.setY(0)
+    //stage.setY(0)
 
-    if (System.getProperty("os.name") != "Linux") stage.setX(2890)
+    //if (System.getProperty("os.name") != "Linux") stage.setX(2890)
     //    stage.setX(1620)
     stage.show()
     //    stage.setResizable(false)

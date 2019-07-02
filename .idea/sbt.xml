@@ -4,18 +4,13 @@
     <option name="linkedExternalProjectsSettings">
       <SbtProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="jdk" value="1.8" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/core" />
-            <option value="$PROJECT_DIR$/core/project" />
             <option value="$PROJECT_DIR$/extended" />
-            <option value="$PROJECT_DIR$/extended/project" />
             <option value="$PROJECT_DIR$/javafx" />
-            <option value="$PROJECT_DIR$/javafx/project" />
             <option value="$PROJECT_DIR$/macros" />
-            <option value="$PROJECT_DIR$/macros/project" />
             <option value="$PROJECT_DIR$/project" />
           </set>
         </option>
@@ -23,7 +18,6 @@
         <option name="resolveSbtClassifiers" value="true" />
         <option name="sbtVersion" value="0.13.13" />
         <option name="useAutoImport" value="true" />
-        <option name="useOurOwnAutoImport" value="true" />
       </SbtProjectSettings>
     </option>
   </component>

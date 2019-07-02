@@ -3,13 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/core.iml" filepath="$PROJECT_DIR$/.idea/modules/core.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/core-build.iml" filepath="$PROJECT_DIR$/.idea/modules/core-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/extended.iml" filepath="$PROJECT_DIR$/.idea/modules/extended.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/extended-build.iml" filepath="$PROJECT_DIR$/.idea/modules/extended-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/javafx.iml" filepath="$PROJECT_DIR$/.idea/modules/javafx.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/javafx-build.iml" filepath="$PROJECT_DIR$/.idea/modules/javafx-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/macros.iml" filepath="$PROJECT_DIR$/.idea/modules/macros.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/macros-build.iml" filepath="$PROJECT_DIR$/.idea/modules/macros-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/shapey.iml" filepath="$PROJECT_DIR$/.idea/modules/shapey.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/shapey-build.iml" filepath="$PROJECT_DIR$/.idea/modules/shapey-build.iml" />
     </modules>
