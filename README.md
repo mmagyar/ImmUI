@@ -12,8 +12,8 @@
  
  This means that this UI library can be used anywhere where you can run scala; JVM, JS, Native
  
- #### Nothing is tied to the concept of source
- The widget graph can be rendered and any resolution without artifacts, or even rendered into non-raster formats, such as SVG or HTML. This also makes it possible, and easy to interface with existing UI libraries
+ #### Nothing is tied to the concept of pixels
+ The widget graph can be rendered at any resolution without artifacts, or even rendered into non-raster formats, such as SVG or HTML. This also makes it possible, and easy to interface with existing UI libraries
  
  #### Modularity
  The widgets and graphical primitives are in no way tied to any renderer or input method.
