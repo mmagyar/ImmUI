@@ -47,3 +47,5 @@ src/main/java/
 target/
 
 .idea/modules/
+*.class
+*.log
